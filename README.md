@@ -7,10 +7,10 @@ Digital Product Management, Group 07, EMBA 2025-27, IIM Visakhapatnam.
 ## What it does
 One user (a selective comparer), one problem (choosing among your own cards at payment is slow
 and uncertain), one use case (check a specific purchase before paying). The screens follow
-`Card_Choice_Assistant_Prototype.html`.
+`Card_Choice_Assistant_Prototype.html`, laid out as a small website (Home, Compare my cards, Supported cards, How it works, Roadmap, FAQ, About & contact).
 
-1. **Wallet:** select the supported cards you hold.
-2. **Check a purchase:** enter the amount and category (optionally, bonus already used this month).
+1. **Compare my cards** page, left side: select the supported cards you hold.
+2. Enter the amount and category (optionally, bonus already used this month). The result appears on the right.
 3. A rules engine applies each card's dated rules and ranks the cards by estimated rupee benefit.
 4. The top card, its benefit, a **Watch out** key condition and a rule-based explanation are shown.
 5. **Reword with AI** (optional) asks Gemini to reword the explanation in plain language.
@@ -28,15 +28,33 @@ Login and saved wallet, automatic monthly cap tracking, bank or transaction link
 extension, net benefit after fees, partner integration. No database; nothing is stored.
 
 ## Files
+The app is a small website: a header with a Theme switch, top navigation, pages, and a footer.
+
 | File | Purpose |
 |---|---|
-| `app.py` | Streamlit screens, theme switch |
+| `app.py` | Entrypoint: wide layout, top navigation, shared header and footer |
+| `ui.py` | Theme (Auto/Light/Dark), CSS, header, footer |
+| `results.py` | Result panel, watch-out box, explanation and AI button shared by Home and Compare |
+| `views/home.py` | Landing page with a live example |
+| `views/compare.py` | The product: pick cards, enter a purchase, see the result |
+| `views/supported_cards.py` | The card catalogue with dates and sources |
+| `views/how_it_works.py` | Rules / AI / checker explained |
+| `views/roadmap.py` | What V1 does and what is left for later |
+| `views/faq.py` | Common questions |
+| `views/about.py` | About and contact (team details are placeholders to fill in) |
 | `cards.py` | Dated catalogue of supported cards (KNOW layer). **Edit this to change cards** |
 | `rules_engine.py` | Benefit calculation, ranking, key condition (no GenAI) |
 | `explain.py` | Gemini rewording and the number checker |
 | `test_rules.py` | Hand-checked tests of rules and checker |
 | `.streamlit/config.toml` | Optional accent colour |
 
+Dummy items (Sign in, Blog, Privacy policy, Terms of use) are shown as "coming soon" and do nothing.
+
+**Phone vs desktop.** Streamlit serves one app, so there is no separate mobile site. Instead `ui.py` reads the
+browser's User-Agent (`detect_device`) and the pages switch layout: columns stack, the category picker becomes a
+dropdown, and the header and footer are compacted. CSS media queries also adapt to narrow windows. The footer has a
+**View as** switch (Auto / Mobile / Desktop) so you can preview the phone layout on a laptop. Tablets get the desktop layout.
+Keep `views/` together with `app.py` when uploading to GitHub.
 ## How to replace the sample cards
 The cards in `cards.py` are **fictional samples from the prototype**. For user testing, use real ones.
 
