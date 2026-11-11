@@ -1,196 +1,188 @@
 """Rules engine: computes the rupee benefit of each card for one purchase.
 
-No GenAI here. All numbers shown to the user come from this module.
+A Python port of the prototype's rules logic. No GenAI here. Every number shown to
+the user comes from this module.
 """
 
-from dataclasses import dataclass, field
+import math
+from dataclasses import dataclass
+
+from cards import CATEGORY_LABELS
+
+
+def rnd(x):
+    """Round half up to a whole number (matches the prototype's Math.round)."""
+    return int(math.floor(x + 0.5))
+
+
+def group(n):
+    """Indian digit grouping for a non-negative whole number: 1,20,000."""
+    s = str(int(n))
+    if len(s) > 3:
+        head, tail = s[:-3], s[-3:]
+        parts = []
+        while len(head) > 2:
+            parts.insert(0, head[-2:])
+            head = head[:-2]
+        if head:
+            parts.insert(0, head)
+        s = ",".join(parts + [tail])
+    return s
+
+
+def inr(n):
+    return "₹" + group(rnd(n))
+
+
+def pct(n):
+    return f"{round(n * 100) / 100:g}%"
+
+
+def category_label(cat):
+    return CATEGORY_LABELS[cat]
 
 
 @dataclass
-class CardResult:
-    card_id: str
-    name: str
-    benefit: float
-    reason: str
-    key_condition: str
-    condition_type: str
-    reward_type: str
-    last_verified: str
-    source: str
-    # Every number the explanation is allowed to quote.
-    facts: dict = field(default_factory=dict)
+class Result:
+    card: dict
+    category: str
+    rule: dict = None
+    code: str = ""
+    reason: str = ""
+    bonus_amt: float = 0.0
+    bonus_benefit: float = 0.0
+    base_benefit: float = 0.0
+    cap_left_before: float = None
+    cap_left_after: float = None
+    benefit: float = 0.0
+    points: float = None
 
 
-def inr(x):
-    """Format a rupee amount with Indian digit grouping, e.g. 1,20,000 or 520.50."""
-    x = round(float(x), 2)
-    whole = int(x)
-    frac = round(x - whole, 2)
-    s = str(whole)
-    if len(s) > 3:
-        head, tail = s[:-3], s[-3:]
-        groups = []
-        while len(head) > 2:
-            groups.insert(0, head[-2:])
-            head = head[:-2]
-        if head:
-            groups.insert(0, head)
-        s = ",".join(groups + [tail])
-    if frac:
-        s += f"{frac:.2f}"[1:]
-    return f"₹{s}"
+def highlight(card):
+    """One-line summary of a card's bonus rules, shown in the wallet list."""
+    parts = []
+    for cat, r in card["rules"].items():
+        s = f"{pct(r['rate'])} {category_label(cat).lower()}"
+        if r.get("cap"):
+            s += f" (cap {inr(r['cap'])}/mo)"
+        if r.get("min"):
+            s += f", min {inr(r['min'])}"
+        parts.append(s)
+    parts.append(f"{pct(card['base'])} elsewhere")
+    return " · ".join(parts)
 
 
-def pct(x):
-    """Format a percentage without trailing zeros, e.g. 5, 1.5, 0.5."""
-    return f"{round(float(x), 2):g}%"
+def evaluate(card, cat, amount, used=0.0):
+    """Apply one card's rules to one purchase. `used` is the bonus already earned this
+    month on this card's rule for this category (0 unless the user says otherwise)."""
+    rule = card["rules"].get(cat)
+    base_allowed = cat not in card["excl"]
+    base_rate = card["base"] if base_allowed else 0
+    o = Result(card=card, category=cat, rule=rule)
+    label = category_label(cat).lower()
 
-
-def evaluate_card(card, amount, category, cap_used=0.0):
-    """Apply one card's rules to one purchase and return a CardResult."""
-    unit = card["unit_value"]
-    base_pct = card["base_rate"] * unit
-    cap_used = max(float(cap_used or 0), 0.0)
-
-    facts = {"amount": amount, "base_rate_pct": base_pct}
-    if card["reward_type"] == "points":
-        facts["point_value"] = unit
-    points_note = (
-        f" Points are valued at {inr(unit)} each, which is an estimate."
-        if card["reward_type"] == "points"
-        else ""
-    )
-
-    def result(benefit, reason, condition, ctype):
-        facts["benefit"] = round(benefit, 2)
-        return CardResult(
-            card_id=card["id"],
-            name=card["name"],
-            benefit=round(benefit, 2),
-            reason=reason + points_note,
-            key_condition=condition,
-            condition_type=ctype,
-            reward_type=card["reward_type"],
-            last_verified=card["last_verified"],
-            source=card["source"],
-            facts=dict(facts),
-        )
-
-    # 1. Excluded category: no reward at all.
-    if category in card["excluded"]:
-        return result(
-            0.0,
-            f"No reward on {category}.",
-            f"{card['name']} excludes {category} purchases from rewards.",
-            "excluded",
-        )
-
-    base_benefit = amount * base_pct / 100
-    rule = card["rules"].get(category)
-
-    # 2. No category bonus: base rate only.
-    if rule is None:
-        return result(
-            base_benefit,
-            f"{pct(base_pct)} base rate; no {category} bonus.",
-            "No category bonus applies, so only the base rate is earned.",
-            "base",
-        )
-
-    bonus_pct = max(rule["rate"] * unit, base_pct)
-    cap = rule["monthly_cap"]
-    min_p = rule["min_purchase"]
-    max_p = rule["max_purchase"]
-    facts["bonus_rate_pct"] = bonus_pct
-    if cap is not None:
-        facts["monthly_cap"] = cap
-        facts["cap_used"] = cap_used
-    if min_p is not None:
-        facts["min_purchase"] = min_p
-    if max_p is not None:
-        facts["max_purchase"] = max_p
-
-    # 3. Below the minimum purchase: bonus does not apply.
-    if min_p is not None and amount < min_p:
-        return result(
-            base_benefit,
-            f"Below the {inr(min_p)} minimum for the {pct(bonus_pct)} bonus; "
-            f"{pct(base_pct)} base rate applies.",
-            f"The {pct(bonus_pct)} bonus needs a purchase of at least {inr(min_p)}.",
-            "below_min",
-        )
-
-    eligible = min(amount, max_p) if max_p is not None else amount
-    remaining = max(cap - cap_used, 0.0) if cap is not None else None
-    facts["eligible_amount"] = eligible
-
-    # 4. Monthly bonus cap already used up.
-    if remaining is not None and remaining == 0:
-        facts["cap_remaining"] = 0
-        return result(
-            base_benefit,
-            f"Monthly bonus cap already used; {pct(base_pct)} base rate applies.",
-            f"The {inr(cap)} monthly bonus cap is used up, so only the base rate is earned.",
-            "cap_exhausted",
-        )
-
-    # Bonus portion: the bonus rate replaces the base rate on the covered amount.
-    covered = eligible
-    if remaining is not None:
-        covered = min(eligible, remaining * 100 / bonus_pct)
-    bonus_part = covered * bonus_pct / 100
-    base_part = (amount - covered) * base_pct / 100
-    total = bonus_part + base_part
-    covered = round(covered, 2)
-    facts["covered_amount"] = covered
-    facts["bonus_part"] = round(bonus_part, 2)
-    facts["base_part"] = round(base_part, 2)
-    if remaining is not None:
-        facts["cap_remaining"] = remaining
-
-    # 5. Cap reached part-way through this purchase.
-    if remaining is not None and covered < eligible:
-        return result(
-            total,
-            f"{pct(bonus_pct)} on the first {inr(covered)} (cap reached), "
-            f"{pct(base_pct)} on the rest.",
-            f"The {pct(bonus_pct)} bonus is capped at {inr(cap)} a month, so it covers "
-            f"only the first {inr(covered)} of this purchase.",
-            "cap_hit",
-        )
-
-    # 6. Per-purchase limit on the bonus.
-    if eligible < amount:
-        return result(
-            total,
-            f"{pct(bonus_pct)} on the first {inr(eligible)}, {pct(base_pct)} on the rest.",
-            f"The bonus applies to at most {inr(max_p)} per purchase.",
-            "max_purchase",
-        )
-
-    # 7. Full bonus earned.
-    if remaining is not None:
-        left = round(remaining - bonus_part, 2)
-        facts["cap_left_after"] = left
-        condition = (
-            f"The bonus is capped at {inr(cap)} a month; {inr(left)} of it would be "
-            f"left after this purchase."
-        )
+    if rule:
+        if rule.get("min") and amount < rule["min"]:
+            o.code = "below-min"
+            o.reason = f"Bonus needs {inr(rule['min'])}+ per purchase"
+            o.base_benefit = amount * base_rate / 100
+        else:
+            eligible = amount
+            if rule.get("max") and amount > rule["max"]:
+                eligible = rule["max"]
+                o.code = "above-max"
+                o.reason = f"Bonus covers the first {inr(rule['max'])} of a purchase"
+            if rule.get("cap"):
+                left = max(0.0, rule["cap"] - used)
+                max_amt = left * 100 / rule["rate"]
+                if max_amt < eligible:
+                    eligible = max_amt
+                    o.code = "cap-exhausted" if left <= 0 else "cap-hit"
+                    if left <= 0:
+                        o.reason = f"Monthly cap of {inr(rule['cap'])} already used"
+                    elif used > 0:
+                        o.reason = f"Only {inr(left)} of bonus left this month"
+                    else:
+                        o.reason = f"Bonus capped at {inr(rule['cap'])} a month"
+                o.cap_left_before = left
+            o.bonus_amt = eligible
+            o.bonus_benefit = eligible * rule["rate"] / 100
+            o.base_benefit = (amount - eligible) * base_rate / 100
+            if rule.get("cap"):
+                o.cap_left_after = max(0.0, o.cap_left_before - o.bonus_benefit)
+            if not o.code:
+                o.code = "bonus"
+                o.reason = f"{pct(rule['rate'])} on {label}"
+    elif not base_allowed:
+        o.code = "excluded"
+        o.reason = card["excl"][cat]
     else:
-        condition = "No cap or minimum applies to this bonus."
-    return result(
-        total,
-        f"{pct(bonus_pct)} bonus on the full amount.",
-        condition,
-        "full_bonus",
+        o.base_benefit = amount * base_rate / 100
+        o.code = "base"
+        o.reason = f"{pct(base_rate)} flat rate"
+
+    o.benefit = round(o.bonus_benefit + o.base_benefit, 2)
+    if card.get("point_value"):
+        o.points = o.benefit / card["point_value"]
+    return o
+
+
+def rank(cards, cat, amount, used_by_card=None):
+    """Best benefit first. Exact ties go to the lower annual fee, then the name."""
+    used_by_card = used_by_card or {}
+    results = [evaluate(c, cat, amount, used_by_card.get(c["id"], 0)) for c in cards]
+    results.sort(key=lambda r: (-r.benefit, r.card["fee"], r.card["name"]))
+    return results
+
+
+def key_condition(r):
+    """The one condition worth reading before paying, chosen by priority."""
+    rule, c = r.rule, r.card
+    earns_base = r.base_benefit > 0
+    rest = pct(c["base"]) if earns_base else "nothing"
+    flat = f"only the flat {pct(c['base'])} applies" if earns_base else "no reward applies"
+    if r.code == "cap-hit":
+        return (
+            f"Monthly cap: only the first {inr(r.bonus_amt)} of this purchase earns "
+            f"{pct(rule['rate'])}. The rest earns {rest}."
+        )
+    if r.code == "above-max":
+        return f"{r.reason}. The rest earns {rest}."
+    if r.code in ("below-min", "cap-exhausted"):
+        return f"{r.reason}, so {flat}."
+    if r.code == "bonus" and rule.get("cap"):
+        return (
+            f"Monthly cap {inr(rule['cap'])} on this bonus. "
+            f"{inr(r.cap_left_after)} will be left after this purchase."
+        )
+    if r.code == "bonus" and rule.get("min"):
+        return f"The bonus applies to purchases of {inr(rule['min'])} or more."
+    if r.code == "bonus":
+        return "No monthly cap on this category."
+    excluded = [category_label(k).lower() for k in c["excl"]]
+    text = "Flat rate with no monthly cap."
+    if excluded:
+        text += f" Not earned on {' and '.join(excluded)}."
+    return text
+
+
+def template_explain(win, second, amount, cat):
+    """Plain explanation built only from the rules output (the default text)."""
+    s = (
+        f"Use {win.card['name']} for this {inr(amount)} {category_label(cat).lower()} "
+        f"purchase. You should earn about {inr(win.benefit)}"
     )
-
-
-def evaluate_all(cards, amount, category, cap_used_by_card=None):
-    """Return results for the given cards, best benefit first."""
-    cap_used_by_card = cap_used_by_card or {}
-    results = [
-        evaluate_card(c, amount, category, cap_used_by_card.get(c["id"], 0.0))
-        for c in cards
-    ]
-    return sorted(results, key=lambda r: (-r.benefit, r.name))
+    if win.card.get("point_value"):
+        s += f" ({group(rnd(win.points))} points at ₹{win.card['point_value']:g} each)"
+    s += "."
+    if second:
+        if abs(second.benefit - win.benefit) < 0.005:
+            s += f" {second.card['name']} earns the same, so the two tie."
+            if win.card["fee"] < second.card["fee"]:
+                s += " This one is listed first for its lower annual fee."
+        else:
+            s += (
+                f" That is {inr(win.benefit - second.benefit)} more than "
+                f"{second.card['name']}, your next best card."
+            )
+    return s + " " + key_condition(win)
