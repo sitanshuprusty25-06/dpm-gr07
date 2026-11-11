@@ -85,7 +85,7 @@ def validate(text, payload):
         return False
     # Reject other standalone numeric statements in the model's text,
     # e.g. a hallucinated 10% rate or a misleading 5-day promotion.
-    stripped = re.sub(r"₹\\s*[0-9][0-9,]*(?:\\.[0-9]+)?", "", text)
+    stripped = re.sub(r"₹\s*[0-9][0-9,]*(?:\.[0-9]+)?", "", text)
     return not bool(NUMBER_RE.search(stripped))
 
 def _call_gemini(prompt, api_key, model):
