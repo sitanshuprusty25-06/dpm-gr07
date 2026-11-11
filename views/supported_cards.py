@@ -26,7 +26,8 @@ if not shown:
     st.markdown('<div class="cca-empty">No supported card has a bonus in this category yet.</div>',
                 unsafe_allow_html=True)
 
-cols = [st.container()] * 3 if is_mobile() else grid(3)
+NCOLS = 1 if is_mobile() else 4
+cols = [st.container()] * NCOLS if is_mobile() else grid(NCOLS)
 for i, c in enumerate(shown):
     items = []
     for cat, r in c["rules"].items():
@@ -43,17 +44,17 @@ for i, c in enumerate(shown):
         names = ", ".join(category_label(k).lower() for k in c["excl"])
         items.append(f"<li>No reward on {html.escape(names)}</li>")
     fee = "No annual fee" if c["fee"] == 0 else f"Annual fee {inr(c['fee'])}"
-    cols[i % 3].markdown(
+    cols[i % NCOLS].markdown(
         '<div class="cca-card">'
         f'<div class="cca-chiprow"><span class="cca-swatch" style="background:{c["hue"]}"></span>'
         f'<div><div class="cca-cn">{html.escape(c["name"])}</div>'
         f'<div class="cca-cs">{html.escape(c["issuer"])} · {fee}</div></div></div>'
         f'<ul>{"".join(items)}</ul>'
-        f'<p style="margin-top:10px;font-size:.8rem">Checked {c["last_verified"]}. '
+        f'<p style="margin-top:10px;font-size:.88rem">Checked {c["last_verified"]}. '
         f'{html.escape(c["source"])}</p></div>',
         unsafe_allow_html=True,
     )
-    cols[i % 3].write("")
+    cols[i % NCOLS].write("")
 
 st.markdown("### Missing a card?")
 st.write(

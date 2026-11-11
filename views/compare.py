@@ -35,7 +35,7 @@ if mobile:
     left = st.container()
     right = st.container()
 else:
-    left, right = st.columns([5, 6], gap="large")
+    left, right = st.columns([1, 1], gap="large")
 
 with left:
     with st.container(border=True):
@@ -56,7 +56,7 @@ with left:
     with st.container(border=True):
         st.markdown("**2. What are you buying?**")
         st.caption("Try an example")
-        ex_cols = st.columns(2) if mobile else st.columns(4)
+        ex_cols = st.columns(2)
         examples = [("₹8,000 travel", 8000, "travel"), ("₹12,000 online", 12000, "shopping"),
                     ("₹800 dining", 800, "dining"), ("₹3,000 fuel", 3000, "fuel")]
         for i, (lbl, amt, ex_cat) in enumerate(examples):
