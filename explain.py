@@ -15,8 +15,9 @@ NUMBER_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")
 SYSTEM_PROMPT = (
     "You explain a credit card recommendation to a shopper in 2 or 3 short, plain "
     "sentences. Use ONLY the facts in the JSON. Do not calculate anything yourself. "
-    "Every number you write must appear in the JSON exactly as given; write no other "
-    "digits (no dates, counts or ordinals). Use the recommended card's name exactly as "
+    "Include the exact estimated cashback in rupees only once; do not write any "
+    "other amounts, percentages, dates, numbers or ordinals. The full condition is "
+    "displayed separately by the rules engine. Use the recommended card's name exactly as "
     "given. Call the figure an estimate. Say why this card gives the most benefit among "
     "the cards the shopper selected, and state its key condition. Do not claim it is the "
     "best card overall. Do not give general financial advice. Plain text only: no "
@@ -64,21 +65,28 @@ def numbers_in(text):
 
 
 def validate(text, payload):
-    """True only if the text names the recommended card and every number in it appears
-    in the payload."""
-    allowed = numbers_in(json.dumps(payload, ensure_ascii=False))
-    actual = payload["recommended"]["benefit_inr"]
-    # A cap or purchase amount is not interchangeable with the computed benefit.
-    numeric_values = numbers_in(text)
-    if not any(abs(n - actual) < 0.005 for n in numeric_values):
-        return False
-    if not (f"₹{actual}" in text or f"₹{actual:,}" in text):
-        return False
-    for n in numeric_values:
-        if not any(abs(n - a) < 0.005 for a in allowed):
-            return False
-    return payload["recommended"]["card"] in text
+    """Restrict the model to the exact recommended card and one exact benefit amount.
 
+    Matching a *different* number in the JSON (e.g. the monthly cap or the
+    purchase amount) must never validate a mistaken cashback claim.
+    Full conditions are shown separately using deterministic rules text.
+    """
+    expected_card = payload["recommended"]["card"]
+    expected_benefit = payload["recommended"]["benefit_inr"]
+    if expected_card not in text:
+        return False
+    # Extract complete currency amounts. Prefix matches such as ₹800 in ₹8000
+    # are intentionally not accepted.
+    money = re.findall(r"₹\\s*([0-9][0-9,]*(?:\\.[0-9]+)?)", text)
+    if len(money) != 1:
+        return False
+    value = float(money[0].replace(",", ""))
+    if abs(value - expected_benefit) > 0.005:
+        return False
+    # Reject other standalone numeric statements in the model's text,
+    # e.g. a hallucinated 10% rate or a misleading 5-day promotion.
+    stripped = re.sub(r"₹\\s*[0-9][0-9,]*(?:\\.[0-9]+)?", "", text)
+    return not bool(NUMBER_RE.search(stripped))
 
 def _call_gemini(prompt, api_key, model):
     from google import genai
