@@ -1,36 +1,16 @@
-"""FAQ: honest answers to the questions a first-time visitor will have."""
-
+"""Scope, privacy and reward FAQ."""
 import streamlit as st
-
 st.markdown("## Frequently asked questions")
-
-faqs = [
-    ("Who is this for?",
-     "People who hold more than one credit card and want to be sure they are using the right one "
-     "for a particular purchase. It is for individuals checking their own cards. It is not a tool "
-     "for banks or merchants."),
-    ("Do you need my card number?",
-     "No. You only pick the card names you hold. The app never asks for a card number, expiry date or CVV."),
-    ("Is the answer a guarantee?",
-     "No. The figure is an estimate based on the card terms we have on file and the date they were checked. "
-     "Issuers change terms, and some conditions (such as merchant codes) cannot be known in advance."),
-    ("Which cards are supported?",
-     "Only the cards on the Supported cards page. Cards outside that list are not compared."),
-    ("Can a bank or merchant pay to be ranked higher?",
-     "No. Only the cards you say you hold are ranked, purely by estimated rupee benefit. "
-     "Exact ties go to the card with the lower annual fee."),
-    ("What does the AI do?",
-     "Only rewords. The rules engine does all the calculating and ranking. If you ask for AI wording, "
-     "every number in it is checked against the rules output. If anything differs, you see the "
-     "rule-based explanation instead."),
-    ("Does it track my monthly spending?",
-     "Not in V1. If you already used part of a monthly bonus cap, you can enter that amount yourself. "
-     "Automatic tracking is on the roadmap."),
-    ("Is my data stored?",
-     "No. Nothing you enter is saved. Your choices are kept only while your browser tab stays open."),
-    ("I think a card's terms are wrong. What do I do?",
-     "Use the contact details on the About page. A one-click “Report wrong info” flow is planned."),
+questions=[
+("Do you need my card number?","No. Select issuer card names only. We never request CVV, expiry, OTP, PIN or bank credentials."),
+("Does the application save my wallet?","No accounts or persistent wallet are created. Selections and inputs remain in temporary Streamlit session state while you use the app."),
+("Does Gemini receive my data?","Only if you click the Gemini rewording button. It receives selected card names and computed purchase facts needed to form an explanation. Check the provider's data-handling terms."),
+("Are rewards guaranteed?","No. Card terms and merchant MCC classifications can change. Rewards shown are conditional estimates using dated official issuer source material."),
+("Why do you sometimes decline to recommend a card?","When eligibility or post-cap reward treatment is unresolved, showing a definitive winner would be misleading."),
+("What does 'already earned cashback' mean?","For SBI, it is the cashback already earned in the selected online/offline channel during the current statement cycle. For HSBC, enter the accelerated cashback already earned across ALL boosted categories this billing cycle."),
+("Does the app track spending?","No. Previous eligible rewards have to be entered manually; leaving the field at zero assumes the relevant cycle cap has not been used."),
+("What is GenAI used for?","Gemini only rephrases computed results. The rules engine makes the financial calculation and ranking; a failed AI call falls back to the deterministic explanation."),
+("What is excluded from this comparison?","EMI, international transactions, unsupported categories, some merchant MCCs, transaction fees and issuer promotions not encoded in the catalogue."),
 ]
-for q, a in faqs:
-    with st.expander(q):
-        st.write(a)
+for q,a in questions:
+    with st.expander(q):st.write(a)

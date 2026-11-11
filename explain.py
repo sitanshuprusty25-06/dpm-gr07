@@ -67,7 +67,14 @@ def validate(text, payload):
     """True only if the text names the recommended card and every number in it appears
     in the payload."""
     allowed = numbers_in(json.dumps(payload, ensure_ascii=False))
-    for n in numbers_in(text):
+    actual = payload["recommended"]["benefit_inr"]
+    # A cap or purchase amount is not interchangeable with the computed benefit.
+    numeric_values = numbers_in(text)
+    if not any(abs(n - actual) < 0.005 for n in numeric_values):
+        return False
+    if not (f"₹{actual}" in text or f"₹{actual:,}" in text):
+        return False
+    for n in numeric_values:
         if not any(abs(n - a) < 0.005 for a in allowed):
             return False
     return payload["recommended"]["card"] in text

@@ -1,101 +1,46 @@
-# GenAI Card Choice Assistant (V1)
+# GenAI Card Choice Assistant — Group 07
 
-Digital Product Management, Group 07, EMBA 2025-27, IIM Visakhapatnam.
+IIM Visakhapatnam, EMBA 2025–27, Digital Product Management.
 
-**Live app:** _paste your Streamlit Cloud URL here_
+**Working application:** https://dpm-gr07-vhiacq5l6mcewqexuxwvl2.streamlit.app/
 
-## What it does
-One user (a selective comparer), one problem (choosing among your own cards at payment is slow
-and uncertain), one use case (check a specific purchase before paying). The screens follow
-`Card_Choice_Assistant_Prototype.html`, laid out as a small website (Home, Compare my cards, Supported cards, How it works, Roadmap, FAQ, About & contact).
+**Repository:** https://github.com/sitanshuprusty25-06/dpm-gr07
 
-1. **Compare my cards** page, left side: select the supported cards you hold.
-2. Enter the amount and category (optionally, bonus already used this month). The result appears on the right.
-3. A rules engine applies each card's dated rules and ranks the cards by estimated rupee benefit.
-4. The top card, its benefit, a **Watch out** key condition and a rule-based explanation are shown.
-5. **Reword with AI** (optional) asks Gemini to reword the explanation in plain language.
+## Scope and use
+One user (a multi-card selective comparer), one problem (choosing a card for one purchase), one workflow (select cards → enter purchase amount, category and online/offline context → apply issuer rules → read conditional comparison → optional Gemini rewording).
 
-A **Theme** switch at the top gives Auto (follows your device), Light and Dark.
+- The application is **stateless with respect to permanent user storage**. Streamlit temporarily holds user inputs in session state. No login, database or transaction linking.
+- `card_catalog/` is **persistent reference data**, with issuer terms, source links, review dates and caveats. It is not user data.
+- The first real issuer products are **CASHBACK SBI Card** and **HSBC Live+ Credit Card**. Read their `card_catalog/source_notes/` before changing the rules.
+- Merchant MCCs are generally unknown at checkout; results are estimates. HSBC boosted categories are sometimes intentionally marked **not comparable** when eligibility or after-cap cashback is unresolved. This protects users against false precision.
+- Only domestic, non-EMI transactions in the supported categories are considered. Transaction fees, interest, international charges and most promotional offers are out of scope.
 
-## How GenAI is used (one capability)
-GenAI only rewords. It does not calculate, rank or recommend. The default explanation is built
-from the rules. When the user clicks **Reword with AI**, Gemini receives only the computed facts.
-A checker requires the card's name and that every number in the AI text appears in those facts.
-On any mismatch, error or missing API key, the rule-based explanation stays and the screen says why.
+## Main files
+- `card_catalog/cards.json` — structured card data; `source_register.csv` and `source_notes/` record evidence
+- `cards.py` — load read-only issuer reference data
+- `rules_engine.py` — deterministic cashback, exclusions, caps and rankings
+- `views/compare.py` — session-only inputs, optional prior-cap usage, comparison form
+- `results.py` — conditional recommendation / uncertainty output
+- `explain.py` — Gemini rewording (optional), numerical/card-name checks and fallback
+- `test_rules.py` — hand-checked issuer examples and validation tests
+- `app.py` — Streamlit top navigation and other pages
 
-## Not in V1 (see PRD roadmap)
-Login and saved wallet, automatic monthly cap tracking, bank or transaction linking, browser
-extension, net benefit after fees, partner integration. No database; nothing is stored.
-
-## Files
-The app is a small website: a header with a Theme switch, top navigation, pages, and a footer.
-
-| File | Purpose |
-|---|---|
-| `app.py` | Entrypoint: wide layout, top navigation, shared header and footer |
-| `ui.py` | Theme (Auto/Light/Dark), CSS, header, footer |
-| `results.py` | Result panel, watch-out box, explanation and AI button shared by Home and Compare |
-| `views/home.py` | Landing page with a live example |
-| `views/compare.py` | The product: pick cards, enter a purchase, see the result |
-| `views/supported_cards.py` | The card catalogue with dates and sources |
-| `views/how_it_works.py` | Rules / AI / checker explained |
-| `views/roadmap.py` | What V1 does and what is left for later |
-| `views/faq.py` | Common questions |
-| `views/about.py` | About and contact (team details are placeholders to fill in) |
-| `cards.py` | Dated catalogue of supported cards (KNOW layer). **Edit this to change cards** |
-| `rules_engine.py` | Benefit calculation, ranking, key condition (no GenAI) |
-| `explain.py` | Gemini rewording and the number checker |
-| `test_rules.py` | Hand-checked tests of rules and checker |
-| `.streamlit/config.toml` | Optional accent colour |
-
-Dummy items (Sign in, Blog, Privacy policy, Terms of use) are shown as "coming soon" and do nothing.
-
-**Phone vs desktop.** Streamlit serves one app, so there is no separate mobile site. Instead `ui.py` reads the
-browser's User-Agent (`detect_device`) and the pages switch layout: columns stack, the category picker becomes a
-dropdown, and the header and footer are compacted. CSS media queries also adapt to narrow windows. The footer has a
-**View as** switch (Auto / Mobile / Desktop) so you can preview the phone layout on a laptop. Tablets get the desktop layout.
-Keep `views/` together with `app.py` when uploading to GitHub.
-## How to replace the sample cards
-The cards in `cards.py` are **fictional samples from the prototype**. For user testing, use real ones.
-
-1. Pick 5 to 8 real cards your interviewees actually hold. Open each issuer's official
-   "Most Important Terms and Conditions" or rewards page. Note the page link and today's date.
-2. For each card, in `cards.py`, copy one `{ ... }` block in `CARDS` and edit:
-   - `id` (short, no spaces), `name`, `issuer`, `chip` (a coloured-square emoji), `hue` (hex colour), `fee` (annual fee).
-   - `base`: reward as a percent of spend on ordinary purchases. Convert points to rupees first:
-     rupees per point x points per Rs 100 = percent. Example: 4 points per Rs 150 at Rs 0.25 per point
-     is about 0.67%. Set `point_value` only if you want points shown.
-   - `rules`: one entry per bonus category, for example `"dining": {"rate": 5, "cap": 500}`.
-     `rate` is a percent. `cap` is the most bonus in rupees per month. `min` is the smallest purchase that earns
-     the bonus. `max` is the largest part of one purchase that earns it. Leave out any that do not apply.
-   - `excl`: categories with no reward, with the reason, for example `"fuel": "No rewards on fuel"`.
-   - `last_verified` (today's date) and `source` (the link you used).
-3. Category ids you can use: `dining, groceries, travel, shopping, fuel, bills, entertainment, other`.
-   To add one, add a line to `CATEGORIES` in `cards.py`.
-4. Set `SAMPLE_DATA = False` (removes the "sample data" labels) and set `DEFAULT_WALLET = []`
-   so testers choose their own cards.
-5. Run `python -m unittest -v`. The tests in `test_rules.py` that name the sample cards will fail once the
-   samples are gone. Update them to your real cards or delete them. `test_every_rule_category_exists`
-   should keep passing: it catches mistyped category ids.
-6. Commit to GitHub. Streamlit Cloud redeploys automatically.
-
-Do not claim exact rewards: card terms change, and the app shows the verification date for this reason.
-
-## Run locally
-```
-python -m venv .venv
-.venv\Scripts\activate          # Windows
-pip install -r requirements.txt
-copy .streamlit\secrets.toml.example .streamlit\secrets.toml   # then add your Gemini key
+## Install, test, launch locally
+```bash
+python -m pip install -r requirements.txt
+python -m unittest -v
 streamlit run app.py
-python -m unittest -v            # run the tests
 ```
 
-## Deploy
-Streamlit Community Cloud, main file `app.py`. To switch on AI rewording, add `GEMINI_API_KEY`
-under App settings > Secrets. The app works without it (rule-based explanation only).
-Optional secret `FEEDBACK_URL` (for example a Google Form link) adds a "Report wrong info" button.
+## Streamlit deployment and secrets
+Deploy from the `main` branch using `app.py`. Streamlit Cloud will redeploy after commits.
 
-## AI use disclosure
-_Team to complete: which AI tools were used (for example, to help write this code), for what,
-and what the team verified itself. Required by the project guidelines._
+To enable optional Gemini output, put `GEMINI_API_KEY` into the app's **Streamlit Cloud Secrets** (not into GitHub). The fallback works without Gemini. `.gitignore` excludes `.streamlit/secrets.toml` and `.env`.
+
+## Update card terms safely
+Check current issuer FAQs and full card T&Cs. Document the MCC, cap period, prior cashback usage, reward after cap and exclusions. Update `card_catalog/cards.json` and its source note, write a regression test, run tests, then commit.
+
+The official issuer documents were reviewed on 2026-11-12 for this draft. **Group 07 must independently check accuracy and any changes before submitting.** Never present sample estimates as guaranteed financial returns.
+
+## Course AI-use disclosure
+The course permits assistance with Phase-2 coding under its rules. The team must document the AI tools used and personally verify and explain the code. **Do not submit AI-generated report/PRD text, images or tables unless the instructor expressly permits them.**

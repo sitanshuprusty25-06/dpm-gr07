@@ -1,0 +1,3 @@
+card_id,card_name,issuer,source,reviewed_on,status,main_limitation
+sbi_cashback,CASHBACK SBI Card,SBI Card,https://www.sbicard.com/en/faq/cashback-sbi-card-faq.page,2026-11-12,issuer-sources-reviewed-team-recheck-required,"Separate online/offline statement-cycle caps; eligibility depends on MCC"
+hsbc_live_plus,HSBC Live+ Credit Card,HSBC India,https://www.hsbc.co.in/content/dam/hsbc/in/documents/credit-cards/live-plus-credit-card-services-guide.pdf,2026-11-12,issuer-sources-reviewed-team-recheck-required,"Shared boosted cashback cap; merchant MCC and after-cap ambiguity"

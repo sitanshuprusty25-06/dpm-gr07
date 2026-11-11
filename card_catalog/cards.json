@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "source_reviewed_on": "2026-11-12",
+  "scope": "Domestic, non-EMI, supported purchase categories. Indicative cashback subject to merchant MCC and issuers' actual terms.",
+  "categories": [
+    {
+      "id": "dining",
+      "label": "Dining / food delivery"
+    },
+    {
+      "id": "groceries",
+      "label": "Groceries"
+    },
+    {
+      "id": "shopping",
+      "label": "Shopping (merchant confirmation needed)"
+    },
+    {
+      "id": "hotel",
+      "label": "Hotel stays"
+    },
+    {
+      "id": "cinema",
+      "label": "Cinema (not gaming)"
+    },
+    {
+      "id": "utilities",
+      "label": "Utility bills (MCC may vary)"
+    },
+    {
+      "id": "fuel",
+      "label": "Fuel"
+    }
+  ],
+  "cards": [
+    {
+      "id": "sbi_cashback",
+      "name": "CASHBACK SBI Card",
+      "issuer": "SBI Card",
+      "chip": "🟦",
+      "hue": "#285B77",
+      "fee": 999,
+      "base": 0,
+      "model": "channel_capped",
+      "point_value": null,
+      "rules": {},
+      "channel_rules": {
+        "online": {
+          "rate": 5,
+          "cap": 2000
+        },
+        "offline": {
+          "rate": 1,
+          "cap": 2000
+        }
+      },
+      "excl": {
+        "fuel": "No card cashback on fuel purchases (fuel surcharge waiver is not included).",
+        "utilities": "No card cashback on utility payments."
+      },
+      "caveat": "Other exclusions include insurance, rent, wallets, education, jewellery, railways, government spends, gaming, tolls and EMI transactions. Merchant MCC classification determines eligibility.",
+      "period": "statement cycle",
+      "last_verified": "2026-11-12",
+      "source": "https://www.sbicard.com/en/faq/cashback-sbi-card-faq.page",
+      "sources": [
+        "https://www.sbicard.com/en/faq/cashback-sbi-card-faq.page",
+        "https://www.sbicard.com/en/personal/credit-cards/cashback-sbi-card.html",
+        "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/cashback-revised.pdf"
+      ],
+      "review_note": "Reviewed against issuer FAQ, product description and revision effective 1 April 2026; student team should independently reconfirm before assessed submission."
+    },
+    {
+      "id": "hsbc_live_plus",
+      "name": "HSBC Live+ Credit Card",
+      "issuer": "HSBC India",
+      "chip": "🟩",
+      "hue": "#3B766F",
+      "fee": 999,
+      "base": 1.5,
+      "model": "shared_category_cap",
+      "point_value": null,
+      "rules": {
+        "dining": {
+          "rate": 10,
+          "cap": 1200
+        },
+        "groceries": {
+          "rate": 10,
+          "cap": 1200
+        },
+        "shopping": {
+          "rate": 10,
+          "cap": 1200
+        },
+        "utilities": {
+          "rate": 10,
+          "cap": 1200
+        }
+      },
+      "excl": {
+        "fuel": "No regular cashback on fuel transactions; conditional fuel promotions are excluded."
+      },
+      "caveat": "The ₹1,200 accelerated cap is shared across eligible categories each billing cycle. Merchant MCC governs eligibility. Shopping on Amazon, Flipkart and Myntra earns 1.5%, not 10%. Some utility MCCs earn 0%. The fallback on accelerated spend after the shared cap is not established in this catalogue.",
+      "period": "billing cycle",
+      "last_verified": "2026-11-12",
+      "source": "https://www.hsbc.co.in/content/dam/hsbc/in/documents/credit-cards/live-plus-credit-card-services-guide.pdf",
+      "sources": [
+        "https://www.hsbc.bank.in/credit-cards/products/live-plus/",
+        "https://www.hsbc.co.in/content/dam/hsbc/in/documents/credit-cards/live-plus-credit-card-services-guide.pdf"
+      ],
+      "review_note": "Reviewed against issuer India Live+ page and service guide. Merchant MCC determines boosted or excluded reward. Student team should reconfirm current conditions before submission."
+    }
+  ]
+}
