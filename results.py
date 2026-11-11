@@ -90,12 +90,12 @@ def render_result(L):
     draw_explanation()
     if st.button("Reword with AI", key="ai_btn"):
         with st.spinner("Rewording..."):
-            text, status = ai_reword(
+            text, status, detail = ai_reword(
                 win, second, amount, cat,
                 api_key=get_secret("GEMINI_API_KEY"),
                 model=get_secret("GEMINI_MODEL", "gemini-2.5-flash"),
             )
-        L["ai_text"], L["ai_status"] = text, status
+        L["ai_text"], L["ai_status"], L["ai_detail"] = text, status, detail
         draw_explanation()
     notes = {
         "no_key": "AI rewording is not set up in this deployment (no Gemini key). The rule-based explanation stays.",
@@ -104,6 +104,8 @@ def render_result(L):
     }
     if L.get("ai_status") in notes:
         st.caption(notes[L["ai_status"]])
+        if L.get("ai_status") == "error" and L.get("ai_detail"):
+            st.caption("Reason: " + L["ai_detail"])
 
     st.markdown("**All your cards**")
     st.markdown(others_html(ranked, True), unsafe_allow_html=True)

@@ -90,17 +90,38 @@ def _call_gemini(prompt, api_key, model):
     return (resp.text or "").strip()
 
 
+def _hint(e, api_key):
+    """A short, key-free description of why the call failed, plus what to try."""
+    msg = str(e).replace(api_key, "***")[:300]
+    low = msg.lower()
+    if isinstance(e, ImportError):
+        advice = "The google-genai package is not installed. Check requirements.txt and reboot the app."
+    elif "api key" in low or "api_key_invalid" in low or "401" in low or "403" in low or "permission" in low:
+        advice = "Google rejected the key. Check it was copied fully, has no spaces, and is enabled."
+    elif "429" in low or "quota" in low or "resource_exhausted" in low or "rate" in low:
+        advice = "Rate or quota limit reached. Wait a minute and try again."
+    elif "404" in low or "not found" in low or "model" in low:
+        advice = "The model name was not accepted. Add GEMINI_MODEL = \"gemini-2.0-flash\" to Secrets."
+    elif "location" in low or "not supported" in low:
+        advice = "Gemini API may not be available for this key or region."
+    else:
+        advice = "See Manage app logs for details."
+    return f"{type(e).__name__}: {msg}. {advice}"
+
+
 def ai_reword(win, second, amount, cat, api_key, model="gemini-2.5-flash"):
-    """Return (text, status). status is "ok", "no_key", "error" or "mismatch".
-    text is None unless status is "ok"."""
+    """Return (text, status, detail). status is "ok", "no_key", "error" or "mismatch".
+    text is None unless status is "ok". detail explains an "error" (never contains the key)."""
     if not api_key:
-        return None, "no_key"
+        return None, "no_key", ""
+    api_key = str(api_key).strip()
     payload = build_payload(win, second, amount, cat)
     try:
         text = _call_gemini(json.dumps(payload, ensure_ascii=False, indent=2), api_key, model)
-    except Exception as e:  # shown in the Streamlit "Manage app" logs for debugging
-        print(f"Gemini call failed: {type(e).__name__}: {str(e)[:200]}")
-        return None, "error"
+    except Exception as e:
+        detail = _hint(e, api_key)
+        print(f"Gemini call failed: {detail}")  # also in the Streamlit "Manage app" logs
+        return None, "error", detail
     if text and validate(text, payload):
-        return text, "ok"
-    return None, "mismatch"
+        return text, "ok", ""
+    return None, "mismatch", ""
