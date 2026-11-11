@@ -77,7 +77,7 @@ def validate(text, payload):
         return False
     # Extract complete currency amounts. Prefix matches such as ₹800 in ₹8000
     # are intentionally not accepted.
-    money = re.findall(r"₹\\s*([0-9][0-9,]*(?:\\.[0-9]+)?)", text)
+    money = re.findall(r"₹\s*([0-9][0-9,]*(?:\.[0-9]+)?)", text)
     if len(money) != 1:
         return False
     value = float(money[0].replace(",", ""))
