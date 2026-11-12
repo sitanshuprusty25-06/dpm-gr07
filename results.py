@@ -48,7 +48,7 @@ def panel_html(win,second,amount,cat):
 
 def render_result(L):
     ranked,win,second,amount,cat=(L["ranked"],L["win"],L["second"],L["amount"],L["cat"])
-    st.markdown("".join(f\'<span class="fin-pill">{html.escape(str(x))}</span>\' for x in [category_label(cat),L.get("channel",""),L.get("merchant_label","")] if x),unsafe_allow_html=True)
+    st.markdown("".join(f'<span class="fin-pill">{html.escape(str(x))}</span>' for x in [category_label(cat),L.get("channel",""),L.get("merchant_label","")] if x),unsafe_allow_html=True)
     if L.get("cap_assumed"):
         st.caption("Assumption: relevant cashback caps unused. Adjust previous cashback earned if needed.")
     uncertain=[r for r in ranked if not r.comparable]
