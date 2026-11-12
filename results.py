@@ -7,9 +7,9 @@ from ui import get_secret
 
 def others_html(ranked,mark_best):
     rows=[]
-    maximum=max([r.benefit for r in ranked if r.comparable]+[1])
+    maximum=max([r.benefit for r in ranked if r.available and r.comparable]+[0.01])
     for i,r in enumerate(ranked):
-        best=" best" if mark_best and i==0 else ""
+        best=" best" if mark_best and r.available and r.comparable and r.benefit>0.005 and abs(r.benefit-maximum)<0.005 else ""
         amount="Unavailable" if not r.available else inr(r.benefit) if r.comparable else "Not comparable"
         reason=r.reason if not r.available else (r.reason+" · "+r.card.get("reward_label","Cashback")) if r.comparable else r.uncertainty
         width=max(0,min(100,r.benefit/maximum*100)) if r.comparable else 0
@@ -24,7 +24,7 @@ def others_html(ranked,mark_best):
 
 def panel_html(win,second,amount,cat):
     if win.benefit <= 0.005:
-        return ('<div class="cca-panel"><div class="kicker">No modeled card cashback</div>'
+        return ('<div class="cca-panel"><div class="kicker">No modeled card reward</div>'
                 '<div class="cname">None of these cards has an eligible calculated reward here</div>'
                 '<div class="delta">Choose on convenience and check issuer conditions.</div></div>')
     tied=second is not None and abs(win.benefit-second.benefit)<0.005
@@ -33,7 +33,7 @@ def panel_html(win,second,amount,cat):
     elif second:
         delta=f"{inr(win.benefit-second.benefit)} above {html.escape(second.card['name'])}"
     else:
-        delta="Only one selected card is modeled."
+        delta="Only one selected card is eligible for this modeled route."
     return (
         f'<div class="cca-panel"><span class="swatch" style="background:{win.card["hue"]}"></span>'
         f'<div class="kicker">{"Equal estimated reward" if tied else "Highest estimated eligible reward" if second else "Your selected card"}</div>'
@@ -54,6 +54,7 @@ def render_result(L, request_ai=False):
     if not eligible:
         st.info("None of your selected cards supports this modeled payment route.")
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
+        render_details(ranked,{"message":"AI skipped: no selected card supports this payment route."})
         return
     win=eligible[0]
     second=eligible[1] if len(eligible)>1 else None
@@ -66,15 +67,26 @@ def render_result(L, request_ai=False):
         st.markdown("**Available partial comparisons**")
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
         st.caption("No recommended card is shown while a selected card's reward is unresolved.")
+        render_details(ranked,{"message":"AI skipped: one or more applicable rewards cannot be established."})
         return
 
-    st.markdown(panel_html(win,second,amount,cat),unsafe_allow_html=True)
     tied=[x for x in eligible if abs(x.benefit-win.benefit)<0.005]
-    if win.benefit>0 and len(tied)>1:
-        st.info("Tied cards: "+", ".join(x.card["name"] for x in tied)+". Compare the reward form and conditions.")
+    if win.benefit>0.005 and len(tied)>1:
+        st.markdown('<div class="cca-panel"><div class="kicker">Equal highest estimated reward</div>'
+                    f'<div class="cname">{html.escape(str(len(tied)))} cards are tied</div>'
+                    f'<div class="figure">{inr(win.benefit)}</div>'
+                    '<div class="delta">Compare the reward forms and conditions before choosing.</div></div>',unsafe_allow_html=True)
+        st.markdown(others_html(ranked,True),unsafe_allow_html=True)
+        st.markdown("**Check before paying**")
+        for item in tied:
+            st.caption(item.card["name"]+": "+key_condition(item))
+        render_details(ranked,{"message":"AI skipped: equal estimated rewards. No tie-break is imposed."})
+        return
+    st.markdown(panel_html(win,second,amount,cat),unsafe_allow_html=True)
     if win.benefit<=0.005:
         st.markdown("**Selected cards**")
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
+        render_details(ranked,{"message":"AI skipped: no positive modeled reward."})
         return
     def explain_html(message,ai):
         label="AI-assisted recommendation explanation" if ai else "Rules-based explanation"
@@ -101,9 +113,6 @@ def render_result(L, request_ai=False):
                     model=get_secret("GEMINI_MODEL","gemini-3.5-flash-lite"))
         L.update(ai_text=ai_text,ai_status=ai_status,ai_detail=ai_detail)
         status_slot.empty()
-    elif len(tied)>1 and L.get("ai_enabled") and L.get("ai_status") is None:
-        L["ai_status"]="skipped"
-        L["ai_detail"]={"message":"Equal estimated rewards; AI does not break a tie."}
     status=L.get("ai_status")
     diag=L.get("ai_detail")
     if not isinstance(diag,dict):
@@ -122,8 +131,7 @@ def render_result(L, request_ai=False):
         status_slot.warning("AI response rejected by grounding checks. Rules-based explanation shown.")
     elif status=="disabled":
         status_slot.caption("AI turned off · compared using local rules only.")
-    elif len(tied)>1:
-        status_slot.caption("AI assistance is not used to break a tie.")
+        diag={"message":"AI not requested: rules-only comparison selected."}
     else:
         status_slot.caption("Rules-based explanation. Select Compare with AI to request AI assistance.")
 
@@ -133,10 +141,12 @@ def render_result(L, request_ai=False):
     if len(ranked)>3:
         with st.expander(f"Compare all {len(ranked)} selected cards"):
             st.markdown(others_html(ranked,True),unsafe_allow_html=True)
-    st.caption("Estimated rupee value, not guaranteed cashback. Reward forms differ; fees, interest and promotions are excluded.")
-    st.caption(f"Issuer sources reviewed {win.card['last_verified']}. Results are conditional estimates, "
-               "not guaranteed cashback. Merchant MCC and other exclusions may affect actual rewards. "
-               "No card number or banking credential is requested.")
+    st.caption(f"Conditional estimates, not guaranteed cashback. Reward forms differ; fees, interest and promotions excluded. Winner source reviewed {win.card['last_verified']}.")
+    render_details(ranked,diag,checked)
+
+
+def render_details(ranked,diag,checked=False):
+    """Keep diagnostics and sources accessible even when no winner is possible."""
     with st.expander("AI verification · request status and checks"):
         st.caption("Checks compare the AI response with our computed facts, not live issuer terms.")
         st.write("Configured model: "+str(diag.get("model",get_secret("GEMINI_MODEL","gemini-3.5-flash-lite"))))
@@ -158,7 +168,7 @@ def render_result(L, request_ai=False):
             st.write("Selected reason: "+diag["reason_id"])
             st.write("Selected caution: "+diag["caution_id"])
             st.caption("Only approved financial statements are displayed.")
-        elif not diag:
+        elif not diag.get("api_response") and not diag.get("elapsed_ms"):
             st.caption("No AI request was made for this comparison.")
     with st.expander("All card conditions and official sources"):
         st.caption("Amazon Pay balance and Scapia Coins are restricted redemption value; Kiwi rewards are bank-redeemable. See issuer terms for redemption and eligibility.")

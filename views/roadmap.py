@@ -10,7 +10,7 @@ st.caption("V1 is deliberately small: one user, one problem, one workflow, one A
 section("Now: V1 (this version)")
 st.markdown(
     '<div class="cca-card"><ul>'
-    "<li>Choose your cards from a hand-checked list</li>"
+    "<li>Choose your cards from a dated, issuer-linked list</li>"
     "<li>Enter a purchase amount, category and payment context</li>"
     "<li>Conditional rupee estimates, ranked only when the applicable reward is established</li>"
     "<li>Optional AI selection of approved reasons and cautions, with six grounding checks</li>"
@@ -18,12 +18,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-section("Later", "Not built yet. Shown so you can see where the product is heading.")
+section("Later", "Ideas only. Not available in this version.")
 c1, c2, c3 = grid(3)
 later = [
     ("Release 2 · Better data",
      ["More cards, each verified against issuer terms", "“Report wrong info” review workflow",
-      "Net benefit after annual fees"]),
+      "Portfolio-level net benefit after annual fees"]),
     ("Release 3 · Remember me",
      ["Sign in and a saved wallet", "Monthly cap tracking from purchases you confirm",
       "Reminders before a cap runs out"]),
@@ -36,4 +36,4 @@ for col, (title, items) in zip((c1, c2, c3), later):
         unsafe_allow_html=True,
     )
 
-st.caption("Release contents are hypotheses, not commitments. Improve coverage only after verifying issuer rules; consider saved wallets or integrations only if user evidence supports them and privacy safeguards are feasible.")
+st.caption("Release contents are hypotheses, not commitments. First test the current purchase decision with real users, compare AI with the rules-only explanation, and verify issuer rules. Consider saved wallets or integrations only if customer evidence supports them and privacy safeguards are feasible.")

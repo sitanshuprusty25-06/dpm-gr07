@@ -1,25 +1,24 @@
-"""Explain the narrow rules-versus-GenAI separation."""
+"""Explain the actual comparison workflow and its limits."""
 import streamlit as st
-st.markdown("## How the decision is made")
-st.markdown(
-    "**Know:** dated issuer data is stored in a version-controlled reference catalogue. "
-    "**Decide:** Python evaluates eligible rewards deterministically. "
-    "**Explain:** Gemini selects a useful reason and caution from approved computed facts; the app validates the selection and renders only approved statements. Gemini never calculates rewards. With AI assistance enabled, the explanation is requested once when you click Compare with AI. Disable it for a rules-only comparison."
-)
-st.markdown("### A documented example")
-st.write(
-    "CASHBACK SBI Card: an eligible ₹50,000 online purchase would earn 5% before its cap, "
-    "but the online statement-cycle cap is ₹2,000. If the cap was unused, the estimated cashback is ₹2,000, "
-    "not ₹2,500. After the online cap is reached, further eligible online transactions earn no cashback in that cycle."
-)
-st.markdown("### Why the app sometimes refuses to rank")
-st.write(
-    "HSBC's boosted cashback has a shared cap, and shopping or utility eligibility may depend on the merchant MCC. "
-    "When the catalogue cannot support a reliable numerical comparison, the app shows the uncertainty instead of inventing a winner."
-)
-st.caption("Only domestic, non-EMI transactions from the supported categories are modeled; issuer rules and exclusions apply.")
-if st.button("Compare my selected cards",type="primary"):
+from cards import CARDS
+from rules_engine import evaluate,inr,key_condition
+st.markdown("## How it works")
+st.write("Compare the supported cards you already own for one purchase. The tool estimates rewards; you choose how to pay.")
+st.markdown("### 1 · Enter your purchase")
+st.write("Select your exact card variants, amount, category and payment method. Confirm merchant eligibility when asked. Adjust reward caps if you already earned rewards this cycle.")
+st.markdown("### 2 · Compare the issuer rules")
+st.write("Python calculates eligible reward estimates using the dated catalogue, minimum spends, exclusions and applicable caps. When the reward cannot be established, the app does not declare a winner.")
+st.markdown("### 3 · Understand the decision")
+st.write("Gemini can select an approved reason and caution from the computed facts. It does not calculate or change the ranking. Six checks validate its response; if the request fails, a rules-based explanation remains available. AI can be switched off before comparison.")
+st.caption("No bank login, card number or payment initiation. With AI enabled, computed purchase facts are shared with Google Gemini.")
+st.markdown("### Example: caps matter")
+card=next(c for c in CARDS if c["id"]=="sbi_cashback")
+example=evaluate(card,"dining",50000,channel="online")
+st.write(f"For an eligible ₹50,000 online purchase with an unused cap, {card['name']} estimates {inr(example.benefit)} in cashback.")
+st.write(key_condition(example))
+st.link_button("Issuer terms for this example",card["source"])
+st.markdown("### When there is no clear winner")
+st.write("A tie, zero reward, unsupported payment route or unresolved merchant or cap condition is not a reason to invent a recommendation. Compare the available facts, and check the issuer terms.")
+st.caption("Only supported domestic non-EMI credit-card purchases are modeled. Reward forms differ; fees, interest and promotional offers are excluded.")
+if st.button("Compare my cards",type="primary"):
     st.switch_page("views/compare.py")
-
-st.markdown("### Another example: merchant context matters")
-st.write("An eligible ₹10,000 Myntra transaction, with an unused quarterly cap, earns an estimated ₹750 on Flipkart Axis. An eligible ₹10,000 Flipkart purchase earns ₹500. These are separate issuer buckets. We do not combine them into one cap.")

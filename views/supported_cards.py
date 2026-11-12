@@ -7,7 +7,9 @@ from visuals import library_card,IMAGES
 st.markdown('<div class="fin-eyebrow">Reference catalogue</div><div class="fin-heading">Explore supported cards.</div><div class="fin-copy">Compare the reward structures, annual fees and conditions of each supported product.</div>',unsafe_allow_html=True)
 issuer=st.selectbox("Filter by issuer",["All issuers"]+sorted({c["issuer"] for c in CARDS}))
 shown=[c for c in CARDS if issuer=="All issuers" or c["issuer"]==issuer]
-st.caption(f"{len(shown)} of {len(CARDS)} supported cards · annual fees before tax")
+st.caption(f"{len(shown)} of {len(CARDS)} supported cards · listed annual fees before tax; waivers and current terms may vary.")
+if st.button("Compare cards I own",type="primary"):
+    st.switch_page("views/compare.py")
 for i in range(0,len(shown),3):
     batch=shown[i:i+3]
     for slot,c in zip(grid(3,mobile=1),batch):

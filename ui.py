@@ -259,7 +259,7 @@ def streamlit_override_css(p):
 
 
 def header():
-    """Brand, theme switch and a placeholder sign-in. Runs on every page."""
+    """Brand and theme switch. Runs on every page."""
     st.session_state.setdefault("theme", "Auto")
     mobile = is_mobile()
 
@@ -274,7 +274,7 @@ def header():
         with theme_col:
             st.radio("Theme", ["Auto", "Light", "Dark"], horizontal=True, key="theme", help=theme_help)
         with signin_col:
-            st.caption("Private by design")
+            st.caption("No bank login")
     else:
         left, mid, right = st.columns([5, 3, 2], vertical_alignment="center")
         with left:
@@ -282,7 +282,7 @@ def header():
         with mid:
             st.radio("Theme", ["Auto", "Light", "Dark"], horizontal=True, key="theme", help=theme_help)
         with right:
-            st.caption("Private by design")
+            st.caption("No bank login")
 
     palette = PALETTES[effective_theme(st.session_state["theme"])]
     css = streamlit_override_css(palette) + custom_css(palette) + responsive_css(mobile)
@@ -388,46 +388,17 @@ def header():
 
 
 def footer():
-    """Website footer with real pages and a few honest placeholders. Runs on every page."""
+    """Compact shared footer; main navigation already links every page."""
     st.divider()
-    mobile = is_mobile()
-    if mobile:
-        c1 = st.container()
-        c4 = None
-        c2, c3 = st.columns(2)
-    else:
-        c1, c2, c3, c4 = st.columns([3, 2, 2, 2])
-    with c1:
-        st.markdown(
-            '<div class="cca-foot-brand">Card Choice Assistant</div>'
-            '<div class="cca-foot-text">A GenAI-assisted check that tells you which of your own '
-            "credit cards gives the most benefit on a purchase, and why.</div>",
-            unsafe_allow_html=True,
+    st.caption("Group 07 · Digital Product Management · IIM Visakhapatnam · Independent academic MVP. "
+               "Conditional reward estimates only. No bank affiliation, no persistent wallet. "
+               "Optional AI shares computed purchase facts with Google Gemini.")
+    with st.expander("Display preferences"):
+        st.session_state.setdefault("layout", "Auto")
+        st.radio(
+            "View as", ["Auto", "Mobile", "Desktop"], horizontal=True, key="layout",
+            help="Auto picks the layout for your device. Choose Mobile to preview the phone layout.",
         )
-    with c2:
-        st.markdown('<div class="cca-foot-h">Product</div>', unsafe_allow_html=True)
-        st.page_link("views/compare.py", label="Compare my cards")
-        st.page_link("views/supported_cards.py", label="Supported cards")
-        st.page_link("views/how_it_works.py", label="How it works")
-    with c3:
-        st.markdown('<div class="cca-foot-h">Company</div>', unsafe_allow_html=True)
-        st.page_link("views/about.py", label="About & contact")
-        st.page_link("views/roadmap.py", label="Roadmap")
-        st.page_link("views/faq.py", label="FAQ")
-    if c4 is not None:
-        with c4:
-            st.markdown("**Independent academic MVP**")
-            st.caption("No bank affiliation. No saved wallet.")
-
-    st.caption(
-        "Group 07 · Digital Product Management · IIM Visakhapatnam. Results are estimates for the "
-        "supported cards and dated rules, not a guarantee of reward. No persistent user account. Optional Gemini calls share computed facts with Google."
-    )
-    st.session_state.setdefault("layout", "Auto")
-    st.radio(
-        "View as", ["Auto", "Mobile", "Desktop"], horizontal=True, key="layout",
-        help="Auto picks the layout for the device you are using. Choose Mobile to preview the phone layout.",
-    )
 
 
 def section(title, sub=None):

@@ -82,14 +82,16 @@ with st.container(key="compare_workspace"):
                 merchant=st.selectbox("Merchant / payment route",list(merchants),format_func=merchants.get,
                                       key=route_key,help="Choose a route only if the purchase meets issuer terms. Otherwise choose Not sure.")
             st.session_state["merchant_type"]=merchant
-            emi = st.checkbox("EMI, gift card, wallet load or excluded spending",value=False,key="emi",help="Also select this for international transactions or purchases outside the supported issuer terms.")
+            emi = st.checkbox("EMI, international, gift card, wallet load or excluded spending",value=False,key="emi",help="Select if the purchase is outside the supported scope.")
             remember("amount");remember("cat");remember("channel")
 
             kiwi_remaining=None
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online"):
                 with st.expander("Kiwi · remaining monthly reward cap",expanded=False):
                     st.caption("Enter the remaining Kiwi reward allowance converted to rupees (4 Kiwis = ₹1). Leave blank if unknown; Kiwi will remain unranked rather than assuming an unlimited reward.")
+                    keep("kiwi_remaining")
                     kiwi_remaining=st.number_input("Remaining Kiwi reward value (₹)",min_value=0.0,value=None,step=1.0,key="kiwi_remaining")
+                    remember("kiwi_remaining")
             used_by_card={}
             capped=[]
             for c in selected:
@@ -103,15 +105,20 @@ with st.container(key="compare_workspace"):
                 with st.expander("Reward caps · unused unless adjusted",expanded=False):
                     st.caption("Zero assumes the relevant cap is unused. SBI uses statement cycles, HDFC/HSBC billing cycles, and Axis accelerated categories separate statement-quarter caps.")
                     for c,cap,bucket_name in capped:
+                        usage_key=f"used_{c['id']}_{bucket_name}"
+                        keep(usage_key,0)
                         used_by_card[c["id"]]=st.number_input(
                             f"{c['name']} · {bucket_name} cashback already earned (₹)",
-                            min_value=0,max_value=int(cap),step=50,value=0,format="%d",
-                            key=f"used_{c['id']}_{bucket_name}")
+                            min_value=0,max_value=int(cap),step=50,format="%d",
+                            key=usage_key)
+                        remember(usage_key)
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online") and kiwi_remaining is None:
                 st.caption("Kiwi will remain unranked until its remaining monthly reward allowance is entered.")
-            use_ai = st.checkbox("Include AI-assisted explanation",value=True,key="compare_use_ai",
+            keep("compare_use_ai",True)
+            use_ai = st.checkbox("Include AI-assisted explanation",key="compare_use_ai",
                                  help="If enabled, the comparison sends computed purchase facts to Google Gemini. No card numbers or banking credentials are requested.")
-            st.caption("AI shares computed purchase facts and relevant card names with Google. Uncheck for rules only.")
+            remember("compare_use_ai")
+            st.caption("Compare with AI shares computed purchase facts and relevant card names with Google. Uncheck for rules only.")
             current_sig=repr((tuple(c["id"] for c in selected),st.session_state.get("amount"),
                               st.session_state["cat"],st.session_state["channel"],
                               st.session_state.get("merchant_type","unknown"),emi,sorted(used_by_card.items()),kiwi_remaining,use_ai))
