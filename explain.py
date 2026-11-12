@@ -23,7 +23,12 @@ SYSTEM_PROMPT = (
 
 def build_payload(win, second, amount, cat):
     form = win.card.get("reward_label", "Cashback")
-    reasons = {"eligibility": win.reason}
+    eligibility = win.reason
+    if win.card["model"] == "channel_capped" and win.code == "cap-hit" and win.rule:
+        # Explain arithmetic here; reserve the actual limit for the caution.
+        eligibility = (f"At {win.rule['rate']:g}%, the cashback before the cap "
+                       f"would be {inr(amount * win.rule['rate'] / 100)}")
+    reasons = {"eligibility": eligibility}
     if second and second.comparable and getattr(second, "available", True) and win.benefit > second.benefit:
         reasons["advantage"] = (
             f"For this purchase, the estimated reward is {inr(win.benefit-second.benefit)} "
@@ -85,13 +90,32 @@ def validate(text, payload):
     return check_response(text, payload)[0] is not None
 
 
+def _sentence(text):
+    text = text.strip()
+    return text if not text or text.endswith((".", "!", "?")) else text + "."
+
+
+def explanation_parts(win, second, amount, cat, selection=None):
+    """Return checked reason and mandatory condition without exact repetition."""
+    payload = build_payload(win, second, amount, cat)
+    selection = selection or {}
+    reason = payload["reason_options"].get(selection.get("reason_id"),
+                                           payload["reason_options"]["eligibility"])
+    issuer = _sentence(payload["caution_options"]["issuer_condition"])
+    caution = _sentence(payload["caution_options"].get(selection.get("caution_id"),
+                                                       issuer))
+    if caution != issuer:
+        caution = caution + " " + issuer
+    return _sentence(reason), caution
+
+
 def render_approved(selection, payload):
     r = payload["recommended"]
     return (
         f"{r['card']} offers an estimated {inr(r['benefit_inr'])} in "
         f"{r['reward_form'].lower()} for this purchase. "
-        + payload["reason_options"][selection["reason_id"]] + " "
-        + payload["caution_options"][selection["caution_id"]]
+        + _sentence(payload["reason_options"][selection["reason_id"]]) + " "
+        + _sentence(payload["caution_options"][selection["caution_id"]])
     )
 
 

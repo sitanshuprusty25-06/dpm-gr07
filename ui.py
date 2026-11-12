@@ -111,6 +111,13 @@ CSS = """
 .stApp .cca-watch .wb,.stApp .cca-explain .txt {font-size:.95rem;line-height:1.5;color:inherit;}
 .stApp .cca-explain .tag {display:block;font-size:.84rem;font-weight:750;color:inherit;margin-bottom:6px;}
 .stApp .cca-explain .tag.ai {color:inherit;}
+.stApp .cca-panel {margin-bottom:12px;}
+.stApp .cca-explain {margin:0 0 10px;}
+.stApp .cca-explain .cca-condition {border-top:1px solid color-mix(in srgb,currentColor 20%,transparent);margin-top:12px;padding-top:12px;}
+.stApp .cca-explain .wt {font-weight:750;font-size:.9rem;margin-bottom:4px;}
+.stApp .cca-verified {font-size:.78rem;margin-top:12px;color:inherit;}
+.stApp .cca-result-heading {font-size:1rem;font-weight:750;margin:8px 0 3px;}
+
 .stApp .cca-row {display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid color-mix(in srgb,currentColor 18%,transparent);}
 .stApp .cca-row:first-child {border-top:0;}
 .stApp .cca-row .nm {flex:1;min-width:0;font-size:.96rem;overflow-wrap:anywhere;color:inherit;}

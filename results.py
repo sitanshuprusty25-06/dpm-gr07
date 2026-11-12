@@ -1,8 +1,8 @@
 """Present the computed recommendation and its checked AI explanation first."""
 import html
 import streamlit as st
-from rules_engine import category_label,inr,key_condition,template_explain
-from explain import explain_comparison
+from rules_engine import category_label,inr,key_condition
+from explain import explain_comparison, explanation_parts
 from ui import get_secret
 
 def others_html(ranked,mark_best):
@@ -27,6 +27,7 @@ def panel_html(win,second,amount,cat):
         return ('<div class="cca-panel"><div class="kicker">No modeled card reward</div>'
                 '<div class="cname">None of these cards has an eligible calculated reward here</div>'
                 '<div class="delta">Choose on convenience and check issuer conditions.</div></div>')
+    purchase_label = {'shopping':'shopping','utilities':'utility bill','cinema':'cinema'}.get(cat,category_label(cat).lower())
     tied=second is not None and abs(win.benefit-second.benefit)<0.005
     if tied:
         delta=f"Same estimated benefit as {html.escape(second.card['name'])}; either card can work."
@@ -41,7 +42,7 @@ def panel_html(win,second,amount,cat):
         f'<div class="issuer">{html.escape(win.card["issuer"])}</div>'
         f'<div class="figure">{inr(win.benefit)}</div>'
         f'<div class="delta">estimated {html.escape(win.card.get("reward_label","reward").lower())} for this {inr(amount)} '
-        f'{html.escape(category_label(cat).lower())} purchase</div>'
+        f'{html.escape(purchase_label)} purchase</div>'
         f'<div class="delta">{delta}</div></div>'
     )
 
@@ -88,20 +89,20 @@ def render_result(L, request_ai=False):
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
         render_details(ranked,{"message":"AI skipped: no positive modeled reward."})
         return
-    def explain_html(message,ai):
-        label="AI-assisted recommendation explanation" if ai else "Rules-based explanation"
-        return ('<div class="cca-explain"><span class="tag'+(' ai' if ai else '')+'">'
-                +html.escape(label)+'</span><div class="txt">'
-                +html.escape(message)+'</div></div>')
+    def explain_html(reason, condition, ai):
+        label="Why this card? · AI-assisted" if ai else "Why this card?"
+        verified='<div class="cca-verified">Gemini response passed all six checks.</div>' if ai else ""
+        return ('<div class="cca-explain"><div class="tag">'
+                +html.escape(label)+'</div><div class="txt">'
+                +html.escape(reason)+'</div><div class="cca-condition">'
+                '<div class="wt">Check before paying</div><div class="txt">'
+                +html.escape(condition)+'</div></div>'+verified+'</div>')
 
-    # Show the financial result and mandatory conditions before waiting for AI.
-    # Keep its eventual explanation in the same position above the conditions.
+    # Render the complete rules-only explanation before waiting for AI.
     explanation_slot=st.empty()
     status_slot=st.empty()
-    fallback=template_explain(win,second,amount,cat)
-    explanation_slot.markdown(explain_html(fallback,False),unsafe_allow_html=True)
-    st.markdown('<div class="cca-watch"><div class="wt">Check before paying</div>'
-                f'<div class="wb">{html.escape(key_condition(win))}</div></div>',unsafe_allow_html=True)
+    reason,condition=explanation_parts(win,second,amount,cat)
+    explanation_slot.markdown(explain_html(reason,condition,False),unsafe_allow_html=True)
     if request_ai and L.get("ai_enabled") and len(tied)==1 and L.get("ai_status") is None:
         # Only an explicit Compare action can send purchase facts. Ordinary
         # reruns and opening diagnostics cannot trigger another request.
@@ -119,10 +120,10 @@ def render_result(L, request_ai=False):
         diag={}
     checked=(status=="ok" and bool(L.get("ai_text")) and diag.get("api_response")
              and len(diag.get("checks",{}))==6 and all(diag["checks"].values()))
-    explanation_slot.markdown(explain_html(L["ai_text"] if checked else fallback,
-                                          bool(checked)),unsafe_allow_html=True)
+    reason,condition=explanation_parts(win,second,amount,cat,diag if checked else None)
+    explanation_slot.markdown(explain_html(reason,condition,bool(checked)),unsafe_allow_html=True)
     if checked:
-        status_slot.caption("Gemini responded · all six grounding checks passed.")
+        status_slot.empty()
     elif status=="no_key":
         status_slot.info("AI is not configured. The rules-based recommendation remains available.")
     elif status=="error":
@@ -135,7 +136,7 @@ def render_result(L, request_ai=False):
     else:
         status_slot.caption("Rules-based explanation. Select Compare with AI to request AI assistance.")
 
-    st.markdown("**Reward comparison**")
+    st.markdown('<div class="cca-result-heading">Reward comparison</div>',unsafe_allow_html=True)
     # Keep the first three visible. Large wallets can expand the full list.
     st.markdown(others_html(ranked[:3],True),unsafe_allow_html=True)
     if len(ranked)>3:

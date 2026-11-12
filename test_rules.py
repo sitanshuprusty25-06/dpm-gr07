@@ -4,7 +4,7 @@ import json
 from unittest.mock import patch
 from cards import CARDS,MARKET,CATALOG
 from rules_engine import evaluate,rank,inr,key_condition,reward_bucket
-from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_error_category
+from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_error_category,explanation_parts
 
 BY_ID={c["id"]:c for c in CARDS}
 
@@ -258,6 +258,33 @@ class MarketDisplayOrderTests(unittest.TestCase):
         b=rank(list(reversed(selected)),"dining",1200,channel="online",merchant_type="swiggy")
         self.assertEqual([(r.card["id"],r.benefit) for r in a],[(r.card["id"],r.benefit) for r in b])
         self.assertEqual(a[0].card["id"],"swiggy_blck")
+
+class ExplanationPresentationTests(unittest.TestCase):
+    def test_sbi_capped_explanation_separates_calculation_and_caution(self):
+        ranked=rank([BY_ID["sbi_cashback"],BY_ID["swiggy_ornge"]],"shopping",42163,
+                    channel="online",merchant_type="eligible_online")
+        win,second=ranked
+        reason,condition=explanation_parts(win,second,42163,"shopping",
+                                          {"reason_id":"eligibility","caution_id":"issuer_condition"})
+        self.assertEqual(win.benefit,2000)
+        self.assertIn("₹2,108.15",reason)
+        self.assertIn("₹2,000",condition)
+        self.assertNotIn("₹2,000",reason)
+        self.assertEqual(condition,key_condition(win))
+        self.assertTrue(reason.endswith("."))
+
+    def test_fallback_also_retains_condition_once(self):
+        win=evaluate(BY_ID["sbi_cashback"],"dining",1200)
+        reason,condition=explanation_parts(win,None,1200,"dining")
+        self.assertTrue(reason.endswith("."))
+        self.assertEqual(condition,key_condition(win))
+
+    def test_alternative_caution_keeps_mandatory_condition(self):
+        win=evaluate(BY_ID["amazon_icici"],"shopping",1000,merchant_type="amazon_prime")
+        reason,condition=explanation_parts(win,None,1000,"shopping",
+                                          {"reason_id":"eligibility","caution_id":"redemption"})
+        self.assertIn(build_payload(win,None,1000,"shopping")["caution_options"]["redemption"],condition)
+        self.assertIn(key_condition(win),condition)
 
 if __name__=="__main__":
     unittest.main()
