@@ -14,11 +14,11 @@ def others_html(ranked,mark_best):
         reason=r.reason if not r.available else (r.reason+" · "+r.card.get("reward_label","Cashback")) if r.comparable else r.uncertainty
         width=max(0,min(100,r.benefit/maximum*100)) if r.comparable else 0
         rows.append(
-            f'<div class="cca-row{best}"><span class="dot" style="background:{r.card["hue"]}"></span>'
+            f'<div class="cca-row{best}">'
             f'<span class="nm"><b>{html.escape(r.card["name"])}</b>'
             f'<span class="why">{html.escape(reason)}</span></span>'
             f'<span class="amt">{html.escape(amount)}</span></div>'
-            f'<div class="fin-resultbar"><span style="width:{width:.1f}%;background:{r.card["hue"]}"></span></div>'
+            f'<div class="fin-resultbar"><span style="width:{width:.1f}%"></span></div>'
         )
     return "".join(rows)
 
@@ -35,7 +35,7 @@ def panel_html(win,second,amount,cat):
     else:
         delta="Only one selected card is eligible for this modeled route."
     return (
-        f'<div class="cca-panel"><span class="swatch" style="background:{win.card["hue"]}"></span>'
+        f'<div class="cca-panel">'
         f'<div class="kicker">{"Equal estimated reward" if tied else "Highest estimated eligible reward" if second else "Your selected card"}</div>'
         f'<div class="cname">{html.escape(win.card["name"])}</div>'
         f'<div class="issuer">{html.escape(win.card["issuer"])}</div>'

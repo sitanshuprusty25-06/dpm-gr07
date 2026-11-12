@@ -1,8 +1,8 @@
 """Scope, privacy and reward FAQ."""
 import streamlit as st
-st.markdown("## Frequently asked questions")
+from ui import page_heading
+page_heading("Frequently asked questions")
 questions=[
-("Why are the cards listed in this order?","The catalogue starts with two cards with substantial publicly disclosed product adoption, then groups remaining cards by issuer-level cards outstanding. RBI does not report product-by-product popularity. Purchase results are ranked only by modeled reward, never market size."),
 ("Who is this for?","People who already own more than one supported credit card and want to compare a particular purchase. It does not suggest a new card or execute a payment."),
 ("Why might the highest rupee value not be right for me?","Some rewards are restricted to a particular redemption channel. Consider reward type, fees, interest, convenience and your ability to pay the bill. Do not spend more just to earn rewards."),
 ("How are Scapia Coins compared?","Five coins equal one rupee of Scapia redemption value, not cash. Select the exact Federal Bank Visa or RuPay card. Only supported domestic rewards are estimated."),

@@ -1,6 +1,7 @@
 """Academic team and project information; no placeholder contact details."""
 import streamlit as st
-st.markdown("## About the project")
+from ui import page_heading
+page_heading("About the project")
 st.write(
     "GenAI Card Choice Assistant is a Group 07 Digital Product Management EMBA project at "
     "IIM Visakhapatnam. It is a small, non-commercial demonstration of a purchase-level "

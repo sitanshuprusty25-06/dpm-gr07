@@ -2,7 +2,8 @@
 import streamlit as st
 from cards import CARDS
 from rules_engine import evaluate,inr,key_condition
-st.markdown("## How it works")
+from ui import page_heading
+page_heading("How it works")
 st.write("Compare the supported cards you already own for one purchase. The tool estimates rewards; you choose how to pay.")
 st.markdown("### 1 · Enter your purchase")
 st.write("Select your exact card variants, amount, category and payment method. Confirm merchant eligibility when asked. Adjust reward caps if you already earned rewards this cycle.")

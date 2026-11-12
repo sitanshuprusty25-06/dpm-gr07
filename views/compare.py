@@ -3,7 +3,7 @@ import streamlit as st
 from cards import CARDS, CATEGORIES, DEFAULT_WALLET
 from results import render_result
 from rules_engine import category_label, rank, reward_bucket
-from ui import is_mobile, keep, remember
+from ui import is_mobile, keep, remember, page_heading
 
 cat_ids = [cid for cid, _ in CATEGORIES]
 by_id = {card["id"]: card for card in CARDS}
@@ -19,7 +19,7 @@ keep("channel","online")
 keep("merchant_type","unknown")
 
 with st.container(key="compare_workspace"):
-    st.markdown('<div class="fin-compare-title">Which card should you use?</div>',unsafe_allow_html=True)
+    page_heading("Which card should you use?")
     st.caption("Compare your own cards for one domestic, non-EMI purchase. No bank login or card number.")
 
     mobile = is_mobile()
@@ -30,7 +30,7 @@ with st.container(key="compare_workspace"):
             selected_ids = st.multiselect(
                 "Cards you own", options=list(by_id), format_func=lambda cid: by_id[cid]["name"],
                 key="compare_wallet_ids", placeholder="Search and select your cards",
-                help="Search any of the ten supported cards. The catalogue is ordered by published product adoption and issuer footprint; the recommendation depends only on your purchase."
+                help="Search by bank or card name. Select only cards you already own."
             )
             remember("compare_wallet_ids")
             selected = [card for card in CARDS if card["id"] in selected_ids]

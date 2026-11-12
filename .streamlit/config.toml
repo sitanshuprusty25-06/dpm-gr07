@@ -1,0 +1,22 @@
+# Native themes: select Light/Dark/System in Streamlit's Settings.
+# No credentials in this file.
+[theme]
+baseRadius = "medium"
+buttonRadius = "medium"
+showWidgetBorder = true
+
+[theme.light]
+primaryColor = "#2454CD"
+backgroundColor = "#F8FAFC"
+secondaryBackgroundColor = "#E8EEF6"
+textColor = "#172B45"
+borderColor = "#AABBCD"
+linkColor = "#1D4BB5"
+
+[theme.dark]
+primaryColor = "#345CC6"
+backgroundColor = "#111827"
+secondaryBackgroundColor = "#233148"
+textColor = "#EEF2F8"
+borderColor = "#73829A"
+linkColor = "#A8C5FF"

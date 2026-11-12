@@ -2,9 +2,9 @@
 
 import streamlit as st
 
-from ui import grid, section
+from ui import grid, section, page_heading
 
-st.markdown("## Roadmap")
+page_heading("Roadmap")
 st.caption("V1 is deliberately small: one user, one problem, one workflow, one AI capability.")
 
 section("Now: V1 (this version)")
