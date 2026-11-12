@@ -2,7 +2,7 @@
 
 IIM Visakhapatnam · EMBA 2025–27 · Digital Product Management
 
-**Live MVP:** https://dpm-gr07-vhiacq5l6mcewqexuxwvl2.streamlit.app/
+**Live MVP:** https://card-choice-assistant.streamlit.app/
 
 **Source:** https://github.com/sitanshuprusty25-06/dpm-gr07
 
