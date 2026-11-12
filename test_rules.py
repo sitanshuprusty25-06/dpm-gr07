@@ -147,8 +147,10 @@ class ExpandedCardTests(unittest.TestCase):
     def test_axis_separate_buckets(self):
         c=BY_ID["flipkart_axis"]
         self.assertNotEqual(reward_bucket(c,"shopping","online","flipkart")[0],reward_bucket(c,"shopping","online","myntra")[0])
-    def test_axis_cap_unresolved(self):
-        self.assertFalse(evaluate(BY_ID["flipkart_axis"],"shopping",10000,used=3900,merchant_type="flipkart").comparable)
+    def test_axis_cap_remaining(self):
+        result=evaluate(BY_ID["flipkart_axis"],"shopping",10000,used=3900,merchant_type="flipkart")
+        self.assertTrue(result.comparable)
+        self.assertEqual(result.benefit,100)
     def test_axis_utilities_excluded(self):
         self.assertEqual(evaluate(BY_ID["flipkart_axis"],"utilities",1000).benefit,0)
     def test_wrong_merchant_context(self):
@@ -285,6 +287,43 @@ class ExplanationPresentationTests(unittest.TestCase):
                                           {"reason_id":"eligibility","caution_id":"redemption"})
         self.assertIn(build_payload(win,None,1000,"shopping")["caution_options"]["redemption"],condition)
         self.assertIn(key_condition(win),condition)
+
+class FinePrintTests(unittest.TestCase):
+    def test_axis_issuer_worked_examples(self):
+        c=BY_ID["flipkart_axis"]
+        self.assertEqual(evaluate(c,"shopping",30000,used=3000,merchant_type="flipkart").benefit,1000)
+        self.assertEqual(evaluate(c,"hotel",90000,merchant_type="cleartrip").benefit,4000)
+        self.assertEqual(evaluate(c,"hotel",6000,used=4000,merchant_type="cleartrip").benefit,0)
+
+    def test_axis_food_delivery_not_instamart_or_dineout(self):
+        c=BY_ID["flipkart_axis"]
+        self.assertEqual(evaluate(c,"dining",1000,merchant_type="swiggy_food").benefit,40)
+        self.assertEqual(evaluate(c,"groceries",1000,merchant_type="swiggy_other").benefit,10)
+        self.assertEqual(evaluate(c,"dining",1000,merchant_type="swiggy_other").benefit,10)
+        self.assertFalse(evaluate(c,"dining",1000,merchant_type="swiggy").comparable)
+
+    def test_unconfirmed_merchant_never_recommends_sbi(self):
+        r=evaluate(BY_ID["sbi_cashback"],"shopping",42163,merchant_type="unconfirmed")
+        self.assertFalse(r.comparable)
+        self.assertEqual(r.benefit,0)
+
+    def test_hdfc_original_grocery_mcc_5411(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_original"],"groceries",1000,merchant_type="amazon_flipkart_grocery").benefit,50)
+
+    def test_hdfc_named_merchant_not_shared_across_variants(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_blck"],"shopping",1000,merchant_type="myntra").benefit,50)
+        self.assertFalse(evaluate(BY_ID["swiggy_ornge"],"shopping",1000,merchant_type="myntra").comparable)
+        self.assertFalse(evaluate(BY_ID["swiggy_original"],"shopping",1000,merchant_type="marketplace").comparable)
+
+    def test_ornge_cleartrip_shared_cap(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_ornge"],"hotel",10000,used=1400,merchant_type="cleartrip").benefit,100)
+
+    def test_amazon_travel_and_digital(self):
+        c=BY_ID["amazon_icici"]
+        self.assertEqual(evaluate(c,"hotel",10000,merchant_type="amazon_travel_prime").benefit,500)
+        self.assertEqual(evaluate(c,"hotel",10000,merchant_type="amazon_travel_nonprime").benefit,300)
+        self.assertEqual(evaluate(c,"utilities",1000,merchant_type="amazon_digital").benefit,20)
+        self.assertEqual(evaluate(c,"utilities",1000,merchant_type="other").benefit,0)
 
 if __name__=="__main__":
     unittest.main()

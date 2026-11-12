@@ -73,7 +73,7 @@ def _unknown(out, message):
 def reward_bucket(card, cat, channel, merchant_type="unknown"):
     """Single applicable reward bucket; None means classification unknown."""
     model = card["model"]
-    if cat in card.get("excl",{}):
+    if merchant_type == "unconfirmed" or cat in card.get("excl",{}):
         return None
     if channel == "upi":
         return None
@@ -86,11 +86,19 @@ def reward_bucket(card, cat, channel, merchant_type="unknown"):
         return ("base", 1.5, None, 0)
     if model in ("hdfc_ornge","hdfc_original","hdfc_blck"):
         orange = model == "hdfc_ornge"
-        if merchant_type == "swiggy" and channel == "online" and cat in ("dining","groceries"):
+        if merchant_type in ("swiggy","swiggy_food","swiggy_other") and channel == "online" and cat in ("dining","groceries"):
             return ("boost" if orange else "swiggy", 5 if orange else 10, 1500, 249)
-        if channel == "online" and merchant_type in ("amazon_prime","amazon_nonprime","marketplace","flipkart","myntra","eligible_online") and cat in ("shopping","cinema"):
+        # Merchant and MCC lists differ by card variant.
+        named = merchant_type in ("amazon_prime","amazon_nonprime","flipkart")
+        if channel == "online" and cat == "shopping" and (named or (merchant_type=="myntra" and model=="hdfc_blck")):
             return ("boost" if orange else "online", 5, 1500, 249 if orange else 100)
-        if channel == "online" and merchant_type != "other" and merchant_type not in ("axis_preferred",):
+        if channel == "online" and cat in ("shopping","cinema","hotel") and merchant_type == "eligible_online":
+            return ("boost" if orange else "online", 5, 1500, 249 if orange else 100)
+        if channel == "online" and cat == "groceries" and merchant_type == "amazon_flipkart_grocery" and model == "hdfc_original":
+            return ("online",5,1500,100)
+        if channel == "online" and cat == "hotel" and merchant_type == "cleartrip" and orange:
+            return ("boost",5,1500,249)
+        if channel == "online" and merchant_type != "other":
             return None
         if cat == "utilities":
             return None
@@ -100,9 +108,9 @@ def reward_bucket(card, cat, channel, merchant_type="unknown"):
             return (merchant_type, 7.5 if merchant_type == "myntra" else 5, 4000, 0)
         if channel == "online" and cat == "hotel" and merchant_type == "cleartrip":
             return ("cleartrip",5,4000,0)
-        if merchant_type == "axis_preferred":
+        if merchant_type == "axis_preferred" or (merchant_type == "swiggy_food" and channel == "online" and cat == "dining"):
             return ("preferred",4,None,0)
-        if merchant_type in ("unknown","marketplace","eligible_online"):
+        if merchant_type in ("unknown","marketplace","eligible_online","swiggy","amazon_flipkart_grocery","amazon_travel_prime","amazon_travel_nonprime","amazon_digital"):
             return None
         return ("base",1,None,0)
     if model == "amazon":
@@ -110,8 +118,12 @@ def reward_bucket(card, cat, channel, merchant_type="unknown"):
             return None
         if channel == "online" and cat == "shopping" and merchant_type in ("amazon_prime","amazon_nonprime"):
             return ("amazon",5 if merchant_type=="amazon_prime" else 3,None,0)
-        if channel == "online" and merchant_type == "amazon_pay":
+        if channel == "online" and merchant_type in ("amazon_pay","amazon_digital"):
             return ("amazon_pay",2,None,0)
+        if channel == "online" and cat == "hotel" and merchant_type in ("amazon_travel_prime","amazon_travel_nonprime"):
+            return ("amazon_travel",5 if merchant_type=="amazon_travel_prime" else 3,None,0)
+        if merchant_type=="amazon_flipkart_grocery":
+            return None
         if cat == "utilities":
             if merchant_type == "other":
                 return ("excluded",0,None,0)
@@ -137,6 +149,12 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
         out.code = "unavailable"
         out.reason = "Virtual Kiwi card; choose eligible Kiwi UPI QR or online route"
         return out
+    if merchant_type == "unconfirmed":
+        if cat in card.get("excl",{}):
+            out.code = "excluded"
+            out.reason = card["excl"][cat]
+            return out
+        return _unknown(out,"Merchant or payment eligibility is not confirmed. Select an applicable route before comparing this card.")
     if merchant_type == "scapia_travel" and (channel != "online" or cat not in ("hotel","travel")):
         return _unknown(out,"Scapia travel must be an eligible booking in its app.")
     if model == "kiwi":
@@ -183,7 +201,7 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
         out.code="scapia"
         out.reason=f"{pct(rate)} coins = about {pct(rate/5)} rupee-equivalent travel value"
         return out
-    if (merchant_type in ("amazon_prime","amazon_nonprime","flipkart","myntra","marketplace") and (channel != "online" or cat != "shopping")) or (merchant_type == "swiggy" and (channel != "online" or cat not in ("dining","groceries"))) or (merchant_type == "cleartrip" and (channel != "online" or cat != "hotel")):
+    if (merchant_type in ("amazon_prime","amazon_nonprime","flipkart","myntra","marketplace") and (channel != "online" or cat != "shopping")) or (merchant_type in ("swiggy","swiggy_food","swiggy_other") and (channel != "online" or cat not in ("dining","groceries"))) or (merchant_type == "cleartrip" and (channel != "online" or cat != "hotel")):
         return _unknown(out,"Merchant route does not match this purchase category or channel.")
     if cat in card.get("excl", {}):
         out.code = "excluded"
@@ -205,8 +223,8 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
         possible = amount * rate / 100
         if card["model"].startswith("hdfc"):
             possible = rnd(possible)
-        if card["model"] == "flipkart_axis" and cap is not None and possible > cap-used + 0.005:
-            return _unknown(out,"This purchase exceeds the remaining accelerated statement-quarter cap; the catalogue has not established the reward on the rest.")
+        # Axis worked examples confirm the remaining cap is the immediate reward.
+        # Surplus held for future refund/EMI adjustments is not immediate cashback.
         out.benefit = round(possible if cap is None else min(possible,cap-used),2)
         out.cap_left_after = None if cap is None else max(0,cap-used-out.benefit)
         out.code = "cap-hit" if cap is not None and possible > cap-used else "bonus"
@@ -283,7 +301,7 @@ def key_condition(r):
         if card["model"] == "flipkart_axis":
             if r.rule["cap"] is None:
                 return "Eligible uncapped cashback; actual merchant ID and exclusions determine the reward."
-            return f"Separate {inr(r.rule['cap'])} statement-quarter cap for {r.rule['bucket']}; {inr(r.cap_left_after)} remains. Merchant ID eligibility applies."
+            return f"Separate {inr(r.rule['cap'])} statement-quarter cap for {r.rule['bucket']}; {inr(r.cap_left_after)} remains. No additional cashback after that cap; merchant ID eligibility applies."
         return (f"Applicable billing-cycle cap {inr(r.rule['cap'])}; "
                 f"{inr(r.cap_left_after)} remains after this purchase. Minimum {inr(r.rule['min'])}; issuer exclusions apply.")
     if card["model"] == "channel_capped":

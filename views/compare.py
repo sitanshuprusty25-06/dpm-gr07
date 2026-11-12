@@ -51,9 +51,14 @@ with st.container(key="compare_workspace"):
                              format_func=lambda cid:{"dining":"Dining / food delivery","shopping":"Shopping","cinema":"Cinema","utilities":"Utility bills"}.get(cid,category_label(cid)),
                              key="cat")
             cat, channel = st.session_state["cat"], st.session_state["channel"]
-            merchants={"unknown":"Not sure about eligibility","other":"Other ordinary eligible purchase"}
+            merchants={"unconfirmed":"Not sure about eligibility","other":"Other ordinary eligible purchase (not a special reward merchant)"}
             if channel=="online" and cat in ("dining","groceries"):
-                merchants["swiggy"]="Eligible Swiggy app (food / Instamart / Dineout)"
+                if cat=="dining":
+                    merchants["swiggy_food"]="Eligible Swiggy food delivery"
+                    merchants["swiggy_other"]="Eligible Swiggy Dineout"
+                else:
+                    merchants["swiggy_other"]="Eligible Swiggy Instamart"
+                    merchants["amazon_flipkart_grocery"]="Amazon / Flipkart groceries · MCC 5411 confirmed"
             if channel=="online" and cat=="shopping":
                 merchants.update({"flipkart":"Flipkart eligible shopping","myntra":"Myntra eligible shopping",
                                   "amazon_prime":"Amazon India eligible goods · Prime",
@@ -61,18 +66,25 @@ with st.container(key="compare_workspace"):
                                   "eligible_online":"Other eligible HDFC-listed online merchant"})
             if channel=="online" and cat=="hotel":
                 merchants["cleartrip"]="Eligible Cleartrip hotel booking"
+                if "amazon_icici" in [c["id"] for c in selected]:
+                    merchants["amazon_travel_prime"]="Eligible Amazon Pay hotel booking · Prime"
+                    merchants["amazon_travel_nonprime"]="Eligible Amazon Pay hotel booking · non-Prime"
+                if any(c["model"].startswith("hdfc") for c in selected):
+                    merchants["eligible_online"]="Confirmed eligible HDFC-listed online hotel merchant"
             if channel=="online" and cat=="cinema":
                 merchants["eligible_online"]="Eligible HDFC-listed online cinema merchant"
             if channel=="online" and "flipkart_axis" in [c["id"] for c in selected] and cat not in ("fuel","utilities"):
                 merchants["axis_preferred"]="Confirmed Axis preferred merchant (check issuer list)"
             if channel=="online" and cat in ("dining","groceries","shopping","cinema","utilities") and "amazon_icici" in [c["id"] for c in selected]:
                 merchants["amazon_pay"]="Eligible Login and Pay with Amazon partner checkout"
+                if cat in ("shopping","utilities"):
+                    merchants["amazon_digital"]="Eligible Amazon digital purchase / Amazon Pay bill payment (not gift card or wallet load)"
             if channel=="online" and cat=="hotel":
                 merchants["scapia_travel"]="Eligible travel booking inside Scapia app"
             if channel=="online" and "kiwi_yes_klick" in [c["id"] for c in selected]:
                 merchants["kiwi_online"]="Eligible online merchant payment via Kiwi app"
             if channel=="upi":
-                merchants={"kiwi_qr":"Eligible merchant QR via Kiwi app / credit on UPI","other":"Eligible merchant QR via another UPI app"}
+                merchants={"unconfirmed":"Not sure about eligibility","kiwi_qr":"Eligible merchant QR via Kiwi app / credit on UPI","other":"Eligible merchant QR via another UPI app"}
             if channel=="offline":
                 merchant="other"
             else:
@@ -82,7 +94,7 @@ with st.container(key="compare_workspace"):
                 merchant=st.selectbox("Merchant / payment route",list(merchants),format_func=merchants.get,
                                       key=route_key,help="Choose a route only if the purchase meets issuer terms. Otherwise choose Not sure.")
             st.session_state["merchant_type"]=merchant
-            emi = st.checkbox("EMI, international, gift card, wallet load or excluded spending",value=False,key="emi",help="Select if the purchase is outside the supported scope.")
+            emi = st.checkbox("EMI, international, gift card, wallet load or other out-of-scope spending",value=False,key="emi",help="Also select for rent, education, jewellery, insurance, tax/government, gaming, tolls, cash advances, railway, business expenses or other excluded spending. This MVP does not model these purchases.")
             remember("amount");remember("cat");remember("channel")
 
             kiwi_remaining=None

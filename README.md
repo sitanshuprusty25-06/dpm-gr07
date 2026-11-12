@@ -85,3 +85,6 @@ Market-informed order remains a catalogue implementation choice, not a customer-
 
 ### Compact result explanation
 The result shows the reward once, then a single Why this card? panel containing the selected checked reason and key issuer condition. The rules-only fallback follows the same layout. Duplicate issuer-condition text is removed; distinct selected cautions cannot hide mandatory conditions. The SBI cap-hit reason explains pre-cap arithmetic. The Gemini client, schema and six grounding checks are unchanged. Live rendering and automated tests still require verification.
+
+### Issuer fine-print review
+See `card_catalog/fine_print_review.md` for the 12 November 2026 evidence and remaining limitations. Corrected Axis cap treatment, Swiggy food-delivery distinction, HDFC variant-specific eligibility and selected Amazon Pay routes. Explicitly unconfirmed eligibility does not yield a recommendation. No new AI capability or payment integration.
