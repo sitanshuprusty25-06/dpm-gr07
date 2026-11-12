@@ -141,8 +141,6 @@ def render_result(L, request_ai=False):
         st.write("Configured model: "+str(diag.get("model",get_secret("GEMINI_MODEL","gemini-3.5-flash-lite"))))
         st.write("API key configured: "+("Yes" if str(get_secret("GEMINI_API_KEY") or "").strip() else "No"))
         st.write("Provider response received: "+("Yes" if diag.get("api_response") else "Not confirmed"))
-        if diag.get("api_version"):
-            st.write("API endpoint version: "+diag["api_version"])
         if diag.get("sdk_version"):
             st.write("Google GenAI SDK: "+diag["sdk_version"])
         if diag.get("http_status") is not None:

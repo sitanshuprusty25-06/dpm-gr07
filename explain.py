@@ -95,41 +95,16 @@ def render_approved(selection, payload):
     )
 
 
-AI_REQUEST_TIMEOUT_MS = 6000
-GEMINI_API_VERSION = "v1beta"
-
-
-def _generation_options(model):
-    """Choose low latency settings without changing financial grounding."""
-    config = {"system_instruction": SYSTEM_PROMPT, "temperature": 0.1,
-              "max_output_tokens": 400, "response_mime_type": "application/json"}
-    if model.startswith(("gemini-3.8-flash", "gemini-3.7-flash")):
-        # 3.8 Flash defaults to medium and deprecates custom sampling.
-        config.pop("temperature", None)
-        config["thinking_config"] = {"thinking_level": "low"}
-        config["max_output_tokens"] = 1024
-    elif "2.5" in model and "flash" in model:
-        config["thinking_config"] = {"thinking_budget": 0}
-    return config
-
-
 def _call_gemini(prompt, api_key, model):
     from google import genai
     from google.genai import types
-    config = _generation_options(model)
-    if "thinking_config" in config:
-        config["thinking_config"] = types.ThinkingConfig(**config["thinking_config"])
-    client = genai.Client(
-        api_key=api_key,
-        http_options=types.HttpOptions(
-            api_version=GEMINI_API_VERSION,
-            timeout=AI_REQUEST_TIMEOUT_MS,
-            retry_options=types.HttpRetryOptions(attempts=1),
-        ),
-    )
+    config = {"system_instruction": SYSTEM_PROMPT, "temperature": 0.1,
+              "max_output_tokens": 400, "response_mime_type": "application/json"}
+    if "2.5" in model and "flash" in model:
+        config["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+    client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
-        model=model, contents=prompt,
-        config=types.GenerateContentConfig(**config)
+        model=model, contents=prompt, config=types.GenerateContentConfig(**config)
     )
     return (response.text or "").strip()
 
@@ -163,7 +138,6 @@ def ai_reword(win, second, amount, cat, api_key, model="gemini-3.5-flash-lite"):
     if not api_key or not str(api_key).strip():
         diag["message"] = "Gemini API key is not configured."
         return None, "no_key", diag
-    diag["api_version"] = GEMINI_API_VERSION
     try:
         diag["sdk_version"] = version("google-genai")
     except PackageNotFoundError:
