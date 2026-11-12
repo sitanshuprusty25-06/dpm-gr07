@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="Card Choice Assistant",
     page_icon="💳",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="auto",
 )
 
 import ui  # noqa: E402
@@ -20,5 +20,6 @@ pages = [
 ]
 
 ui.header()
+ui.sidebar()
 st.navigation(pages, position="top").run()
 ui.footer()

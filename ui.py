@@ -176,49 +176,66 @@ def page_heading(title, sub=None):
     st.markdown(f'<div class="fin-heading">{html.escape(title)}</div>'+body,unsafe_allow_html=True)
 
 
-def footer():
-    """Shared, secondary help; do not interrupt the purchase decision."""
-    st.divider()
-    with st.expander("How it works"):
+def sidebar():
+    """Shared, collapsible guidance. No purchase inputs or new workflows."""
+    with st.sidebar:
+        st.subheader("About Card Choice Assistant")
+        st.write(
+            "Not sure which card to use? Compare estimated rewards on cards "
+            "you already own, before you pay."
+        )
+        st.markdown("**How it works**")
         st.markdown(
-            "1. Select the exact cards you own and enter one purchase.\n"
-            "2. Confirm the payment route and adjust previously earned rewards if needed.\n"
-            "3. Compare the estimated benefits, explanation and issuer conditions."
+            "1. **Select your cards** — choose the exact card variants you own.\n"
+            "2. **Enter purchase details** — amount, category and payment route. "
+            "Adjust reward caps if needed.\n"
+            "3. **Compare and understand** — see estimated rewards, the reason "
+            "and important issuer conditions."
         )
+        st.markdown("**Your privacy**")
         st.write(
-            "The rules engine calculates eligibility, rates and caps. Optional Gemini "
-            "assistance selects a relevant approved reason and caution; it cannot change "
-            "the calculation or ranking. If AI fails, the rules-based result remains."
+            "No card numbers, bank login or persistent wallet. "
+            "Inputs stay in temporary session state. Optional AI sends computed "
+            "purchase facts and relevant card names to Google Gemini."
         )
-    with st.expander("Help, privacy and limitations"):
-        st.markdown("**What can I compare?**")
+        st.markdown("**Know before you pay**")
         st.write(
-            "One supported domestic, non-EMI credit-card purchase. Fees, interest and "
-            "unmodeled promotions are excluded. Rewards are conditional estimates, "
-            "not guaranteed savings. Restricted redemption value is not the same as cash."
+            "Rewards are conditional estimates for supported domestic, non-EMI "
+            "purchases. Confirm issuer eligibility and remaining caps."
         )
-        st.markdown("**What if I am unsure about eligibility or caps?**")
-        st.write(
-            "Choose Not sure where appropriate. An unresolved applicable reward prevents "
-            "a definitive winner. Enter previous rewards for the relevant cycle and bucket; "
-            "zero assumes an unused cap. Check the official issuer terms in the result "
-            "or Supported cards."
-        )
-        st.markdown("**What happens to my data?**")
-        st.write(
-            "No card number, bank login or account is required. The app has no persistent "
-            "user wallet; inputs stay in temporary session state. With AI enabled, computed "
-            "purchase facts and relevant card names are sent to Google Gemini on eligible "
-            "comparisons. Switch AI off for rules-only comparison. Hosting and AI providers "
-            "have their own data-handling policies."
-        )
-        st.markdown("[Google Gemini API terms](https://ai.google.dev/gemini-api/terms)")
-        st.caption(
-            "Independent academic decision support, not financial advice or a bank-endorsed "
-            "service. Do not spend more just to earn rewards."
-        )
-    st.caption("Group 07 · Digital Product Management · IIM Visakhapatnam · Academic MVP")
-    st.markdown("[Source repository](https://github.com/sitanshuprusty25-06/dpm-gr07)")
+        with st.expander("Help and limitations"):
+            st.markdown("**What does AI do?**")
+            st.write(
+                "The rules engine calculates and ranks rewards. Gemini selects "
+                "an approved reason and caution. It cannot change the ranking. "
+                "Disable AI for a rules-only comparison; the calculated result "
+                "also remains available if AI fails."
+            )
+            st.markdown("**What if I am unsure about eligibility or caps?**")
+            st.write(
+                "Choose Not sure where appropriate. An unresolved applicable "
+                "reward prevents a definitive winner. Enter previously earned "
+                "rewards for the relevant cycle and bucket; zero assumes an unused cap."
+            )
+            st.markdown("**What is excluded?**")
+            st.write(
+                "Fees, interest, unmodeled promotions and unsupported purchases. "
+                "Restricted redemption value is not cash. Do not spend more just "
+                "to earn rewards."
+            )
+            st.markdown("**Provider privacy**")
+            st.write("Hosting and AI providers have their own data-handling policies.")
+            st.markdown("[Google Gemini API terms](https://ai.google.dev/gemini-api/terms)")
+        st.caption("Group 07 · IIM Visakhapatnam · Academic MVP")
+        st.markdown("[Source repository](https://github.com/sitanshuprusty25-06/dpm-gr07)")
+
+
+def footer():
+    """Keep a short disclaimer visible even when the sidebar is collapsed."""
+    st.caption(
+        "Independent academic decision support · Conditional estimates, not financial advice · "
+        "No bank affiliation"
+    )
 
 
 def section(title, sub=None):

@@ -14,7 +14,7 @@ One use case: compare supported cards already owned for one domestic, non-EMI pu
 One workflow: choose cards → enter amount, category and payment context → compare → understand the result.
 One GenAI capability: select an approved reason and caution for a calculated result.
 
-The landing page is **Compare my cards**. The only other primary page is **Supported cards**, a reference catalogue with exact product variants, reward descriptions, fees, conditions and issuer links. How it works and Help, privacy and limitations are collapsed below the main workflow. Previous supporting page files are retained in version history and in the repository, but are not part of the active navigation. Future features belong in the team's PRD and roadmap, not the running MVP.
+The landing page is **Compare my cards**. The only other primary page is **Supported cards**, a reference catalogue with exact product variants, reward descriptions, fees, conditions and issuer links. A shared collapsible sidebar shows the value proposition, three-step workflow, privacy and key limitations. Detailed help is collapsed inside the sidebar. Native Streamlit auto mode shows it on larger screens and hides it initially on small devices; users can toggle it. The main footer retains only a short disclaimer. Previous supporting page files are retained in version history and in the repository, but are not part of the active navigation. Future features belong in the team's PRD and roadmap, not the running MVP.
 
 ## Calculation and AI
 
@@ -36,7 +36,7 @@ No login, bank credentials, card numbers, database, payment initiation or persis
 - `app.py` — two-page navigation
 - `views/compare.py` — purchase inputs and comparison
 - `views/supported_cards.py` — reference catalogue
-- `ui.py`, `.streamlit/config.toml` — shared help, native light/dark theme and layout
+- `ui.py`, `.streamlit/config.toml` — shared sidebar guidance, native light/dark theme and layout
 - `cards.py`, `card_catalog/` — read-only data, issuer sources and caveats
 - `rules_engine.py` — modeled calculations and ranking
 - `explain.py`, `results.py` — approved AI explanation, validation, fallback and result presentation
@@ -54,7 +54,7 @@ streamlit run app.py
 
 Deploy `app.py` from `main` on Streamlit Community Cloud. Use Streamlit Secrets for `GEMINI_API_KEY` and optional `GEMINI_MODEL`; never commit credentials. The default `gemini-3.5-flash-lite` was previously verified in the live app with SDK 3.2.0. This navigation iteration does not change the provider client, dependencies or financial rules.
 
-Smoke test: open the root URL, select Swiggy BLCK HDFC and CASHBACK SBI, enter ₹1,200, online, dining, eligible Swiggy food delivery and unused caps. Expected modeled estimates are ₹120 and ₹60. With AI enabled, check the six PASS results under AI verification. Repeat with AI disabled, navigate to Supported cards and back, and check that the inputs persist. Test a tie, an unconfirmed route, a zero reward, and both light/dark modes on desktop and phone. These are proposed checks, not claims of completed testing.
+Smoke test: open the root URL, select Swiggy BLCK HDFC and CASHBACK SBI, enter ₹1,200, online, dining, eligible Swiggy food delivery and unused caps. Expected modeled estimates are ₹120 and ₹60. With AI enabled, check the six PASS results under AI verification. Repeat with AI disabled, navigate to Supported cards and back, and check that the inputs persist. Test a tie, an unconfirmed route, a zero reward, and both light/dark modes on desktop and phone. Verify that the sidebar appears on larger screens, can be collapsed, is initially hidden on small devices, and does not obstruct the comparison. These are proposed checks, not claims of completed testing.
 
 ## Course evidence and maintenance
 
