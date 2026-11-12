@@ -50,7 +50,7 @@ def render_result(L):
     ranked,win,second,amount,cat=(L["ranked"],L["win"],L["second"],L["amount"],L["cat"])
     st.markdown("".join(f'<span class="fin-pill">{html.escape(str(x))}</span>' for x in [category_label(cat),L.get("channel",""),L.get("merchant_label","")] if x),unsafe_allow_html=True)
     if L.get("cap_assumed"):
-        st.caption("Assumption: relevant cashback caps unused. Adjust previous cashback earned if needed.")
+        st.caption("Assumption: cashback caps with zero prior usage are treated as unused. Adjust previous cashback earned if needed.")
     eligible=[r for r in ranked if r.available]
     if not eligible:
         st.info("None of your selected cards supports this modeled payment route.")
@@ -73,14 +73,14 @@ def render_result(L):
     tied=[x for x in eligible if abs(x.benefit-win.benefit)<0.005]
     if win.benefit>0 and len(tied)>1:
         st.info("Tied cards: "+", ".join(x.card["name"] for x in tied)+". Compare the reward form and conditions.")
-    elif win.benefit>0:
-        st.markdown(card_art(win.card,compact=True),unsafe_allow_html=True)
     if win.benefit<=0.005:
         st.markdown("**Selected cards**")
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
         return
     st.markdown('<div class="cca-watch"><div class="wt">Check before paying</div>'
                 f'<div class="wb">{html.escape(key_condition(win))}</div></div>',unsafe_allow_html=True)
+    if len(tied)==1:
+        st.markdown('<div class="fin-result-preview">'+card_art(win.card,compact=True)+'</div>',unsafe_allow_html=True)
 
     def explain_html(message,ai):
         label="Gemini wording · numeric/card checks" if ai else "Deterministic explanation"

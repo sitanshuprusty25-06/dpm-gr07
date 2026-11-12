@@ -7,11 +7,11 @@ IIM Visakhapatnam, EMBA 2025–27, Digital Product Management.
 **Repository:** https://github.com/sitanshuprusty25-06/dpm-gr07
 
 ## Scope and use
-One user (a multi-card selective comparer), one problem (choosing a card for one purchase), one workflow (select cards → enter purchase amount, category and online/offline context → apply issuer rules → read conditional comparison → optional Gemini rewording).
+One user (a multi-card selective comparer), one problem (choosing a card for one purchase), one workflow (select cards → enter purchase amount, category and supported payment context (online, physical card, or merchant UPI QR) → apply issuer rules → read conditional comparison → optional Gemini rewording).
 
 - The application is **stateless with respect to permanent user storage**. Streamlit temporarily holds user inputs in session state. No login, database or transaction linking.
 - `card_catalog/` is **persistent reference data**, with issuer terms, source links, review dates and caveats. It is not user data.
-- Seven supported products: CASHBACK SBI, HSBC Live+, original Swiggy HDFC, Swiggy ORNGE, Swiggy BLCK, Amazon Pay ICICI and Flipkart Axis Bank. Read their `card_catalog/source_notes/` before changing the rules.
+- Ten supported products: CASHBACK SBI, HSBC Live+, original Swiggy HDFC, Swiggy ORNGE, Swiggy BLCK, Amazon Pay ICICI, Flipkart Axis Bank, Kiwi YES BANK Klick, Scapia Federal Visa and Scapia Federal RuPay. Read their `card_catalog/source_notes/` before changing the rules.
 - Merchant MCCs are generally unknown at checkout; results are estimates. HSBC boosted categories are sometimes intentionally marked **not comparable** when eligibility or after-cap cashback is unresolved. This protects users against false precision.
 - Only domestic, non-EMI transactions in the supported categories are considered. Transaction fees, interest, international charges and most promotional offers are out of scope.
 
@@ -54,3 +54,6 @@ Live app: https://dpm-gr07-vhiacq5l6mcewqexuxwvl2.streamlit.app/
 
 ## Catalogue and consistent UI update
 Ten cards: existing seven plus Kiwi YES BANK Klick (standard non-Neon) and Federal Scapia Visa / RuPay. The library uses consistent artwork, issuer, reward and fee sections. UPI QR is separate from physical card payments; incompatible cards are labeled unavailable. Kiwi requires a known remaining monthly reward cap to rank; no credit limit is collected. Scapia coins are converted at 5 coins per rupee of redemption value, not cash. Exactly ₹500 on Scapia RuPay is unresolved due to issuer wording differences. The Amazon Pay reference picture now uses the actual card-specific product image URL, with a labelled fallback if unreachable. No persistent user data. All rules require team verification.
+
+## Compare page usability iteration
+The ten-product catalogue revealed that displaying all card tiles before purchase inputs creates avoidable vertical scrolling. The comparison page now uses a native searchable multi-select, up to three small selected-card previews, compact purchase inputs, and collapsed cap adjustments. The full card library is unchanged. The recommendation follows the primary action on mobile and remains alongside the inputs on desktop. Material cap assumptions and unresolved Kiwi eligibility remain visible. This is an implementation refinement, not a new use case or evidence of completed user testing. Selection is held in temporary session state only. Re-test task completion, time to decision, confusion and understanding of the result with real users.

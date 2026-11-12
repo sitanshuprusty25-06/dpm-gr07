@@ -2,40 +2,57 @@
 import streamlit as st
 from cards import CARDS, CATEGORIES, DEFAULT_WALLET
 from results import render_result
-from rules_engine import category_label, highlight, inr, rank, reward_bucket
-from ui import is_mobile, keep, remember, grid
+from rules_engine import category_label, rank, reward_bucket
+from ui import is_mobile, keep, remember
 from visuals import card_art
 
 cat_ids = [cid for cid, _ in CATEGORIES]
-for card in CARDS:
-    keep(f"w_{card['id']}", card["id"] in DEFAULT_WALLET)
+by_id = {card["id"]: card for card in CARDS}
+# Preserve existing selections during a session, including after an upgrade
+# from the previous checkbox layout. No wallet is written to disk.
+legacy = [c["id"] for c in CARDS if st.session_state.get("p_w_" + c["id"], c["id"] in DEFAULT_WALLET)]
+keep("compare_wallet_ids", legacy)
+# A catalogue change must not leave an invalid multiselect option.
+st.session_state["compare_wallet_ids"] = [cid for cid in st.session_state.get("compare_wallet_ids", []) if cid in by_id]
 keep("amount")
 keep("cat","dining")
 keep("channel","online")
 keep("merchant_type","unknown")
 
 st.markdown('<div class="fin-eyebrow">Smart card comparison</div><div class="fin-heading">Which card should you use?</div><div class="fin-copy">Choose the cards you own, enter one purchase, and see the estimated reward and conditions.</div>',unsafe_allow_html=True)
-st.caption("Choose the cards you own and describe one domestic, non-EMI purchase. No card numbers or bank login.")
+st.caption("One domestic, non-EMI purchase. No card numbers or bank login.")
 
 mobile = is_mobile()
 left, right = (st.container(), st.container()) if mobile else st.columns([1,1],gap="large")
 with left:
     with st.container(border=True):
         st.markdown('<div class="fin-step">01 / Your cards</div>',unsafe_allow_html=True)
-        cols = None if mobile else st.columns(2)
-        for i, c in enumerate(CARDS):
-            with (st.container() if mobile else cols[i%2]):
-                with st.container(border=True):
-                    st.markdown(card_art(c,compact=True),unsafe_allow_html=True)
-                    st.checkbox(c["name"],key=f"w_{c['id']}")
-                    st.caption(c.get("headline",highlight(c)))
-            remember(f"w_{c['id']}")
-        selected = [c for c in CARDS if st.session_state.get(f"w_{c['id']}")]
-        st.caption(f"{len(selected)} of {len(CARDS)} cards selected. Only your cards are compared.")
+        selected_ids = st.multiselect(
+            "Cards you own", options=list(by_id), format_func=lambda cid: by_id[cid]["name"],
+            key="compare_wallet_ids", placeholder="Search and select your cards",
+            help="Type a bank or card name to find any of the ten supported cards."
+        )
+        remember("compare_wallet_ids")
+        selected = [by_id[cid] for cid in selected_ids]
+        st.caption(f"{len(selected)} selected · only your selected cards are compared")
+        if selected:
+            # Bound previews independently of wallet size; names of every selected
+            # card remain visible in the native multiselect above.
+            previews = "".join(card_art(card, compact=True) for card in selected[:3])
+            st.markdown('<div class="fin-wallet-preview">'+previews+'</div>',unsafe_allow_html=True)
+            if len(selected)>3:
+                st.caption(f"+ {len(selected)-3} more selected")
+        else:
+            st.page_link("views/supported_cards.py",label="View supported cards and terms")
     with st.container(border=True):
         st.markdown('<div class="fin-step">02 / Purchase details</div>',unsafe_allow_html=True)
-        st.number_input("Amount (₹)",min_value=0,step=100,value=None,format="%d",key="amount",placeholder="e.g. 8000")
-        st.radio("Purchase channel",["online","offline","upi"],format_func=lambda v:{"online":"Online card / checkout","offline":"Card at store","upi":"Merchant UPI QR"}[v],horizontal=True,key="channel")
+        amount_slot, channel_slot = (st.container(), st.container()) if mobile else st.columns(2)
+        with amount_slot:
+            st.number_input("Amount (₹)",min_value=0,step=100,value=None,format="%d",key="amount",placeholder="e.g. 1200")
+        with channel_slot:
+            st.selectbox("Payment method",["online","offline","upi"],
+                         format_func=lambda v:{"online":"Online card / checkout","offline":"Card at store","upi":"Merchant UPI QR"}[v],
+                         key="channel")
         st.selectbox("Purchase category",cat_ids,format_func=category_label,key="cat")
         cat, channel = st.session_state["cat"], st.session_state["channel"]
         merchants={"unknown":"Not sure about eligibility","other":"Other ordinary eligible purchase"}
@@ -66,13 +83,13 @@ with left:
             merchant=st.selectbox("Merchant / payment route",list(merchants),format_func=merchants.get,
                                   key=f"route_{cat}_{channel}",help="Only choose a route if the purchase meets its issuer terms. Otherwise choose Not sure.")
         st.session_state["merchant_type"]=merchant
-        st.caption("Domestic personal purchases only. Merchant coding and issuer exclusions apply. Do not enter sensitive card details.")
+        st.caption("Merchant eligibility and issuer exclusions apply.")
         emi = st.checkbox("This is EMI, gift card, wallet load, international or otherwise excluded spending",value=False,key="emi")
         remember("amount");remember("cat");remember("channel")
 
         kiwi_remaining=None
         if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online"):
-            with st.expander("Kiwi · remaining monthly reward cap",expanded=True):
+            with st.expander("Kiwi · remaining monthly reward cap",expanded=False):
                 st.caption("Enter the remaining Kiwi reward allowance converted to rupees (4 Kiwis = ₹1). Leave blank if unknown; Kiwi will remain unranked rather than assuming an unlimited reward.")
                 kiwi_remaining=st.number_input("Remaining Kiwi reward value (₹)",min_value=0.0,value=None,step=1.0,key="kiwi_remaining")
         used_by_card={}
@@ -85,20 +102,23 @@ with left:
                 name,rate,cap,minimum=bucket
                 capped.append((c,cap,name))
         if capped:
-            with st.expander("Optional · adjust previous cashback earned"):
+            st.caption("Default estimate: applicable cashback caps are unused. Adjust if you have already earned rewards this cycle.")
+            with st.expander("Optional · adjust previous cashback earned",expanded=False):
                 st.caption("Zero assumes the relevant cap is unused. SBI uses statement cycles, HDFC/HSBC billing cycles, and Axis accelerated categories separate statement-quarter caps.")
                 for c,cap,bucket_name in capped:
                     used_by_card[c["id"]]=st.number_input(
                         f"{c['name']} · {bucket_name} cashback already earned (₹)",
                         min_value=0,max_value=int(cap),step=50,value=0,format="%d",
                         key=f"used_{c['id']}_{bucket_name}")
+        if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online") and kiwi_remaining is None:
+            st.caption("Kiwi will remain unranked until its remaining monthly reward allowance is entered.")
         current_sig=repr((tuple(c["id"] for c in selected),st.session_state.get("amount"),
                           st.session_state["cat"],st.session_state["channel"],
                           st.session_state.get("merchant_type","unknown"),emi,sorted(used_by_card.items()),kiwi_remaining))
         if st.session_state.get("last") and st.session_state["last"].get("signature")!=current_sig:
             st.session_state.pop("last",None)
-            st.info("Inputs changed. Run the comparison again.")
-        go=st.button("Compare my selected cards",type="primary",use_container_width=True)
+            st.caption("Inputs changed — select Compare my cards for an updated result.")
+        go=st.button("Compare my cards",type="primary",use_container_width=True)
         error=None
         if go:
             amount=st.session_state.get("amount")
@@ -119,7 +139,7 @@ with left:
                 st.session_state["last"]={
                     "ranked":ranked,"win":ranked[0],"second":ranked[1] if len(ranked)>1 else None,
                     "amount":amount,"cat":st.session_state["cat"],
-                    "ai_text":None,"ai_status":None,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and all(x==0 for x in used_by_card.values()),
+                    "ai_text":None,"ai_status":None,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
                 }
 with right:
     st.markdown('<div class="fin-step">03 / Your result</div>',unsafe_allow_html=True)

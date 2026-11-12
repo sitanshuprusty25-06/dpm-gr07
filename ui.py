@@ -318,6 +318,20 @@ def header():
 
     .stApp .fin-visual.compact {margin-bottom:5px;}
     .stApp .fin-art-note {text-align:center;color:var(--muted);font-size:.68rem;line-height:1.2;margin-top:4px;}
+    .stApp .fin-wallet-preview {display:grid;grid-template-columns:repeat(3,minmax(0,100px));gap:8px;align-items:start;margin:3px 0 0;}
+    .stApp .fin-wallet-preview .fin-visual {min-width:0;margin:0;}
+    .stApp .fin-wallet-preview .fin-art {max-width:100px;width:100%;aspect-ratio:1.65;border-radius:7px;margin:0;}
+    .stApp .fin-wallet-preview .fin-photo {padding:1px;}
+    .stApp .fin-wallet-preview .fin-issuer,.stApp .fin-wallet-preview .fin-art-note {display:none;}
+    .stApp .fin-wallet-preview .fin-fallback {padding:5px;font-size:.5rem;line-height:1.1;border-radius:7px;}
+    .stApp .fin-wallet-preview .fin-fallback strong {font-size:.56rem;line-height:1.1;}
+    .stApp .fin-wallet-preview .fin-fallback .fin-chip {display:none;}
+    .stApp .fin-wallet-preview .fin-fallback small {font-size:.47rem;}
+    .stApp .fin-result-preview .fin-art {max-width:145px;width:100%;margin:0;}
+    .stApp .fin-result-preview .fin-issuer {margin-top:4px;border:0;padding-bottom:0;}
+    .stApp .fin-result-preview .fin-art-note {text-align:left;}
+    @media(max-width:760px){.stApp .fin-wallet-preview{grid-template-columns:repeat(3,minmax(0,90px));}}
+
     .stApp .fin-resultbar {height:8px;background:var(--soft);border-radius:8px;overflow:hidden;margin:5px 0 10px;}
     .stApp .fin-resultbar span {display:block;height:100%;border-radius:8px;}
     .stApp .cca-panel {background:#142C52;border-radius:20px;}
