@@ -126,7 +126,7 @@ CSS = """
 .stApp .cca-row.best .amt {font-weight:800;}
 .stApp .fin-resultbar {height:6px;background:color-mix(in srgb,currentColor 14%,transparent);border-radius:6px;overflow:hidden;margin:2px 0 5px;}
 .stApp .fin-resultbar span {display:block;height:100%;border-radius:6px;background:#688FE8;}
-.stApp .fin-art {position:relative;width:100%;max-width:300px;aspect-ratio:1.65;overflow:hidden;border-radius:12px;background:#F5F7FA;margin:0 auto;}
+.stApp .fin-art {position:relative;width:100%;max-width:280px;aspect-ratio:1.65;overflow:hidden;border-radius:10px;background:#F5F7FA;margin:0 auto;}
 .stApp .fin-fallback {box-sizing:border-box;height:100%;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;color:#FFFFFF;background:#142C52;font-size:13px;border-radius:12px;}
 .stApp .fin-fallback strong {font-size:1rem;color:#FFFFFF;}
 .stApp .fin-fallback small {font-size:.72rem;color:#FFFFFF;}
@@ -136,13 +136,14 @@ CSS = """
 .stApp .fin-issuer {display:flex;align-items:center;gap:7px;font-size:.82rem;font-weight:650;margin:8px 0;color:inherit;}
 .stApp .fin-issuer-icon {width:20px;height:20px;object-fit:contain;border-radius:4px;background:#FFFFFF;padding:2px;box-sizing:border-box;}
 .stApp .fin-library-card {display:flex;flex-direction:column;}
-.stApp .fin-library-card .fin-issuer {min-height:32px;margin:8px 0 0;padding:0 0 9px;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent);}
-.stApp .fin-library-title {font-size:1.05rem;font-weight:750;line-height:1.3;min-height:3.2rem;padding:10px 0 4px;color:inherit;}
+.stApp .fin-library-card .fin-issuer {box-sizing:border-box;min-height:36px;margin:10px 0 0;padding:0 0 9px;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent);}
+.stApp .fin-library-title {box-sizing:border-box;font-size:1.05rem;font-weight:750;line-height:1.3;min-height:3.6rem;padding:10px 0 4px;color:inherit;overflow-wrap:anywhere;}
 .stApp .fin-library-label {display:block;text-transform:uppercase;font-size:.72rem;font-weight:750;letter-spacing:.035em;margin-bottom:5px;color:inherit;}
-.stApp .fin-library-benefit {font-size:.94rem;line-height:1.45;min-height:6.25rem;padding:9px 0 12px;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent);color:inherit;}
-.stApp .fin-library-meta {display:grid;grid-template-columns:1fr 1.45fr;gap:12px;min-height:4.4rem;padding:10px 0;}
+.stApp .fin-library-benefit {box-sizing:border-box;font-size:.94rem;line-height:1.45;min-height:8rem;padding:9px 0 12px;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent);color:inherit;overflow-wrap:anywhere;}
+.stApp .fin-library-meta {box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);gap:12px;min-height:5.1rem;padding:10px 0;overflow-wrap:anywhere;}
 .stApp .fin-library-meta strong {font-size:.88rem;line-height:1.35;color:inherit;}
-.stApp .fin-art-note {text-align:center;font-size:.75rem;line-height:1.35;margin-top:4px;color:inherit;}
+.stApp .fin-art.has-note .fin-photo {height:calc(100% - 25px);bottom:25px;}
+.stApp .fin-art-note {position:absolute;bottom:0;left:0;right:0;height:25px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:2px 5px;background:#F5F7FA;color:#172B45;text-align:center;font-size:.72rem;line-height:1.2;}
 .stApp .st-key-compare_workspace .cca-panel {padding:18px;}
 .stApp .st-key-compare_workspace .fin-step {margin-bottom:1px;}
 .stApp .st-key-compare_workspace [data-testid="stVerticalBlock"] {gap:.65rem;}

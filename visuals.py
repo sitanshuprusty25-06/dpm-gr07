@@ -84,14 +84,16 @@ def card_art(card, compact=False):
             break
     if not uri and info.get("guide_pdf"):
         uri=guide_card_data_uri(info["guide_pdf"])
-    photo=(f'<img class="fin-photo" src="{uri}" alt="{name} product image">' if uri else "")
+    alt=html.escape(info.get("image_alt",card["name"]+" product image"),quote=True)
+    photo=(f'<img class="fin-photo" src="{uri}" alt="{alt}">' if uri else "")
     icon=(f'<img class="fin-issuer-icon" src="https://www.google.com/s2/favicons?domain={domain}&amp;sz=64" '
           'alt="" loading="lazy" referrerpolicy="no-referrer">' if domain else "")
     size_class="compact" if compact else ""
-    note=info.get("image_caption","")
-    caption=f'<div class="fin-art-note">{html.escape(note)}</div>' if uri and note else ""
+    note=info.get("image_caption","") if uri else ""
+    caption=f'<div class="fin-art-note">{html.escape(note)}</div>' if note else ""
+    art_class="fin-art has-note" if note else "fin-art"
     return (f'<div class="fin-visual {size_class}">'
-            f'<div class="fin-art">{fallback}{photo}</div>{caption}'
+            f'<div class="{art_class}">{fallback}{photo}{caption}</div>'
             f'<div class="fin-issuer">{icon}<span>{issuer}</span></div></div>')
 
 def library_card(card, summary, fee_text):

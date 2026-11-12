@@ -42,16 +42,14 @@
     "url": "https://www.paisabazaar.com/wp-content/webp-express/webp-images/doc-root/wp-content/uploads/2017/10/Scapia-Federal-Card-image.png.webp",
     "source": "https://www.paisabazaar.com/federal-bank/scapia-credit-card/",
     "fallback_gradient": "linear-gradient(125deg,#24272c,#f45c28)",
-    "label": "Federal Bank Scapia Visa product artwork; alternative shows both official cards",
-    "alternate_urls": [
-      "https://framerusercontent.com/images/DqJMUERQe7CMTsm74Q4H3Sbm8.png?height=1126&width=1096"
-    ]
+    "label": "Federal Bank Scapia Visa standalone product artwork"
   },
   "scapia_rupay": {
     "url": "https://framerusercontent.com/images/DqJMUERQe7CMTsm74Q4H3Sbm8.png?height=1126&width=1096",
     "source": "https://www.scapia.cards/",
     "fallback_gradient": "linear-gradient(125deg,#1e2725,#1a9b49)",
     "label": "Official Scapia pair artwork: green card is RuPay; orange is Visa",
-    "image_caption": "Green RuPay card in the official Scapia pair"
+    "image_caption": "RuPay · green card",
+    "image_alt": "Official Scapia Federal pair: green RuPay card and orange Visa card"
   }
 }
