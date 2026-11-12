@@ -2,9 +2,8 @@
 import streamlit as st
 from cards import CARDS, CATEGORIES, DEFAULT_WALLET
 from results import render_result
-from explain import explain_comparison
 from rules_engine import category_label, rank, reward_bucket
-from ui import is_mobile, keep, remember, get_secret
+from ui import is_mobile, keep, remember
 from visuals import card_art
 
 cat_ids = [cid for cid, _ in CATEGORIES]
@@ -143,21 +142,13 @@ with left:
                 st.session_state["last"]={
                     "ranked":ranked,"win":ranked[0],"second":ranked[1] if len(ranked)>1 else None,
                     "amount":amount,"cat":st.session_state["cat"],
-                    "ai_text":None,"ai_status":None,"ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
+                    "ai_text":None,"ai_status":None if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
                 }
-                # Explicit button action only; no automatic call on page load,
-                # expanding diagnostics, changing theme or ordinary widget reruns.
-                with st.spinner("Checking the recommendation with AI..." if use_ai else "Preparing comparison..."):
-                    ai_text,ai_status,ai_detail=explain_comparison(
-                        ranked,amount,st.session_state["cat"],use_ai,
-                        api_key=get_secret("GEMINI_API_KEY") if use_ai else None,
-                        model=get_secret("GEMINI_MODEL","gemini-3.5-flash-lite"))
-                st.session_state["last"].update(ai_text=ai_text,ai_status=ai_status,ai_detail=ai_detail)
 with right:
     st.markdown('<div class="fin-step">03 / Your result</div>',unsafe_allow_html=True)
     if error:
         st.error(error)
     elif st.session_state.get("last"):
-        render_result(st.session_state["last"])
+        render_result(st.session_state["last"], request_ai=go)
     else:
         st.markdown('<div class="cca-empty"><h3>Your comparison appears here</h3><p>Choose your cards, enter the purchase and select Compare. We will show the estimated rewards and any conditions that affect the decision.</p></div>',unsafe_allow_html=True)

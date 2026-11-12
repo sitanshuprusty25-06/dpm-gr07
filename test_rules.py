@@ -4,7 +4,7 @@ import json
 from unittest.mock import patch
 from cards import CARDS
 from rules_engine import evaluate,rank,inr,key_condition,reward_bucket
-from explain import build_payload,validate,check_response,ai_reword,explain_comparison
+from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_generation_options,AI_REQUEST_TIMEOUT_MS
 
 BY_ID={c["id"]:c for c in CARDS}
 
@@ -222,6 +222,31 @@ class AutomaticExplanationTests(unittest.TestCase):
             text,status,diag=explain_comparison(excluded,1200,"fuel",True,"test-key")
         call.assert_not_called()
         self.assertEqual(status,"skipped")
+
+class LatencyConfigurationTests(unittest.TestCase):
+    def test_38_flash_uses_low_thinking_without_temperature(self):
+        cfg=_generation_options("gemini-3.8-flash")
+        self.assertEqual(cfg["thinking_config"]["thinking_level"],"low")
+        self.assertNotIn("temperature",cfg)
+        self.assertEqual(cfg["response_mime_type"],"application/json")
+
+    def test_flash_lite_retains_proven_settings(self):
+        cfg=_generation_options("gemini-3.5-flash-lite")
+        self.assertNotIn("thinking_config",cfg)
+        self.assertEqual(cfg["temperature"],0.1)
+
+    def test_network_timeout_configured(self):
+        self.assertEqual(AI_REQUEST_TIMEOUT_MS,6000)
+
+    def test_timeout_preserves_safe_fallback(self):
+        ranked=rank([BY_ID["swiggy_blck"],BY_ID["sbi_cashback"]],"dining",1200,
+                    channel="online",merchant_type="swiggy")
+        with patch("explain._call_gemini",side_effect=TimeoutError("request timed out")):
+            msg,status,diag=explain_comparison(ranked,1200,"dining",True,"test-key")
+        self.assertIsNone(msg)
+        self.assertEqual(status,"error")
+        self.assertIn("timed out",diag["message"])
+        self.assertFalse(diag["api_response"])
 
 if __name__=="__main__":
     unittest.main()

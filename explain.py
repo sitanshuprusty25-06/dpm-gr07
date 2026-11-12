@@ -94,16 +94,36 @@ def render_approved(selection, payload):
     )
 
 
+AI_REQUEST_TIMEOUT_MS = 6000
+
+
+def _generation_options(model):
+    """Choose low latency settings without changing financial grounding."""
+    config = {"system_instruction": SYSTEM_PROMPT, "temperature": 0.1,
+              "max_output_tokens": 400, "response_mime_type": "application/json"}
+    if model.startswith(("gemini-3.8-flash", "gemini-3.7-flash")):
+        # 3.8 Flash defaults to medium and deprecates custom sampling.
+        config.pop("temperature", None)
+        config["thinking_config"] = {"thinking_level": "low"}
+        config["max_output_tokens"] = 1024
+    elif "2.5" in model and "flash" in model:
+        config["thinking_config"] = {"thinking_budget": 0}
+    return config
+
+
 def _call_gemini(prompt, api_key, model):
     from google import genai
     from google.genai import types
-    config = {"system_instruction": SYSTEM_PROMPT, "temperature": 0.1,
-              "max_output_tokens": 400, "response_mime_type": "application/json"}
-    if "2.5" in model and "flash" in model:
-        config["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(
+        api_key=api_key,
+        http_options=types.HttpOptions(
+            timeout=AI_REQUEST_TIMEOUT_MS,
+            retry_options=types.HttpRetryOptions(attempts=1),
+        ),
+    )
     response = client.models.generate_content(
-        model=model, contents=prompt, config=types.GenerateContentConfig(**config)
+        model=model, contents=prompt,
+        config=types.GenerateContentConfig(**_generation_options(model))
     )
     return (response.text or "").strip()
 
@@ -111,6 +131,8 @@ def _call_gemini(prompt, api_key, model):
 def _error_category(exc):
     """Never display or log raw provider errors, keys or purchase data."""
     msg = str(exc).lower()
+    if isinstance(exc, TimeoutError) or "timeout" in type(exc).__name__.lower() or "timed out" in msg or "deadline exceeded" in msg:
+        return "AI request timed out. Your calculated card recommendation is still available."
     if isinstance(exc, ImportError):
         return "Gemini SDK is unavailable. Check requirements.txt."
     if "429" in msg or "quota" in msg or "resource_exhausted" in msg:

@@ -2,6 +2,7 @@
 import html
 import streamlit as st
 from rules_engine import category_label,inr,key_condition,template_explain
+from explain import explain_comparison
 from ui import get_secret
 from visuals import card_art
 
@@ -45,7 +46,7 @@ def panel_html(win,second,amount,cat):
         f'<div class="delta">{delta}</div></div>'
     )
 
-def render_result(L):
+def render_result(L, request_ai=False):
     ranked,win,second,amount,cat=(L["ranked"],L["win"],L["second"],L["amount"],L["cat"])
     st.markdown("".join(f'<span class="fin-pill">{html.escape(str(x))}</span>' for x in [category_label(cat),L.get("channel",""),L.get("merchant_label","")] if x),unsafe_allow_html=True)
     if L.get("cap_assumed"):
@@ -82,32 +83,51 @@ def render_result(L):
                 +html.escape(label)+'</span><div class="txt">'
                 +html.escape(message)+'</div></div>')
 
+    # Show the financial result and mandatory conditions before waiting for AI.
+    # Keep its eventual explanation in the same position above the conditions.
+    explanation_slot=st.empty()
+    status_slot=st.empty()
+    fallback=template_explain(win,second,amount,cat)
+    explanation_slot.markdown(explain_html(fallback,False),unsafe_allow_html=True)
+    st.markdown('<div class="cca-watch"><div class="wt">Check before paying</div>'
+                f'<div class="wb">{html.escape(key_condition(win))}</div></div>',unsafe_allow_html=True)
+    if request_ai and L.get("ai_enabled") and len(tied)==1 and L.get("ai_status") is None:
+        # Only an explicit Compare action can send purchase facts. Ordinary
+        # reruns and opening diagnostics cannot trigger another request.
+        with status_slot.container():
+            with st.spinner("Your card is ready. Checking the AI explanation…"):
+                ai_text,ai_status,ai_detail=explain_comparison(
+                    ranked,amount,cat,True,
+                    api_key=get_secret("GEMINI_API_KEY"),
+                    model=get_secret("GEMINI_MODEL","gemini-3.5-flash-lite"))
+        L.update(ai_text=ai_text,ai_status=ai_status,ai_detail=ai_detail)
+        status_slot.empty()
+    elif len(tied)>1 and L.get("ai_enabled") and L.get("ai_status") is None:
+        L["ai_status"]="skipped"
+        L["ai_detail"]={"message":"Equal estimated rewards; AI does not break a tie."}
     status=L.get("ai_status")
     diag=L.get("ai_detail")
     if not isinstance(diag,dict):
         diag={}
     checked=(status=="ok" and bool(L.get("ai_text")) and diag.get("api_response")
              and len(diag.get("checks",{}))==6 and all(diag["checks"].values()))
-    st.markdown(explain_html(L["ai_text"] if checked else template_explain(win,second,amount,cat),
-                             bool(checked)),unsafe_allow_html=True)
+    explanation_slot.markdown(explain_html(L["ai_text"] if checked else fallback,
+                                          bool(checked)),unsafe_allow_html=True)
     if checked:
-        st.caption("Gemini responded · all six grounding checks passed.")
+        status_slot.caption("Gemini responded · all six grounding checks passed.")
     elif status=="no_key":
-        st.info("AI is not configured. The rules-based recommendation remains available.")
+        status_slot.info("AI is not configured. The rules-based recommendation remains available.")
     elif status=="error":
-        st.warning("AI request failed. The rules-based recommendation remains available.")
+        status_slot.warning("AI request failed. The rules-based recommendation remains available.")
     elif status=="mismatch":
-        st.warning("AI response rejected by grounding checks. Rules-based explanation shown.")
+        status_slot.warning("AI response rejected by grounding checks. Rules-based explanation shown.")
     elif status=="disabled":
-        st.caption("AI turned off · compared using local rules only.")
+        status_slot.caption("AI turned off · compared using local rules only.")
     elif len(tied)>1:
-        st.caption("AI assistance is not used to break a tie.")
+        status_slot.caption("AI assistance is not used to break a tie.")
     else:
-        st.caption("Rules-based explanation. Select Compare with AI to request AI assistance.")
+        status_slot.caption("Rules-based explanation. Select Compare with AI to request AI assistance.")
 
-    # Important issuer restrictions remain visible before the breakdown.
-    st.markdown('<div class="cca-watch"><div class="wt">Check before paying</div>'
-                f'<div class="wb">{html.escape(key_condition(win))}</div></div>',unsafe_allow_html=True)
     if len(tied)==1:
         st.markdown('<div class="fin-result-preview">'+card_art(win.card,compact=True)+'</div>',unsafe_allow_html=True)
     st.markdown("**Reward comparison**")
