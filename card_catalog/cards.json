@@ -245,6 +245,95 @@
       "last_verified": "2026-11-12",
       "point_value": null,
       "caveat": "Myntra, Flipkart and Cleartrip each have separate ₹4,000 statement-quarter accelerated cashback caps. Preferred merchants earn 4%, other eligible spends 1%; preferred-merchant status and MID must be confirmed. Post-cap treatment not established in catalogue. Gift cards, tolls, rent, wallet loads, education, insurance, fuel, jewellery, government and EMI excluded. Instant discounts excluded."
+    },
+    {
+      "chip": "◆",
+      "fee": 0,
+      "base": 0,
+      "rules": {},
+      "excl": {
+        "fuel": "Fuel rewards excluded; surcharge waivers not compared.",
+        "utilities": "Utility and telecom rewards excluded."
+      },
+      "last_verified": "2026-11-12",
+      "point_value": null,
+      "id": "kiwi_yes_klick",
+      "name": "Kiwi YES BANK Klick RuPay",
+      "issuer": "YES BANK",
+      "issuer_domain": "yes.bank.in",
+      "hue": "#247E64",
+      "model": "kiwi",
+      "source": "https://gokiwi.in/rewards-policy-v2/",
+      "sources": [
+        "https://www.gokiwi.in/cards/yesbank/",
+        "https://gokiwi.in/rewards-policy-v2/"
+      ],
+      "summary": "1.5% eligible Kiwi QR · 0.5% Kiwi online",
+      "headline": "1.5% eligible Kiwi scan & pay",
+      "reward_label": "Kiwis (bank-redeemable)",
+      "caveat": "Standard non-Neon program for cards issued via Kiwi since 4 July 2024. Rewards on completed ₹100 blocks; 1 Kiwi = ₹0.25. Monthly cap is expressed in Kiwis and depends on the credit limit. Enter known remaining cap in rupees if available. No Neon milestone or other-app/bank reward points modeled. Virtual card; eligible merchant payments via Kiwi only."
+    },
+    {
+      "chip": "◆",
+      "fee": 0,
+      "base": 0,
+      "rules": {},
+      "excl": {
+        "fuel": "Fuel rewards excluded; surcharge waivers not compared.",
+        "utilities": "Utility and telecom rewards excluded."
+      },
+      "last_verified": "2026-11-12",
+      "point_value": 0.2,
+      "id": "scapia_visa",
+      "name": "Scapia Federal Visa",
+      "issuer": "Federal Bank",
+      "issuer_domain": "federal.bank.in",
+      "hue": "#393F6F",
+      "model": "scapia",
+      "network": "Visa",
+      "coin_rate": 10,
+      "minimum": 20,
+      "source": "https://www.federal.bank.in/documents/d/guest/cardholder_agreement-v11-30_04_26",
+      "sources": [
+        "https://www.federal.bank.in/scapia",
+        "https://www.federal.bank.in/documents/d/guest/cardholder_agreement-v11-30_04_26",
+        "https://www.scapia.cards/product/blog/scapia-coins"
+      ],
+      "summary": "10% coins on eligible spends (2% rupee value) · 20% coins on eligible Scapia travel",
+      "headline": "2% equivalent value · Scapia Coins",
+      "reward_label": "Scapia Coins (travel value)",
+      "caveat": "Visa minimum ₹20. Five coins = ₹1 in Scapia redemption, not cash. Eligible Scapia app travel earns 20% coins (4% equivalent). Domestic non-EMI transactions only; no airport benefits, forex, lounge or redemption fees modeled. Fuel, utility, insurance and other excluded MCCs earn no rewards. Select Federal Bank network, not BOBCARD or Axis variant."
+    },
+    {
+      "chip": "◆",
+      "fee": 0,
+      "base": 0,
+      "rules": {},
+      "excl": {
+        "fuel": "Fuel rewards excluded; surcharge waivers not compared.",
+        "utilities": "Utility and telecom rewards excluded."
+      },
+      "last_verified": "2026-11-12",
+      "point_value": 0.2,
+      "id": "scapia_rupay",
+      "name": "Scapia Federal RuPay",
+      "issuer": "Federal Bank",
+      "issuer_domain": "federal.bank.in",
+      "hue": "#496C83",
+      "model": "scapia",
+      "network": "RuPay",
+      "coin_rate": 5,
+      "minimum": 500,
+      "source": "https://www.federal.bank.in/documents/d/guest/cardholder_agreement-v11-30_04_26",
+      "sources": [
+        "https://www.federal.bank.in/scapia",
+        "https://www.federal.bank.in/documents/d/guest/cardholder_agreement-v11-30_04_26",
+        "https://www.scapia.cards/product/blog/scapia-coins"
+      ],
+      "summary": "5% coins on eligible spends (1% rupee value) · 20% coins on eligible Scapia travel",
+      "headline": "1% equivalent value · Scapia Coins",
+      "reward_label": "Scapia Coins (travel value)",
+      "caveat": "RuPay minimum ₹500 or more according to product page; exactly ₹500 is treated as unresolved because agreement wording differs. Five coins = ₹1 in Scapia redemption, not cash. Eligible Scapia app travel earns 20% coins (4% equivalent). Domestic non-EMI transactions only; no airport benefits, forex, lounge or redemption fees modeled. Fuel, utility, insurance and other excluded MCCs earn no rewards. Select Federal Bank network, not BOBCARD or Axis variant."
     }
   ]
 }

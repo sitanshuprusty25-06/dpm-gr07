@@ -76,7 +76,10 @@ def validate(text, payload):
     expected_benefit = payload["recommended"]["benefit_inr"]
     if expected_card not in text:
         return False
-    if payload["recommended"].get("reward_form")=="Amazon Pay balance" and "amazon pay balance" not in text.lower():
+    form=payload["recommended"].get("reward_form","")
+    if form=="Amazon Pay balance" and "amazon pay balance" not in text.lower():
+        return False
+    if form.startswith("Scapia Coins") and "scapia coins" not in text.lower():
         return False
     # Extract complete currency amounts. Prefix matches such as ₹800 in ₹8000
     # are intentionally not accepted.

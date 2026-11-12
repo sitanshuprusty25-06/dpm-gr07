@@ -26,8 +26,27 @@
     "source": "https://hindi.moneycontrol.com/news/photos/your-money/great-benefits-at-low-fees-know-which-are-the-top-credit-cards-with-annual-fees-less-than-rupees-1000-2289314.html"
   },
   "amazon_icici": {
+    "url": "https://www.refpo.com/logos/amazon-pay-icici-credit-card.webp",
+    "source": "https://www.refpo.com/credit-cards/amazon-pay-icici-credit-card",
+    "label": "Amazon Pay ICICI reference product photo",
+    "fallback_gradient": "linear-gradient(125deg,#222b3b,#394b60)"
+  },
+  "kiwi_yes_klick": {
     "url": "",
-    "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/amazon-pay-credit-card",
-    "label": "Illustrative tile until a permitted product image is available"
+    "source": "https://www.gokiwi.in/cards/yesbank/",
+    "fallback_gradient": "linear-gradient(125deg,#174f42,#38a67e)",
+    "label": "Illustrative digital card"
+  },
+  "scapia_visa": {
+    "url": "",
+    "source": "https://www.federal.bank.in/scapia",
+    "fallback_gradient": "linear-gradient(125deg,#272e55,#5c659c)",
+    "label": "Illustrative Visa card"
+  },
+  "scapia_rupay": {
+    "url": "",
+    "source": "https://www.federal.bank.in/scapia",
+    "fallback_gradient": "linear-gradient(125deg,#284c61,#57859c)",
+    "label": "Illustrative RuPay card"
   }
 }

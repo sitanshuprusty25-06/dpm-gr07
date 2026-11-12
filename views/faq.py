@@ -2,6 +2,8 @@
 import streamlit as st
 st.markdown("## Frequently asked questions")
 questions=[
+("How are Scapia Coins compared?","Five coins equal one rupee of Scapia redemption value, not cash. Select the exact Federal Bank Visa or RuPay card. Only supported domestic rewards are estimated."),
+("How does Kiwi work?","Standard non-Neon YES BANK Klick rewards require eligible Kiwi payments. Cashback is calculated on completed ₹100 blocks. Enter the remaining reward cap for a ranked estimate."),
 ("Which Swiggy card do I select?","The original, ORNGE and BLCK cards have different terms. Select the exact product shown in your wallet. BLCK has separate Swiggy, online and other billing-cycle buckets."),
 ("What is a statement-quarter cap?","Flipkart Axis has separate accelerated cashback caps for Myntra, Flipkart and Cleartrip per statement quarter. Enter previously earned cashback for the specific merchant bucket."),
 ("Do the bank logos mean the banks endorse this app?","No. Product images and website icons are for identification. This is an independent academic project."),

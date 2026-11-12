@@ -48,3 +48,15 @@ def card_art(card, compact=False):
     return (f'<div class="fin-visual {size_class}">'
             f'<div class="fin-art">{fallback}{photo}</div>'
             f'<div class="fin-issuer">{icon}<span>{issuer}</span></div></div>')
+
+def library_card(card, summary, fee_text):
+    """Consistent, bounded visual, identity, benefits and metadata zones."""
+    name=html.escape(card["name"])
+    benefit=html.escape(summary)
+    fee=html.escape(fee_text)
+    form=html.escape(card.get("reward_label","Cashback"))
+    return (f'<div class="fin-library-card">{card_art(card)}'
+            f'<div class="fin-library-title">{name}</div>'
+            f'<div class="fin-library-benefit"><span class="fin-library-label">Reward highlights</span>{benefit}</div>'
+            f'<div class="fin-library-meta"><div><span class="fin-library-label">Annual fee</span><strong>{fee}</strong></div>'
+            f'<div><span class="fin-library-label">Reward type</span><strong>{form}</strong></div></div></div>')

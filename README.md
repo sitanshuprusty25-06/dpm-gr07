@@ -51,3 +51,6 @@ Reference product pictures, issuer-site icons, mobile-aware card selection, cond
 BLCK and original Swiggy are separate; 10% tier requires ₹249 minimum. Flipkart Axis uses distinct statement-quarter caps for eligible Flipkart, Myntra and Cleartrip; if the remaining accelerated cap is insufficient the engine withholds a definitive winner. Confirm issuer rules independently before use.
 
 Live app: https://dpm-gr07-vhiacq5l6mcewqexuxwvl2.streamlit.app/
+
+## Catalogue and consistent UI update
+Ten cards: existing seven plus Kiwi YES BANK Klick (standard non-Neon) and Federal Scapia Visa / RuPay. The library uses consistent artwork, issuer, reward and fee sections. UPI QR is separate from physical card payments; incompatible cards are labeled unavailable. Kiwi requires a known remaining monthly reward cap to rank; no credit limit is collected. Scapia coins are converted at 5 coins per rupee of redemption value, not cash. Exactly ₹500 on Scapia RuPay is unresolved due to issuer wording differences. The Amazon Pay reference picture now uses the actual card-specific product image URL, with a labelled fallback if unreachable. No persistent user data. All rules require team verification.

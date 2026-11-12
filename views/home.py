@@ -20,7 +20,7 @@ with right:
     st.caption("Live worked example · eligible ₹1,200 Swiggy order · unused caps")
     st.markdown(panel_html(ranked[0],ranked[1],1200,"dining"),unsafe_allow_html=True)
     st.markdown(others_html(ranked,True),unsafe_allow_html=True)
-section("Recognise your cards","Choose from seven supported products. Card images are for identification only.")
+section("Recognise your cards","Choose from 10 supported products. Card images are for identification only.")
 for i in range(0,len(CARDS),4):
     batch=CARDS[i:i+4]
     for slot,c in zip(grid(len(batch),mobile=1),batch):

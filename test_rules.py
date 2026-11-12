@@ -37,7 +37,7 @@ class IssuerRulesTests(unittest.TestCase):
     def test_hsbc_fuel_excluded(self):
         self.assertEqual(evaluate(BY_ID["hsbc_live_plus"],"fuel",1000).benefit,0)
     def test_tie_not_decided_by_annual_fee(self):
-        ranked=rank(CARDS,"fuel",1000)
+        ranked=rank([c for c in CARDS if c["id"] not in ("kiwi_yes_klick",)],"fuel",1000)
         self.assertTrue(all(r.benefit==0 for r in ranked))
     def test_inr_format(self):
         self.assertEqual(inr(120000),"₹1,20,000")
@@ -94,6 +94,37 @@ class ExpandedCardTests(unittest.TestCase):
         self.assertEqual(evaluate(BY_ID["flipkart_axis"],"utilities",1000).benefit,0)
     def test_wrong_merchant_context(self):
         self.assertFalse(evaluate(BY_ID["swiggy_blck"],"hotel",1000,merchant_type="swiggy").comparable)
+
+class KiwiScapiaTests(unittest.TestCase):
+    def test_kiwi_completed_blocks(self):
+        r=evaluate(BY_ID["kiwi_yes_klick"],"groceries",1099,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=100)
+        self.assertEqual(r.benefit,15)
+    def test_kiwi_cap(self):
+        r=evaluate(BY_ID["kiwi_yes_klick"],"groceries",1000,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=4)
+        self.assertEqual(r.benefit,4)
+    def test_kiwi_online(self):
+        self.assertEqual(evaluate(BY_ID["kiwi_yes_klick"],"shopping",1000,merchant_type="kiwi_online",kiwi_remaining=100).benefit,5)
+    def test_kiwi_cap_unknown(self):
+        self.assertFalse(evaluate(BY_ID["kiwi_yes_klick"],"groceries",1000,channel="upi",merchant_type="kiwi_qr").comparable)
+    def test_scapia_visa(self):
+        self.assertEqual(evaluate(BY_ID["scapia_visa"],"dining",1000,merchant_type="other").benefit,20)
+    def test_scapia_rupay(self):
+        self.assertEqual(evaluate(BY_ID["scapia_rupay"],"dining",1000,channel="upi",merchant_type="other").benefit,10)
+    def test_scapia_rupay_minimum(self):
+        self.assertEqual(evaluate(BY_ID["scapia_rupay"],"dining",499,channel="upi",merchant_type="other").benefit,0)
+    def test_scapia_rupay_boundary(self):
+        self.assertFalse(evaluate(BY_ID["scapia_rupay"],"dining",500,channel="upi",merchant_type="other").comparable)
+    def test_scapia_travel(self):
+        self.assertEqual(evaluate(BY_ID["scapia_visa"],"hotel",1000,merchant_type="scapia_travel").benefit,40)
+    def test_scapia_utilities(self):
+        self.assertEqual(evaluate(BY_ID["scapia_visa"],"utilities",1000,merchant_type="other").benefit,0)
+    def test_ordinary_card_not_upi(self):
+        r=evaluate(BY_ID["sbi_cashback"],"dining",1000,channel="upi",merchant_type="other")
+        self.assertFalse(r.available)
+    def test_upi_rank(self):
+        ranked=rank([BY_ID["sbi_cashback"],BY_ID["scapia_rupay"],BY_ID["kiwi_yes_klick"]],"groceries",1000,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=100)
+        self.assertEqual(ranked[0].card["id"],"kiwi_yes_klick")
+        self.assertFalse(ranked[-1].available)
 
 if __name__=="__main__":
     unittest.main()

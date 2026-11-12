@@ -11,8 +11,8 @@ def others_html(ranked,mark_best):
     maximum=max([r.benefit for r in ranked if r.comparable]+[1])
     for i,r in enumerate(ranked):
         best=" best" if mark_best and i==0 else ""
-        amount=inr(r.benefit) if r.comparable else "Not comparable"
-        reason=(r.reason+" · "+r.card.get("reward_label","Cashback")) if r.comparable else r.uncertainty
+        amount="Unavailable" if not r.available else inr(r.benefit) if r.comparable else "Not comparable"
+        reason=r.reason if not r.available else (r.reason+" · "+r.card.get("reward_label","Cashback")) if r.comparable else r.uncertainty
         width=max(0,min(100,r.benefit/maximum*100)) if r.comparable else 0
         rows.append(
             f'<div class="cca-row{best}"><span class="dot" style="background:{r.card["hue"]}"></span>'
@@ -51,7 +51,14 @@ def render_result(L):
     st.markdown("".join(f'<span class="fin-pill">{html.escape(str(x))}</span>' for x in [category_label(cat),L.get("channel",""),L.get("merchant_label","")] if x),unsafe_allow_html=True)
     if L.get("cap_assumed"):
         st.caption("Assumption: relevant cashback caps unused. Adjust previous cashback earned if needed.")
-    uncertain=[r for r in ranked if not r.comparable]
+    eligible=[r for r in ranked if r.available]
+    if not eligible:
+        st.info("None of your selected cards supports this modeled payment route.")
+        st.markdown(others_html(ranked,False),unsafe_allow_html=True)
+        return
+    win=eligible[0]
+    second=eligible[1] if len(eligible)>1 else None
+    uncertain=[r for r in eligible if not r.comparable]
     if uncertain:
         st.warning("A defensible winner cannot be determined for every selected card. "
                    "The catalogue does not establish some merchant or after-cap rules.")
@@ -63,7 +70,7 @@ def render_result(L):
         return
 
     st.markdown(panel_html(win,second,amount,cat),unsafe_allow_html=True)
-    tied=[x for x in ranked if abs(x.benefit-win.benefit)<0.005]
+    tied=[x for x in eligible if abs(x.benefit-win.benefit)<0.005]
     if win.benefit>0 and len(tied)>1:
         st.info("Tied cards: "+", ".join(x.card["name"] for x in tied)+". Compare the reward form and conditions.")
     elif win.benefit>0:
@@ -95,7 +102,7 @@ def render_result(L):
         st.info("Gemini text was unavailable or did not pass the checks. The deterministic explanation remains.")
     st.markdown("**Reward comparison**")
     st.markdown(others_html(ranked,True),unsafe_allow_html=True)
-    st.caption("Amazon Pay rewards are balance credit; other modeled rewards are cashback. Fees, interest and promotions are excluded.")
+    st.caption("Reward values compare face-value rupees: Amazon Pay balance and Scapia Coins are restricted redemption value; Kiwi rewards are bank-redeemable. Fees, interest and promotions are excluded.")
     st.caption(f"Issuer sources reviewed {win.card['last_verified']}. Results are conditional estimates, "
                "not guaranteed cashback. Merchant MCC and other exclusions may affect actual rewards. "
                "No card number or banking credential is requested.")

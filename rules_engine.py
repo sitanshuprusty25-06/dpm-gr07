@@ -49,6 +49,7 @@ class Result:
     comparable: bool = True
     uncertainty: str = ""
     channel: str = "online"
+    available: bool = True
 
 def highlight(card):
     if card.get("summary"):
@@ -69,6 +70,8 @@ def reward_bucket(card, cat, channel, merchant_type="unknown"):
     """Single applicable reward bucket; None means classification unknown."""
     model = card["model"]
     if cat in card.get("excl",{}):
+        return None
+    if channel == "upi":
         return None
     if model == "channel_capped":
         r = card["channel_rules"][channel]
@@ -114,10 +117,68 @@ def reward_bucket(card, cat, channel, merchant_type="unknown"):
         return ("base",1,None,0)
     return None
 
-def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unknown"):
-    if cat not in CATEGORY_LABELS or channel not in ("online","offline") or amount <= 0 or used < 0:
+def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unknown", kiwi_remaining=None):
+    if cat not in CATEGORY_LABELS or channel not in ("online","offline","upi") or amount <= 0 or used < 0:
         raise ValueError("Unsupported category/channel, invalid purchase amount, or negative used cap")
     out = Result(card=card, category=cat, channel=channel)
+    model = card["model"]
+    # A merchant UPI QR is a different payment rail, not ordinary card POS.
+    if channel == "upi" and not (model == "kiwi" or (model == "scapia" and card.get("network")=="RuPay")):
+        out.available = False
+        out.code = "unavailable"
+        out.reason = "UPI credit-card route not modeled for this product"
+        return out
+    if model == "kiwi" and channel == "offline":
+        out.available = False
+        out.code = "unavailable"
+        out.reason = "Virtual Kiwi card; choose eligible Kiwi UPI QR or online route"
+        return out
+    if merchant_type == "scapia_travel" and (channel != "online" or cat not in ("hotel","travel")):
+        return _unknown(out,"Scapia travel must be an eligible booking in its app.")
+    if model == "kiwi":
+        if cat in card.get("excl",{}):
+            out.code="excluded"
+            out.reason=card["excl"][cat]
+            return out
+        if merchant_type not in ("kiwi_qr","kiwi_online"):
+            return _unknown(out,"Confirm the eligible payment is via Kiwi; standard non-Neon rewards only.")
+        if (merchant_type=="kiwi_qr" and channel!="upi") or (merchant_type=="kiwi_online" and channel!="online"):
+            return _unknown(out,"Kiwi payment route does not match the selected channel.")
+        rate=1.5 if channel=="upi" else 0.5
+        value=math.floor(amount/100)*rate
+        if kiwi_remaining is not None:
+            if kiwi_remaining < 0:
+                raise ValueError("Negative Kiwi remaining cap")
+            value=min(value,kiwi_remaining)
+        out.benefit=round(value,2)
+        out.points=out.benefit/0.25
+        out.code="kiwi"
+        out.reason=f"{pct(rate)} on completed ₹100 blocks via Kiwi" + ("; before monthly cap (conditional)" if kiwi_remaining is None else "; limited by entered remaining cap")
+        if kiwi_remaining is None and value>0:
+            return _unknown(out,"Monthly Kiwi reward cap depends on your credit limit. Enter known remaining rupee-equivalent cap to rank; uncapped estimate "+inr(value)+".")
+        return out
+    if model == "scapia":
+        if cat in card.get("excl",{}):
+            out.code="excluded"
+            out.reason=card["excl"][cat]
+            return out
+        if merchant_type=="unknown":
+            return _unknown(out,"Confirm ordinary eligible spend or eligible Scapia travel booking.")
+        if card["network"]=="RuPay" and amount==500 and merchant_type!="scapia_travel":
+            return _unknown(out,"Issuer documents differ on the exact ₹500 boundary; check current terms.")
+        travel=merchant_type=="scapia_travel"
+        minimum=card["minimum"]
+        if not travel and amount<minimum:
+            out.code="below-min"
+            out.reason=f"Below {inr(minimum)} eligible transaction minimum"
+            return out
+        rate=20 if travel else card["coin_rate"]
+        # Estimated value of coins, not the published nominal coin-earn rate as cash.
+        out.points=rnd(amount*rate/100) if card["network"]=="Visa" else round(amount*rate/100,2)
+        out.benefit=round(out.points/5,2)
+        out.code="scapia"
+        out.reason=f"{pct(rate)} coins = about {pct(rate/5)} rupee-equivalent travel value"
+        return out
     if (merchant_type in ("amazon_prime","amazon_nonprime","flipkart","myntra","marketplace") and (channel != "online" or cat != "shopping")) or (merchant_type == "swiggy" and (channel != "online" or cat not in ("dining","groceries"))) or (merchant_type == "cleartrip" and (channel != "online" or cat != "hotel")):
         return _unknown(out,"Merchant route does not match this purchase category or channel.")
     if cat in card.get("excl", {}):
@@ -190,20 +251,26 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
         return out
     raise ValueError(f"Unrecognized calculation model: {card['model']}")
 
-def rank(cards, cat, amount, used_by_card=None, channel="online", merchant_type="unknown"):
+def rank(cards, cat, amount, used_by_card=None, channel="online", merchant_type="unknown", kiwi_remaining=None):
     used_by_card = used_by_card or {}
     results = [evaluate(c, cat, amount, used_by_card.get(c["id"], 0),
-                        channel=channel, merchant_type=merchant_type) for c in cards]
+                        channel=channel, merchant_type=merchant_type, kiwi_remaining=kiwi_remaining) for c in cards]
     # An unresolved reward is not a zero reward and must not be treated as such.
-    results.sort(key=lambda r: (not r.comparable, -r.benefit, r.card["name"]))
+    results.sort(key=lambda r: (not r.available, not r.comparable, -r.benefit, r.card["name"]))
     return results
 
 def key_condition(r):
     card = r.card
+    if not r.available:
+        return r.reason
     if not r.comparable:
         return r.uncertainty
-    if r.code == "excluded":
+    if r.code in ("excluded","below-min"):
         return r.reason
+    if card["model"]=="kiwi":
+        return "Standard Kiwi non-Neon rewards via the Kiwi app, completed ₹100 blocks and entered remaining cap. 1 Kiwi = ₹0.25; bank reward points and milestones excluded."
+    if card["model"]=="scapia":
+        return "Five Scapia Coins = ₹1 in the Scapia app, not cash. Issuer MCC exclusions apply; travel redemption and potential fees may affect usable value."
     if card["model"] in ("hdfc_ornge","hdfc_original","hdfc_blck","amazon","flipkart_axis"):
         if r.code == "below-min":
             return r.reason
@@ -235,7 +302,7 @@ def template_explain(win, second, amount, cat):
     if not win.comparable:
         return "A trustworthy purchase comparison is not available. " + win.uncertainty
     message = (f"For this {inr(amount)} {category_label(cat).lower()} purchase, "
-               f"{win.card['name']} offers an estimated {inr(win.benefit)}.")
+               f"{win.card['name']} offers an estimated {inr(win.benefit)} in {win.card.get('reward_label','cashback').lower()}.")
     if second and second.comparable:
         if abs(second.benefit-win.benefit) < 0.005:
             message += f" {second.card['name']} has the same estimated benefit; this is a tie."

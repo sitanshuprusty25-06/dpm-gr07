@@ -25,16 +25,17 @@ with left:
         cols = None if mobile else st.columns(2)
         for i, c in enumerate(CARDS):
             with (st.container() if mobile else cols[i%2]):
-                st.markdown(card_art(c,compact=True),unsafe_allow_html=True)
-                st.checkbox(c["name"],key=f"w_{c['id']}")
-                st.caption(c.get("headline",highlight(c)))
+                with st.container(border=True):
+                    st.markdown(card_art(c,compact=True),unsafe_allow_html=True)
+                    st.checkbox(c["name"],key=f"w_{c['id']}")
+                    st.caption(c.get("headline",highlight(c)))
             remember(f"w_{c['id']}")
         selected = [c for c in CARDS if st.session_state.get(f"w_{c['id']}")]
         st.caption(f"{len(selected)} of {len(CARDS)} cards selected. Only your cards are compared.")
     with st.container(border=True):
         st.markdown('<div class="fin-step">02 / Purchase details</div>',unsafe_allow_html=True)
         st.number_input("Amount (₹)",min_value=0,step=100,value=None,format="%d",key="amount",placeholder="e.g. 8000")
-        st.radio("Purchase channel",["online","offline"],format_func=lambda v:"Online" if v=="online" else "Physical store",horizontal=True,key="channel")
+        st.radio("Purchase channel",["online","offline","upi"],format_func=lambda v:{"online":"Online card / checkout","offline":"Card at store","upi":"Merchant UPI QR"}[v],horizontal=True,key="channel")
         st.selectbox("Purchase category",cat_ids,format_func=category_label,key="cat")
         cat, channel = st.session_state["cat"], st.session_state["channel"]
         merchants={"unknown":"Not sure about eligibility","other":"Other ordinary eligible purchase"}
@@ -53,16 +54,27 @@ with left:
             merchants["axis_preferred"]="Confirmed Axis preferred merchant (check issuer list)"
         if channel=="online" and cat in ("dining","groceries","shopping","cinema","utilities") and "amazon_icici" in [c["id"] for c in selected]:
             merchants["amazon_pay"]="Eligible Login and Pay with Amazon partner checkout"
+        if channel=="online" and cat=="hotel":
+            merchants["scapia_travel"]="Eligible travel booking inside Scapia app"
+        if channel=="online" and "kiwi_yes_klick" in [c["id"] for c in selected]:
+            merchants["kiwi_online"]="Eligible online merchant payment via Kiwi app"
+        if channel=="upi":
+            merchants={"kiwi_qr":"Eligible merchant QR via Kiwi app / credit on UPI","other":"Eligible merchant QR via another UPI app"}
         if channel=="offline":
             merchant="other"
         else:
             merchant=st.selectbox("Merchant / payment route",list(merchants),format_func=merchants.get,
-                                  key=f"route_{cat}",help="Only choose a route if the purchase meets its issuer terms. Otherwise choose Not sure.")
+                                  key=f"route_{cat}_{channel}",help="Only choose a route if the purchase meets its issuer terms. Otherwise choose Not sure.")
         st.session_state["merchant_type"]=merchant
         st.caption("Domestic personal purchases only. Merchant coding and issuer exclusions apply. Do not enter sensitive card details.")
         emi = st.checkbox("This is EMI, gift card, wallet load, international or otherwise excluded spending",value=False,key="emi")
         remember("amount");remember("cat");remember("channel")
 
+        kiwi_remaining=None
+        if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online"):
+            with st.expander("Kiwi · remaining monthly reward cap",expanded=True):
+                st.caption("Enter the remaining Kiwi reward allowance converted to rupees (4 Kiwis = ₹1). Leave blank if unknown; Kiwi will remain unranked rather than assuming an unlimited reward.")
+                kiwi_remaining=st.number_input("Remaining Kiwi reward value (₹)",min_value=0.0,value=None,step=1.0,key="kiwi_remaining")
         used_by_card={}
         capped=[]
         for c in selected:
@@ -82,7 +94,7 @@ with left:
                         key=f"used_{c['id']}_{bucket_name}")
         current_sig=repr((tuple(c["id"] for c in selected),st.session_state.get("amount"),
                           st.session_state["cat"],st.session_state["channel"],
-                          st.session_state.get("merchant_type","unknown"),emi,sorted(used_by_card.items())))
+                          st.session_state.get("merchant_type","unknown"),emi,sorted(used_by_card.items()),kiwi_remaining))
         if st.session_state.get("last") and st.session_state["last"].get("signature")!=current_sig:
             st.session_state.pop("last",None)
             st.info("Inputs changed. Run the comparison again.")
@@ -103,7 +115,7 @@ with left:
             else:
                 ranked=rank(selected,st.session_state["cat"],amount,used_by_card,
                             channel=st.session_state["channel"],
-                            merchant_type=st.session_state.get("merchant_type","unknown"))
+                            merchant_type=st.session_state.get("merchant_type","unknown"),kiwi_remaining=kiwi_remaining)
                 st.session_state["last"]={
                     "ranked":ranked,"win":ranked[0],"second":ranked[1] if len(ranked)>1 else None,
                     "amount":amount,"cat":st.session_state["cat"],
