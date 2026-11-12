@@ -14,7 +14,7 @@ One use case: compare supported cards already owned for one domestic, non-EMI pu
 One workflow: choose cards → enter amount, category and payment context → compare → understand the result.
 One GenAI capability: select an approved reason and caution for a calculated result.
 
-The landing page is **Compare my cards**. The only other primary page is **Supported cards**, a reference catalogue with exact product variants, reward descriptions, fees, conditions and issuer links. A shared collapsible sidebar shows the value proposition, three-step workflow, privacy and key limitations. Detailed help is collapsed inside the sidebar. Native Streamlit auto mode shows it on larger screens and hides it initially on small devices; users can toggle it. The main footer retains only a short disclaimer. Previous supporting page files are retained in version history and in the repository, but are not part of the active navigation. Future features belong in the team's PRD and roadmap, not the running MVP.
+The landing page is **Compare my cards**. The only other primary page is **Supported cards**, a reference catalogue with exact product variants, reward descriptions, fees, conditions and issuer links. A shared collapsible sidebar shows the value proposition, three-step workflow, privacy and key limitations. Detailed help is collapsed inside the sidebar. Native Streamlit auto mode shows it on larger screens and hides it initially on small devices; users can toggle it. The main footer retains only a short disclaimer. The five retired supporting pages are preserved under [`archive/`](archive/README.md) for development history only; they are not part of active navigation. Future features belong in the team's PRD and roadmap, not the running MVP.
 
 ## Calculation and AI
 
@@ -25,7 +25,7 @@ The landing page is **Compare my cards**. The only other primary page is **Suppo
 - Rewards are conditional estimates, not guaranteed cashback. Actual merchant MCC/MID, issuer posting, exclusions, caps, refunds and settlement may affect rewards. Restricted redemption values are not cash. Fees, interest and unmodeled promotions are excluded.
 - Zero prior cashback assumes an unused applicable cap. Kiwi requires a known remaining reward allowance. Where terms cannot establish an applicable reward, the engine withholds a definitive winner.
 
-The ten supported products are Amazon Pay ICICI, Flipkart Axis, original Swiggy HDFC, Swiggy BLCK, Swiggy ORNGE, CASHBACK SBI, Kiwi YES BANK Klick (standard non-Neon), Scapia Federal Visa, Scapia Federal RuPay and HSBC Live+. Catalogue browsing order is market-informed but never affects the purchase ranking. See `card_catalog/market_order.json` and `card_catalog/fine_print_review.md` for evidence and limitations. The current fine-print review is dated 12 November 2026. The team must independently verify issuer accuracy.
+The ten supported products are Amazon Pay ICICI, Flipkart Axis, original Swiggy HDFC, Swiggy BLCK, Swiggy ORNGE, CASHBACK SBI, Kiwi YES BANK Klick (standard non-Neon), Scapia Federal Visa, Scapia Federal RuPay and HSBC Live+. Catalogue browsing order is market-informed but never affects the purchase ranking. See `card_catalog/market_order.json` and `card_catalog/fine_print_review.md` for evidence and limitations. The fine-print review is dated 12 November 2026; supporting notes and the register reflect the current implementation, including Axis remaining-cap handling, Amazon travel and digital routes, HDFC variant-specific eligibility and Kiwi's required remaining allowance. The team must independently verify issuer accuracy.
 
 ## Privacy and limits
 
@@ -40,7 +40,9 @@ No login, bank credentials, card numbers, database, payment initiation or persis
 - `cards.py`, `card_catalog/` — read-only data, issuer sources and caveats
 - `rules_engine.py` — modeled calculations and ranking
 - `explain.py`, `results.py` — approved AI explanation, validation, fallback and result presentation
-- `assets/card_images.json` — product artwork provenance
+- `assets/card_images.json`, `assets/README.md` — product artwork provenance and current layout
+- `card_catalog/source_register.csv`, `card_catalog/source_notes/` — synchronized issuer evidence and modeled limitations
+- `archive/` — retired prototype pages, not deployed as active views
 - `test_rules.py` — issuer and AI regression tests
 
 ## Run and test
@@ -52,7 +54,7 @@ python -m compileall -q app.py cards.py rules_engine.py explain.py results.py vi
 streamlit run app.py
 ```
 
-Deploy `app.py` from `main` on Streamlit Community Cloud. Use Streamlit Secrets for `GEMINI_API_KEY` and optional `GEMINI_MODEL`; never commit credentials. The default `gemini-3.5-flash-lite` was previously verified in the live app with SDK 3.2.0. This navigation iteration does not change the provider client, dependencies or financial rules.
+Deploy `app.py` from `main` on Streamlit Community Cloud. Use Streamlit Secrets for `GEMINI_API_KEY` and optional `GEMINI_MODEL`; never commit credentials. The default `gemini-3.5-flash-lite` was previously verified in the live app with SDK 3.2.0. The repository synchronization does not change the provider client, dependency requirements or financial calculations. The hosted app's installed SDK and deployed commit must be checked separately.
 
 Smoke test: open the root URL, select Swiggy BLCK HDFC and CASHBACK SBI, enter ₹1,200, online, dining, eligible Swiggy food delivery and unused caps. Expected modeled estimates are ₹120 and ₹60. With AI enabled, check the six PASS results under AI verification. Repeat with AI disabled, navigate to Supported cards and back, and check that the inputs persist. Test a tie, an unconfirmed route, a zero reward, and both light/dark modes on desktop and phone. Verify that the sidebar appears on larger screens, can be collapsed, is initially hidden on small devices, and does not obstruct the comparison. These are proposed checks, not claims of completed testing.
 
@@ -61,3 +63,7 @@ Smoke test: open the root URL, select Swiggy BLCK HDFC and CASHBACK SBI, enter �
 The simplified information architecture reflects the course emphasis on the smallest useful workflow, feature criticality and usability. It is an iteration based on interface review, not evidence of completed user validation. Document the two to three real-user tests required by the project, actual observations and changes made, and compare understanding with versus without AI. Keep proposed monetization, future integrations and additional features in the PRD.
 
 Check issuer documents and add regression tests before changing the financial rules. The team must understand and verify the code, document AI-assisted coding and follow the instructor's AI-use policy for all submitted artifacts. Do not submit AI-generated report/PRD text, images or tables unless the instructor expressly permits them.
+
+## Repository synchronization
+
+The official deployment is the root URL above; the reference catalogue is https://card-choice-assistant.streamlit.app/cards. The active application has two pages. Artwork identifiers, card catalogue IDs, browsing order and issuer register are maintained together. Historical pages are archived. Current source-level consistency tests do not establish live issuer accuracy, real-user validation or successful deployment.

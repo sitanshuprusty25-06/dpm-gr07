@@ -1,13 +1,16 @@
-# Visual references
+# Visual references — current MVP
 
-The application uses publicly visible reference product imagery for identification, with source-page links in the card library. Card and bank marks belong to their respective owners; this is an independent academic project, not a bank-affiliated service. Where a source image is unavailable or cannot be loaded, the app displays an explicitly labeled illustrative tile. Amazon Pay ICICI currently uses an illustration, not an unverified photo. Issuer icons are public website favicon references, not complete official wordmarks. Image requests use static URLs, not user purchase data. Before any commercial/public redistribution beyond the course demo, confirm permission to use the assets. No user card numbers or private card photos are stored.
+The Supported cards page uses public product artwork solely for identification. Card and bank marks belong to their owners; the academic prototype is independent and not bank-affiliated. `card_images.json` records the reference image URLs and provenance for all ten products. The UI displays issuer-term links; artwork provenance remains in the repository.
 
-Image reliability: static public product images are fetched and decoded on the server, then embedded as PNG data URIs. Invalid or unavailable images are omitted and a labelled local illustration remains visible. Only reference assets are cached; customer selections and transactions are not cached. ORNGE uses the issuer's own product-page image with an orange/blue fallback.
+- Amazon Pay ICICI: card-specific reference image from Refpo.
+- Swiggy ORNGE: issuer product-page artwork.
+- Kiwi YES BANK Klick: Paisabazaar card image, with a uniquely identified embedded-card-image fallback from the official YES BANK guide.
+- Scapia Federal Visa: standalone orange Visa image from Paisabazaar; no paired-image fallback.
+- Scapia Federal RuPay: official paired Scapia artwork, with the green RuPay identified by a short caption inside the image slot. Not a standalone RuPay photo.
+- Other cards: individual public reference images recorded in the register. Issuer icons are public website favicon references, not necessarily complete bank logos.
 
-Amazon Pay ICICI reference now points to the card-specific product photo published on Refpo, with its source page recorded. The URL was located in the product-page image link; live image retrieval is not guaranteed. Kiwi and Scapia use explicitly labeled illustrations pending verified artwork. Asset caching remains reference-only.
+The app fetches and decodes static images server-side, normalizes them without stretching and embeds them as PNG data URIs. Missing or invalid artwork falls back to an explicitly labelled illustration. Only public reference assets are cached; customer selections and transaction data are not cached.
 
-## Card artwork and consistent sizing (12 November 2026)
-Kiwi YES BANK Klick uses Paisabazaar's card-specific product image, with a validated embedded-image fallback from the official YES BANK user guide if available. Scapia Federal Visa uses Paisabazaar's actual orange Visa product artwork; Scapia RuPay uses Scapia's own dual-card promotional image with a caption identifying the green RuPay card. The official dual image is an alternate for Visa. Sources are recorded in card_images.json. The app does not use any private cardholder photo. Image retrieval may fail depending on the host; the explicitly labelled illustration remains a fallback. All art slots are bounded to 300 CSS pixels, maintain the same aspect ratio, and preserve image proportions. Home/library use fixed-size grid rows even when the final row is incomplete. No reward or user-state changes.
+All catalogue art slots are bounded to 280 CSS pixels and use a 1.65 aspect ratio; portrait artwork stays portrait. Issuer, card name, reward and fee sections have consistent minimum heights on desktop. The neutral image mat is shared by light and dark modes. Compare does not fetch catalogue images. There is no separate Home page.
 
-## Catalogue alignment
-The official Scapia pair is retained only for the RuPay entry, with a short label inside its fixed artwork slot. The Visa entry uses its standalone artwork or a clearly labelled fallback. Card photos are contained without stretching; the same bounded art zone and minimum text-section heights apply to every catalogue tile. Portrait card designs remain portrait. The paired image is not represented as a verified standalone RuPay photo. No reward rules are changed.
+Image host availability and live rendering are not guaranteed. Verify permissions before redistribution beyond the academic demo. No user card photos or private card numbers are collected.

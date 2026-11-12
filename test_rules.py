@@ -1,6 +1,8 @@
-"""Tests for the two issuer-models and the Gemini numeric safeguards."""
+"""Regression tests for the ten supported products, Gemini safeguards and repository consistency."""
 import unittest
 import json
+import csv
+from pathlib import Path
 from unittest.mock import patch
 from cards import CARDS,MARKET,CATALOG
 from rules_engine import evaluate,rank,inr,key_condition,reward_bucket
@@ -324,6 +326,30 @@ class FinePrintTests(unittest.TestCase):
         self.assertEqual(evaluate(c,"hotel",10000,merchant_type="amazon_travel_nonprime").benefit,300)
         self.assertEqual(evaluate(c,"utilities",1000,merchant_type="amazon_digital").benefit,20)
         self.assertEqual(evaluate(c,"utilities",1000,merchant_type="other").benefit,0)
+
+class RepositoryConsistencyTests(unittest.TestCase):
+    def test_artwork_register_matches_catalogue(self):
+        root=Path(__file__).resolve().parent
+        artwork=json.loads((root/"assets"/"card_images.json").read_text(encoding="utf-8"))
+        self.assertEqual(set(artwork),set(BY_ID))
+        self.assertTrue(all(entry.get("source") for entry in artwork.values()))
+
+    def test_source_register_matches_catalogue_and_order(self):
+        root=Path(__file__).resolve().parent
+        with (root/"card_catalog"/"source_register.csv").open(encoding="utf-8",newline="") as handle:
+            rows=list(csv.DictReader(handle))
+        self.assertEqual([row["card_id"] for row in rows],MARKET["display_order"])
+        for row in rows:
+            card=BY_ID[row["card_id"]]
+            self.assertEqual(row["card_name"],card["name"])
+            self.assertEqual(row["issuer"],card["issuer"])
+            self.assertEqual(row["source"],card["source"])
+            self.assertEqual(row["reviewed_on"],card["last_verified"])
+            self.assertIn(card["source"],card["sources"])
+
+    def test_only_current_views_remain_in_active_directory(self):
+        root=Path(__file__).resolve().parent
+        self.assertEqual({p.name for p in (root/"views").glob("*.py")},{"compare.py","supported_cards.py"})
 
 if __name__=="__main__":
     unittest.main()

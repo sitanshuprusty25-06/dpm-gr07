@@ -1,6 +1,15 @@
-# Kiwi YES BANK Klick RuPay
+# Kiwi YES BANK Klick RuPay — current modeled rules
 
-Sources: https://www.gokiwi.in/cards/yesbank/
-https://gokiwi.in/rewards-policy-v2/
+Evidence review: 2026-11-12. This note describes the current MVP model, not a fresh issuer confirmation.
 
-Standard non-Neon card issued via Kiwi since 4 July 2024: 1.5% scan & pay, 0.5% eligible online via Kiwi. Since 1 June 2025, count only completed ₹100 blocks. One Kiwi is ₹0.25. The monthly cap is expressed in Kiwis as 1% of credit limit; to avoid confusing coins with rupees, ask for known remaining rupee-equivalent cap, or explicitly show an uncapped conditional estimate. No legacy, Neon, milestone, bank-point or other-app rewards modeled. Fuel/utility and other excluded MCCs do not earn. Student verification required.
+## Issuer references
+- https://www.gokiwi.in/cards/yesbank/
+- https://gokiwi.in/rewards-policy-v2/
+
+## Modeled treatment and limitations
+- Standard non-Neon cards issued via Kiwi since 4 July 2024: 1.5% eligible Kiwi scan & pay and 0.5% eligible online via Kiwi. Count completed ₹100 blocks from 1 June 2025.
+- Four Kiwis equal ₹1. Monthly cap is in Kiwis and equals 1% of credit limit, according to the reviewed policy. Enter the known remaining allowance converted to rupees.
+- A positive uncapped estimate may be shown as context, but is not ranked when remaining allowance is unknown.
+- No legacy/Neon milestones, bank points or other-app rewards are modeled. Virtual card; ordinary physical POS route unavailable. Excluded MCCs apply; annual fee ₹0.
+
+Team must independently verify current terms, actual merchant eligibility and settled rewards. See [fine-print review](../fine_print_review.md) and [structured catalogue](../cards.json).

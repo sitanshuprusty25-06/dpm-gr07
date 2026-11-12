@@ -1,9 +1,13 @@
-# Swiggy ORNGE HDFC
+# Swiggy ORNGE HDFC — current modeled rules
 
-Issuer source: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-ornge-hdfc-bank-credit-card/pdf/swiggy-orange.pdf
+Evidence review: 2026-11-12. This note describes the current MVP model, not a fresh issuer confirmation.
 
-5% eligible Swiggy / select online · ₹1,500 shared cap; 1% other · ₹1,000 cap
+## Issuer references
+- https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-ornge-hdfc-bank-credit-card/pdf/swiggy-orange.pdf
 
-₹249 minimum on 5% tier; ₹100 on 1% tier. Merchant eligibility, exclusions and unused cap apply. Instant offers and memberships excluded.
+## Modeled treatment and limitations
+- Eligible Swiggy and selected online purchases: 5%, shared ₹1,500 billing-cycle cap, ₹249 minimum. Confirmed eligible Cleartrip hotel payments are included in that shared bucket.
+- Other eligible spend: 1%, separate ₹1,000 cap, ₹100 minimum. Annual fee ₹500 before tax.
+- Myntra is not explicitly named in the reviewed ORNGE list; generic marketplace and unconfirmed routes are not ranked. Instant offers and memberships excluded. HDFC settlement rounding is an estimate, not independently confirmed.
 
-Reviewed 2026-11-12. Team must independently verify merchant eligibility and current terms. Model excludes unverified promotions.
+Team must independently verify current terms, actual merchant eligibility and settled rewards. See [fine-print review](../fine_print_review.md) and [structured catalogue](../cards.json).
