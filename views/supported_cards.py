@@ -3,7 +3,7 @@ import streamlit as st
 from cards import CARDS
 from rules_engine import highlight,inr
 from ui import grid,page_heading
-from visuals import library_card,IMAGES
+from visuals import library_card
 page_heading("Supported cards","Find your exact card and check its reward structure, fees and issuer terms.")
 issuer=st.selectbox("Filter by issuer",["All issuers"]+list(dict.fromkeys(c["issuer"] for c in CARDS)))
 shown=[c for c in CARDS if issuer=="All issuers" or c["issuer"]==issuer]
@@ -21,5 +21,4 @@ for i in range(0,len(shown),3):
                     st.caption("Issuer source review: "+c["last_verified"])
                     for j,source in enumerate(c["sources"],1):
                         st.link_button(f"Issuer terms {j}",source)
-                    st.link_button("Card image reference",IMAGES[c["id"]]["source"])
 st.caption("Product imagery and issuer icons are for identification. Independent academic MVP; no bank affiliation. Unavailable artwork uses a labeled illustration. Actual merchant eligibility and issuer terms apply.")

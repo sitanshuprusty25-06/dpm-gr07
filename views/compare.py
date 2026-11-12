@@ -20,7 +20,7 @@ keep("merchant_type","unknown")
 
 with st.container(key="compare_workspace"):
     page_heading("Which card should you use?")
-    st.caption("Compare your own cards for one domestic, non-EMI purchase. No bank login or card number.")
+    st.caption("Compare the cards you already own before you pay. One domestic, non-EMI purchase; no bank login or card number.")
 
     mobile = is_mobile()
     left, right = (st.container(), st.container()) if mobile else st.columns([1.12,1],gap="medium")
@@ -89,13 +89,16 @@ with st.container(key="compare_workspace"):
                 merchant="other"
             else:
                 route_key=f"route_{cat}_{channel}"
+                keep(route_key)
                 if route_key in st.session_state and st.session_state[route_key] not in merchants:
                     st.session_state.pop(route_key,None)
                 merchant=st.selectbox("Merchant / payment route",list(merchants),format_func=merchants.get,
                                       key=route_key,help="Choose a route only if the purchase meets issuer terms. Otherwise choose Not sure.")
+                remember(route_key)
             st.session_state["merchant_type"]=merchant
-            emi = st.checkbox("EMI, international, gift card, wallet load or other out-of-scope spending",value=False,key="emi",help="Also select for rent, education, jewellery, insurance, tax/government, gaming, tolls, cash advances, railway, business expenses or other excluded spending. This MVP does not model these purchases.")
-            remember("amount");remember("cat");remember("channel")
+            keep("emi",False)
+            emi = st.checkbox("EMI, international, gift card, wallet load or other out-of-scope spending",key="emi",help="Also select for rent, education, jewellery, insurance, tax/government, gaming, tolls, cash advances, railway, business expenses or other excluded spending. This MVP does not model these purchases.")
+            remember("amount");remember("cat");remember("channel");remember("emi")
 
             kiwi_remaining=None
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online"):

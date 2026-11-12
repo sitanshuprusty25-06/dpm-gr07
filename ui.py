@@ -177,10 +177,48 @@ def page_heading(title, sub=None):
 
 
 def footer():
+    """Shared, secondary help; do not interrupt the purchase decision."""
     st.divider()
-    st.caption("Group 07 · Digital Product Management · IIM Visakhapatnam · Independent academic MVP. "
-               "Conditional reward estimates only. No bank affiliation or persistent wallet. "
-               "Optional AI shares computed purchase facts with Google Gemini.")
+    with st.expander("How it works"):
+        st.markdown(
+            "1. Select the exact cards you own and enter one purchase.\n"
+            "2. Confirm the payment route and adjust previously earned rewards if needed.\n"
+            "3. Compare the estimated benefits, explanation and issuer conditions."
+        )
+        st.write(
+            "The rules engine calculates eligibility, rates and caps. Optional Gemini "
+            "assistance selects a relevant approved reason and caution; it cannot change "
+            "the calculation or ranking. If AI fails, the rules-based result remains."
+        )
+    with st.expander("Help, privacy and limitations"):
+        st.markdown("**What can I compare?**")
+        st.write(
+            "One supported domestic, non-EMI credit-card purchase. Fees, interest and "
+            "unmodeled promotions are excluded. Rewards are conditional estimates, "
+            "not guaranteed savings. Restricted redemption value is not the same as cash."
+        )
+        st.markdown("**What if I am unsure about eligibility or caps?**")
+        st.write(
+            "Choose Not sure where appropriate. An unresolved applicable reward prevents "
+            "a definitive winner. Enter previous rewards for the relevant cycle and bucket; "
+            "zero assumes an unused cap. Check the official issuer terms in the result "
+            "or Supported cards."
+        )
+        st.markdown("**What happens to my data?**")
+        st.write(
+            "No card number, bank login or account is required. The app has no persistent "
+            "user wallet; inputs stay in temporary session state. With AI enabled, computed "
+            "purchase facts and relevant card names are sent to Google Gemini on eligible "
+            "comparisons. Switch AI off for rules-only comparison. Hosting and AI providers "
+            "have their own data-handling policies."
+        )
+        st.markdown("[Google Gemini API terms](https://ai.google.dev/gemini-api/terms)")
+        st.caption(
+            "Independent academic decision support, not financial advice or a bank-endorsed "
+            "service. Do not spend more just to earn rewards."
+        )
+    st.caption("Group 07 · Digital Product Management · IIM Visakhapatnam · Academic MVP")
+    st.markdown("[Source repository](https://github.com/sitanshuprusty25-06/dpm-gr07)")
 
 
 def section(title, sub=None):
