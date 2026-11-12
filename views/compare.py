@@ -46,13 +46,13 @@ with left:
             st.page_link("views/supported_cards.py",label="View supported cards and terms")
     with st.container(border=True):
         st.markdown('<div class="fin-step">02 / Purchase details</div>',unsafe_allow_html=True)
-        amount_slot, channel_slot = (st.container(), st.container()) if mobile else st.columns(2)
-        with amount_slot:
-            st.number_input("Amount (₹)",min_value=0,step=100,value=None,format="%d",key="amount",placeholder="e.g. 1200")
-        with channel_slot:
-            st.selectbox("Payment method",["online","offline","upi"],
-                         format_func=lambda v:{"online":"Online card / checkout","offline":"Card at store","upi":"Merchant UPI QR"}[v],
-                         key="channel")
+        # Keep the amount field full-width: native numeric controls and input
+        # instructions need room even on narrow desktop layouts.
+        st.number_input("Amount (₹)",min_value=0,step=100,value=None,format="%d",key="amount",placeholder="e.g. 1200")
+        st.caption("Type the amount, then press Enter or move to the next field.")
+        st.selectbox("Payment method",["online","offline","upi"],
+                     format_func=lambda v:{"online":"Online card / checkout","offline":"Card at store","upi":"Merchant UPI QR"}[v],
+                     key="channel")
         st.selectbox("Purchase category",cat_ids,format_func=category_label,key="cat")
         cat, channel = st.session_state["cat"], st.session_state["channel"]
         merchants={"unknown":"Not sure about eligibility","other":"Other ordinary eligible purchase"}

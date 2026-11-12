@@ -294,6 +294,14 @@ def header():
     .stApp .fin-copy {color:var(--muted);font-size:1.07rem;line-height:1.6;max-width:650px;}
     .stApp .fin-pill {display:inline-block;padding:5px 10px;border-radius:9px;background:var(--soft);color:var(--ink);font-size:.79rem;font-weight:650;margin:3px 4px 3px 0;}
     .stApp .fin-step {font-size:.78rem;letter-spacing:.09em;color:var(--muted);font-weight:800;text-transform:uppercase;margin:0 0 8px;}
+    /* Numeric inputs: keep the editing instruction out of the value area.
+       Explicit helper text is provided alongside the purchase amount. */
+    .stApp [data-testid="stNumberInput"] [data-testid="stInputInstructions"],
+    .stApp [data-testid="stNumberInput"] [data-testid="stWidgetInstructions"] {
+        position:static !important; white-space:normal !important;
+        overflow-wrap:anywhere; flex-shrink:1; max-width:100%;
+    }
+
     .stApp .fin-art {position:relative;width:100%;max-width:300px;aspect-ratio:1.65;overflow:hidden;border-radius:13px;background:var(--surface);margin:0 auto;}
     .stApp .fin-fallback {box-sizing:border-box;height:100%;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;color:white;background:var(--card-color);font-size:13px;border-radius:13px;}
     .stApp .fin-fallback strong {font-size:1rem;color:white;}
