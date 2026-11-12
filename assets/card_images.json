@@ -8,9 +8,10 @@
     "source": "https://www.hsbc.co.in/credit-cards/compare/visa-platinum-credit-card/"
   },
   "swiggy_ornge": {
-    "url": "https://pbs.twimg.com/media/HCwHR99aUAA5-jx.jpg",
-    "source": "https://x.com/AmazingCreditC/status/2030007644031963182",
-    "label": "Public promotional photo"
+    "url": "https://s7ap1.scene7.com/is/image/hdfcbankPWS/facia?fmt=png-alpha",
+    "source": "https://www.hdfc.bank.in/credit-cards/swiggy-ornge-hdfc-bank-credit-card",
+    "label": "Issuer product image when accessible; otherwise illustrative card",
+    "fallback_gradient": "linear-gradient(115deg,#e95d19 0%,#f07a31 43%,#294998 100%)"
   },
   "swiggy_original": {
     "url": "https://cdn.zeebiz.com/sites/default/files/2023/07/27/253494-news18-bl-zb.jpg?im=FitAndFill%3D%281200%2C900%29",
