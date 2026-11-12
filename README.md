@@ -7,7 +7,7 @@ IIM Visakhapatnam, EMBA 2025–27, Digital Product Management.
 **Repository:** https://github.com/sitanshuprusty25-06/dpm-gr07
 
 ## Scope and use
-One user (a multi-card selective comparer), one problem (choosing a card for one purchase), one workflow (select cards → enter purchase amount, category and supported payment context (online, physical card, or merchant UPI QR) → apply issuer rules → read conditional comparison → optional Gemini rewording).
+One user (a multi-card selective comparer), one problem (choosing a card for one purchase), one workflow (select cards → enter purchase amount, category and supported payment context (online, physical card, or merchant UPI QR) → apply issuer rules → read conditional comparison → optional Gemini-assisted grounded explanation).
 
 - The application is **stateless with respect to permanent user storage**. Streamlit temporarily holds user inputs in session state. No login, database or transaction linking.
 - `card_catalog/` is **persistent reference data**, with issuer terms, source links, review dates and caveats. It is not user data.
@@ -21,7 +21,7 @@ One user (a multi-card selective comparer), one problem (choosing a card for one
 - `rules_engine.py` — deterministic cashback, exclusions, caps and rankings
 - `views/compare.py` — session-only inputs, optional prior-cap usage, comparison form
 - `results.py` — conditional recommendation / uncertainty output
-- `explain.py` — Gemini rewording (optional), numerical/card-name checks and fallback
+- `explain.py` — Gemini selects approved explanation facts; checks response schema, card, amount, reward form, reason and caution; safe fallback
 - `test_rules.py` — hand-checked issuer examples and validation tests
 - `app.py` — Streamlit top navigation and other pages
 
@@ -57,3 +57,10 @@ Ten cards: existing seven plus Kiwi YES BANK Klick (standard non-Neon) and Feder
 
 ## Compare page usability iteration
 The ten-product catalogue revealed that displaying all card tiles before purchase inputs creates avoidable vertical scrolling. The comparison page now uses a native searchable multi-select, up to three small selected-card previews, compact purchase inputs, and collapsed cap adjustments. The full card library is unchanged. The recommendation follows the primary action on mobile and remains alongside the inputs on desktop. Material cap assumptions and unresolved Kiwi eligibility remain visible. This is an implementation refinement, not a new use case or evidence of completed user testing. Selection is held in temporary session state only. Re-test task completion, time to decision, confusion and understanding of the result with real users.
+
+## Verify the AI capability
+- In Compare, select Swiggy BLCK HDFC and CASHBACK SBI; ₹1,200, online, dining, eligible Swiggy, unused caps. Expected estimates ₹120 and ₹60.
+- Click **Help me understand this recommendation**, then open **AI verification · request status and checks**. A successful live request shows provider response received, six PASS checks and elapsed time. The ranking and reward figures stay unchanged. A missing key, provider failure or rejected response is labelled and preserves the rules-based explanation.
+- Run `python -m unittest -v` and `python -m compileall -q app.py cards.py rules_engine.py explain.py results.py views ui.py visuals.py`. Mocked API tests cover successful and rejected responses, invalid JSON, missing key and provider error without contacting Gemini. A live request is a separate test.
+
+Gemini chooses a relevant reason and caution from approved statements; arbitrary model prose is never displayed. These checks establish consistency with our computed facts, not independent verification of issuer terms, model perfection, or evidence of customer value. The diagnostics are temporary session state. No API key or raw provider error is displayed. The team should independently verify the rules, live API and user value before assessed submission.

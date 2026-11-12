@@ -83,23 +83,58 @@ def render_result(L):
         st.markdown('<div class="fin-result-preview">'+card_art(win.card,compact=True)+'</div>',unsafe_allow_html=True)
 
     def explain_html(message,ai):
-        label="Gemini wording · numeric/card checks" if ai else "Deterministic explanation"
+        label="AI-assisted explanation · grounding checks passed" if ai else "Rules-based explanation"
         return ('<div class="cca-explain"><span class="tag">'
                 +html.escape(label)+'</span><div class="txt">'
                 +html.escape(message)+'</div></div>')
+    if L.get("ai_text") and not isinstance(L.get("ai_detail"),dict):
+        L["ai_text"],L["ai_status"],L["ai_detail"]=None,None,None
     placeholder=st.empty()
     placeholder.markdown(explain_html(L.get("ai_text") or template_explain(win,second,amount,cat),
                                        bool(L.get("ai_text"))),unsafe_allow_html=True)
-    if len(tied)==1 and st.button("Explain with Gemini",key="ai_btn",use_container_width=True):
-        with st.spinner("Rewording the computed facts..."):
-            text,status,detail=ai_reword(win,second,amount,cat,
-                         api_key=get_secret("GEMINI_API_KEY"),
-                         model=get_secret("GEMINI_MODEL","gemini-2.5-flash"))
-        L["ai_text"],L["ai_status"],L["ai_detail"]=text,status,detail
-        placeholder.markdown(explain_html(text or template_explain(win,second,amount,cat),
-                                         bool(text)),unsafe_allow_html=True)
-    if L.get("ai_status") in {"no_key","error","mismatch"}:
-        st.info("Gemini text was unavailable or did not pass the checks. The deterministic explanation remains.")
+    if len(tied)==1:
+        st.caption("Optional AI assistance sends computed purchase facts to Gemini to select a helpful reason and caution. It never changes the ranking.")
+        if st.button("Help me understand this recommendation",key="ai_btn",use_container_width=True):
+            with st.spinner("Preparing and checking your explanation..."):
+                text,status,detail=ai_reword(win,second,amount,cat,
+                             api_key=get_secret("GEMINI_API_KEY"),
+                             model=get_secret("GEMINI_MODEL","gemini-2.5-flash"))
+            L["ai_text"],L["ai_status"],L["ai_detail"]=text,status,detail
+            placeholder.markdown(explain_html(text or template_explain(win,second,amount,cat),
+                                             bool(text)),unsafe_allow_html=True)
+        status=L.get("ai_status")
+        diag=L.get("ai_detail")
+        if not isinstance(diag,dict):
+            diag={}
+        if status=="ok" and diag.get("api_response") and all(diag.get("checks",{}).values()) and len(diag.get("checks",{}))==6:
+            st.success("Gemini responded · all six grounding checks passed.")
+        elif status=="no_key":
+            st.info("AI is not configured. Rules-based explanation shown.")
+        elif status=="error":
+            st.warning("AI request failed. Rules-based explanation shown.")
+        elif status=="mismatch":
+            st.warning("AI response rejected by grounding checks. Rules-based explanation shown.")
+        else:
+            st.caption("Request AI assistance to verify this comparison.")
+        with st.expander("AI verification · request status and checks"):
+            st.caption("Checks compare the AI response with our computed facts, not live issuer terms.")
+            st.write("Configured model: "+str(diag.get("model",get_secret("GEMINI_MODEL","gemini-2.5-flash"))))
+            st.write("API key configured: "+("Yes" if str(get_secret("GEMINI_API_KEY") or "").strip() else "No"))
+            st.write("Provider response received: "+("Yes" if diag.get("api_response") else "Not confirmed"))
+            if diag.get("elapsed_ms") is not None:
+                st.write(f"Request and validation time: {diag['elapsed_ms']} ms")
+            for label,passed in diag.get("checks",{}).items():
+                st.write(("PASS — " if passed else "FAIL — ")+label)
+            if diag.get("message"):
+                st.write(diag["message"])
+            if diag.get("reason_id"):
+                st.write("Selected reason: "+diag["reason_id"])
+                st.write("Selected caution: "+diag["caution_id"])
+                st.caption("Only approved financial statements are displayed.")
+            elif not diag:
+                st.caption("Use the AI assistance button to see a real request outcome.")
+    else:
+        st.caption("AI assistance is not offered for tied recommendations. The computed comparison remains visible.")
     st.markdown("**Reward comparison**")
     st.markdown(others_html(ranked,True),unsafe_allow_html=True)
     st.caption("Reward values compare face-value rupees: Amazon Pay balance and Scapia Coins are restricted redemption value; Kiwi rewards are bank-redeemable. Fees, interest and promotions are excluded.")

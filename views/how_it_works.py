@@ -4,7 +4,7 @@ st.markdown("## How the decision is made")
 st.markdown(
     "**Know:** dated issuer data is stored in a version-controlled reference catalogue. "
     "**Decide:** Python evaluates eligible rewards deterministically. "
-    "**Explain:** Gemini can optionally reword the calculated result; it never calculates rewards."
+    "**Explain:** Gemini selects a useful reason and caution from approved computed facts; the app validates the selection and renders only approved statements. Gemini never calculates rewards."
 )
 st.markdown("### A documented example")
 st.write(

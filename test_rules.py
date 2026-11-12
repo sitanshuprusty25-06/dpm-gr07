@@ -1,8 +1,10 @@
 """Tests for the two issuer-models and the Gemini numeric safeguards."""
 import unittest
+import json
+from unittest.mock import patch
 from cards import CARDS
 from rules_engine import evaluate,rank,inr,key_condition,reward_bucket
-from explain import build_payload,validate
+from explain import build_payload,validate,check_response,ai_reword
 
 BY_ID={c["id"]:c for c in CARDS}
 
@@ -47,14 +49,68 @@ class ExplanationChecks(unittest.TestCase):
         r=rank([BY_ID["sbi_cashback"],BY_ID["hsbc_live_plus"]],"dining",8000,channel="online")
         self.w,self.s=r[0],r[1]
         self.p=build_payload(self.w,self.s,8000,"dining")
+        rec=self.p["recommended"]
+        self.good={"card_id":rec["card_id"],"benefit_inr":rec["benefit_inr"],
+                   "reward_form":rec["reward_form"],"reason_id":"advantage",
+                   "caution_id":"issuer_condition"}
+
     def test_accepts_right_amount(self):
-        msg=f"Use {self.w.card['name']}. Estimated cashback ₹800."
-        self.assertTrue(validate(msg,self.p))
-    def test_rejects_wrong_numeric_benefit_even_if_number_elsewhere(self):
-        msg=f"Use {self.w.card['name']}. Estimated cashback ₹8000."
-        self.assertFalse(validate(msg,self.p))
+        self.assertTrue(validate(json.dumps(self.good),self.p))
+    def test_rejects_wrong_numeric_benefit(self):
+        self.assertFalse(validate(json.dumps(dict(self.good,benefit_inr=8000)),self.p))
     def test_rejects_wrong_card(self):
-        self.assertFalse(validate("Use Other Card. Cashback ₹800.",self.p))
+        self.assertFalse(validate(json.dumps(dict(self.good,card_id="other")),self.p))
+    def test_rejects_wrong_reward_form(self):
+        self.assertFalse(validate(json.dumps(dict(self.good,reward_form="cash in bank")),self.p))
+    def test_rejects_invented_reason(self):
+        self.assertFalse(validate(json.dumps(dict(self.good,reason_id="guaranteed")),self.p))
+    def test_rejects_invented_caution(self):
+        self.assertFalse(validate(json.dumps(dict(self.good,caution_id="no cap applies")),self.p))
+    def test_rejects_extra_prose(self):
+        self.assertFalse(validate(json.dumps(dict(self.good,explanation="guaranteed")),self.p))
+    def test_rejects_non_json(self):
+        self.assertFalse(validate("Definitely use HSBC.",self.p))
+    def test_rejects_duplicate_keys(self):
+        duplicate=json.dumps(self.good)[:-1]+', "card_id": "other"}'
+        self.assertFalse(validate(duplicate,self.p))
+    def test_rejects_boolean_amount(self):
+        self.assertFalse(validate(json.dumps(dict(self.good,benefit_inr=True)),self.p))
+    def test_rejects_nonfinite_amount(self):
+        self.assertFalse(validate(json.dumps(dict(self.good,benefit_inr=float("inf"))),self.p))
+    def test_mocked_api_success(self):
+        with patch("explain._call_gemini",return_value=json.dumps(self.good)):
+            msg,status,diag=ai_reword(self.w,self.s,8000,"dining","test-key")
+        self.assertEqual(status,"ok")
+        self.assertTrue(diag["api_response"])
+        self.assertEqual(len(diag["checks"]),6)
+        self.assertTrue(all(diag["checks"].values()))
+        self.assertIn("₹800",msg)
+        self.assertIn(self.w.card["name"],msg)
+    def test_mocked_api_rejection(self):
+        with patch("explain._call_gemini",return_value=json.dumps(dict(self.good,benefit_inr=8000))):
+            msg,status,diag=ai_reword(self.w,self.s,8000,"dining","test-key")
+        self.assertIsNone(msg)
+        self.assertEqual(status,"mismatch")
+        self.assertFalse(diag["checks"]["Reward amount"])
+    def test_missing_key_no_api_call(self):
+        with patch("explain._call_gemini") as call:
+            msg,status,diag=ai_reword(self.w,self.s,8000,"dining",None)
+        call.assert_not_called()
+        self.assertIsNone(msg)
+        self.assertEqual(status,"no_key")
+        self.assertFalse(diag["api_response"])
+    def test_provider_error_fallback_does_not_leak_key(self):
+        with patch("explain._call_gemini",side_effect=RuntimeError("403 secret-test-key")):
+            msg,status,diag=ai_reword(self.w,self.s,8000,"dining","secret-test-key")
+        self.assertIsNone(msg)
+        self.assertEqual(status,"error")
+        self.assertNotIn("secret-test-key",str(diag))
+    def test_diagnostics_expose_failed_check(self):
+        selection,checks,message=check_response(json.dumps(dict(self.good,reward_form="cash")),self.p)
+        self.assertIsNone(selection)
+        self.assertFalse(checks["Reward type"])
+        self.assertTrue(checks["Recommended card"])
+        self.assertTrue(message)
 
 class AdditionalCardsTests(unittest.TestCase):
     def test_orange_swiggy(self):

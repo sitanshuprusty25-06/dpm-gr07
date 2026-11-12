@@ -1,148 +1,150 @@
-"""The single GenAI capability: reword a computed result in plain language.
+"""One grounded AI capability: select a useful reason and caution.
 
-GenAI does not calculate, rank or recommend. It only rewords facts the rules engine has
-already produced. Every number in its text is checked against those facts. If anything
-differs, the user keeps the rule-based explanation.
+The rules engine alone determines financial facts. No arbitrary model prose
+is rendered. The response and diagnostics remain in temporary session state.
 """
-
 import json
-import re
+import time
 
-from rules_engine import category_label, key_condition, rnd
-
-NUMBER_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")
+from rules_engine import category_label, key_condition, inr
 
 SYSTEM_PROMPT = (
-    "You explain a credit card recommendation to a shopper in 2 or 3 short, plain "
-    "sentences. Use ONLY the facts in the JSON. Do not calculate anything yourself. "
-    "Include the exact estimated reward value in rupees only once; do not write any "
-    "other amounts, percentages, dates, numbers or ordinals. The full condition is "
-    "displayed separately by the rules engine. Use the recommended card's name exactly as "
-    "given. Call the figure an estimate, use the reward form from the JSON, and explain why it leads. "
-    "The exact conditions are displayed separately. Do not claim it is the "
-    "best card overall. Do not give general financial advice. Plain text only: no "
-    "markdown, no bullet points."
+    "Help the shopper understand this purchase decision. Choose the most useful "
+    "reason and caution from the supplied options, based on the purchase and reward. "
+    "Prefer a reason explaining why the card leads or qualifies, and a caution "
+    "about the most relevant constraint or redemption type. Return ONLY a JSON "
+    "object containing exactly card_id, benefit_inr, reward_form, reason_id, "
+    "caution_id. Copy card_id, benefit_inr and reward_form exactly from recommended. "
+    "Choose one reason_id and one caution_id from their respective option maps. "
+    "Do not calculate, invent claims, change the recommendation or add prose."
 )
 
 
 def build_payload(win, second, amount, cat):
-    """The only facts the model is allowed to use."""
-    facts = {"base_rate_pct": win.card["base"]}
-    rule = win.rule
-    if rule:
-        facts["bonus_rate_pct"] = rule["rate"]
-        for key, name in (("cap", "monthly_cap_inr"), ("min", "min_purchase_inr"), ("max", "max_per_purchase_inr")):
-            if rule.get(key):
-                facts[name] = rule[key]
+    form = win.card.get("reward_label", "Cashback")
+    reasons = {"eligibility": win.reason}
+    if second and second.comparable and getattr(second, "available", True) and win.benefit > second.benefit:
+        reasons["advantage"] = (
+            f"For this purchase, the estimated reward is {inr(win.benefit-second.benefit)} "
+            f"higher than {second.card['name']}."
+        )
     if win.cap_left_after is not None:
-        facts["cap_left_after_inr"] = rnd(win.cap_left_after)
-    if win.points is not None:
-        facts["points"] = rnd(win.points)
-        facts["point_value_inr"] = win.card["point_value"]
-    payload = {
-        "recommended": {
-            "card": win.card["name"],
-            "issuer": win.card["issuer"],
-            "reward_form": win.card.get("reward_label","cashback"),
-            "benefit_inr": rnd(win.benefit),
-            "reason": win.reason,
-            "condition": key_condition(win),
-        },
-        "purchase": {"amount_inr": amount, "category": category_label(cat)},
-        "facts": facts,
-        "next_best": None,
+        reasons["remaining_cap"] = (
+            f"Based on the entered cap usage, the estimated remaining applicable "
+            f"reward allowance after this purchase is {inr(win.cap_left_after)}."
+        )
+    cautions = {"issuer_condition": key_condition(win)}
+    if form == "Amazon Pay balance":
+        cautions["redemption"] = "The reward is Amazon Pay balance, not cash credited to your bank."
+    elif form.startswith("Scapia Coins"):
+        cautions["redemption"] = "The estimate is Scapia travel redemption value, not cash."
+    elif form.startswith("Kiwis"):
+        cautions["redemption"] = "Kiwi rewards depend on eligible Kiwi payments and your remaining monthly allowance."
+    return {
+        "recommended": {"card_id": win.card["id"], "card": win.card["name"],
+                        "benefit_inr": round(float(win.benefit), 2), "reward_form": form},
+        "purchase": {"amount_inr": amount, "category": category_label(cat), "channel": win.channel},
+        "reason_options": reasons, "caution_options": cautions,
     }
-    if second:
-        payload["next_best"] = {
-            "card": second.card["name"],
-            "benefit_inr": rnd(second.benefit),
-            "advantage_inr": rnd(win.benefit - second.benefit),
-        }
-    return payload
 
 
-def numbers_in(text):
-    return [float(m.replace(",", "")) for m in NUMBER_RE.findall(text)]
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("Duplicate JSON key")
+        result[key] = value
+    return result
+
+
+def check_response(text, payload):
+    """Check exact schema, computed identity, amount, reward form and option IDs."""
+    checks = {"Response format": False, "Recommended card": False,
+              "Reward amount": False, "Reward type": False,
+              "Approved reason": False, "Approved caution": False}
+    try:
+        obj = json.loads(text, object_pairs_hook=_unique_object)
+    except (TypeError, ValueError):
+        return None, checks, "Response was not valid JSON or contained duplicate keys."
+    required = {"card_id", "benefit_inr", "reward_form", "reason_id", "caution_id"}
+    if not isinstance(obj, dict) or set(obj) != required:
+        return None, checks, "Unexpected or missing response fields."
+    checks["Response format"] = True
+    expected = payload["recommended"]
+    checks["Recommended card"] = obj["card_id"] == expected["card_id"]
+    value = obj["benefit_inr"]
+    checks["Reward amount"] = type(value) in (int, float) and value == expected["benefit_inr"]
+    checks["Reward type"] = obj["reward_form"] == expected["reward_form"]
+    checks["Approved reason"] = isinstance(obj["reason_id"], str) and obj["reason_id"] in payload["reason_options"]
+    checks["Approved caution"] = isinstance(obj["caution_id"], str) and obj["caution_id"] in payload["caution_options"]
+    return (obj, checks, "") if all(checks.values()) else (None, checks, "One or more grounding checks failed.")
 
 
 def validate(text, payload):
-    """Restrict the model to the exact recommended card and one exact benefit amount.
+    return check_response(text, payload)[0] is not None
 
-    Matching a *different* number in the JSON (e.g. the monthly cap or the
-    purchase amount) must never validate a mistaken cashback claim.
-    Full conditions are shown separately using deterministic rules text.
-    """
-    expected_card = payload["recommended"]["card"]
-    expected_benefit = payload["recommended"]["benefit_inr"]
-    if expected_card not in text:
-        return False
-    form=payload["recommended"].get("reward_form","")
-    if form=="Amazon Pay balance" and "amazon pay balance" not in text.lower():
-        return False
-    if form.startswith("Scapia Coins") and "scapia coins" not in text.lower():
-        return False
-    # Extract complete currency amounts. Prefix matches such as ₹800 in ₹8000
-    # are intentionally not accepted.
-    money = re.findall(r"₹\s*([0-9][0-9,]*(?:\.[0-9]+)?)", text)
-    if len(money) != 1:
-        return False
-    value = float(money[0].replace(",", ""))
-    if abs(value - expected_benefit) > 0.005:
-        return False
-    # Reject other standalone numeric statements in the model's text,
-    # e.g. a hallucinated 10% rate or a misleading 5-day promotion.
-    stripped = re.sub(r"₹\s*[0-9][0-9,]*(?:\.[0-9]+)?", "", text)
-    return not bool(NUMBER_RE.search(stripped))
+
+def render_approved(selection, payload):
+    r = payload["recommended"]
+    return (
+        f"{r['card']} offers an estimated {inr(r['benefit_inr'])} in "
+        f"{r['reward_form'].lower()} for this purchase. "
+        + payload["reason_options"][selection["reason_id"]] + " "
+        + payload["caution_options"][selection["caution_id"]]
+    )
+
 
 def _call_gemini(prompt, api_key, model):
     from google import genai
     from google.genai import types
-
-    config = {"system_instruction": SYSTEM_PROMPT, "temperature": 0.2, "max_output_tokens": 600}
+    config = {"system_instruction": SYSTEM_PROMPT, "temperature": 0.1,
+              "max_output_tokens": 400, "response_mime_type": "application/json"}
     if "2.5" in model and "flash" in model:
-        # Short rewording does not need "thinking"; it would use up the output budget.
         config["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
     client = genai.Client(api_key=api_key)
-    resp = client.models.generate_content(
-        model=model,
-        contents=prompt,
-        config=types.GenerateContentConfig(**config),
+    response = client.models.generate_content(
+        model=model, contents=prompt, config=types.GenerateContentConfig(**config)
     )
-    return (resp.text or "").strip()
+    return (response.text or "").strip()
 
 
-def _hint(e, api_key):
-    """A short, key-free description of why the call failed, plus what to try."""
-    msg = str(e).replace(api_key, "***")[:300]
-    low = msg.lower()
-    if isinstance(e, ImportError):
-        advice = "The google-genai package is not installed. Check requirements.txt and reboot the app."
-    elif "api key" in low or "api_key_invalid" in low or "401" in low or "403" in low or "permission" in low:
-        advice = "Google rejected the key. Check it was copied fully, has no spaces, and is enabled."
-    elif "429" in low or "quota" in low or "resource_exhausted" in low or "rate" in low:
-        advice = "Rate or quota limit reached. Wait a minute and try again."
-    elif "404" in low or "not found" in low or "model" in low:
-        advice = "The model name was not accepted. Add GEMINI_MODEL = \"gemini-2.0-flash\" to Secrets."
-    elif "location" in low or "not supported" in low:
-        advice = "Gemini API may not be available for this key or region."
-    else:
-        advice = "See Manage app logs for details."
-    return f"{type(e).__name__}: {msg}. {advice}"
+def _error_category(exc):
+    """Never display or log raw provider errors, keys or purchase data."""
+    msg = str(exc).lower()
+    if isinstance(exc, ImportError):
+        return "Gemini SDK is unavailable. Check requirements.txt."
+    if "429" in msg or "quota" in msg or "resource_exhausted" in msg:
+        return "Provider quota or rate limit reached."
+    if any(x in msg for x in ("401", "403", "api key", "api_key_invalid", "permission")):
+        return "Provider rejected the key or permissions."
+    if "404" in msg or "not found" in msg:
+        return "Configured Gemini model is unavailable."
+    return "Provider request failed. Check Streamlit app configuration."
 
 
 def ai_reword(win, second, amount, cat, api_key, model="gemini-2.5-flash"):
-    """Return (text, status, detail). status is "ok", "no_key", "error" or "mismatch".
-    text is None unless status is "ok". detail explains an "error" (never contains the key)."""
-    if not api_key:
-        return None, "no_key", ""
-    api_key = str(api_key).strip()
-    payload = build_payload(win, second, amount, cat)
+    """Return (approved explanation or None, status, session-only diagnostics)."""
+    diag = {"model": str(model), "api_response": False, "checks": {},
+            "elapsed_ms": None, "message": ""}
+    if not api_key or not str(api_key).strip():
+        diag["message"] = "Gemini API key is not configured."
+        return None, "no_key", diag
+    start = time.perf_counter()
     try:
-        text = _call_gemini(json.dumps(payload, ensure_ascii=False, indent=2), api_key, model)
-    except Exception as e:
-        detail = _hint(e, api_key)
-        print(f"Gemini call failed: {detail}")  # also in the Streamlit "Manage app" logs
-        return None, "error", detail
-    if text and validate(text, payload):
-        return text, "ok", ""
-    return None, "mismatch", ""
+        payload = build_payload(win, second, amount, cat)
+        text = _call_gemini(json.dumps(payload, ensure_ascii=False), str(api_key).strip(), model)
+        diag["api_response"] = True
+        selection, checks, message = check_response(text, payload)
+        diag["checks"] = checks
+        diag["message"] = message
+        if selection is not None:
+            diag["reason_id"] = selection["reason_id"]
+            diag["caution_id"] = selection["caution_id"]
+            return render_approved(selection, payload), "ok", diag
+        return None, "mismatch", diag
+    except Exception as exc:
+        diag["message"] = _error_category(exc)
+        print("Gemini explanation failed: " + diag["message"])
+        return None, "error", diag
+    finally:
+        diag["elapsed_ms"] = round((time.perf_counter()-start)*1000)
