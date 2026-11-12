@@ -9,6 +9,7 @@ import re
 import streamlit as st
 
 from cards import SAMPLE_DATA
+from rules_engine import money
 
 def get_secret(name, default=None):
     try:
@@ -70,6 +71,13 @@ def keep(key, default=None):
             st.session_state[key] = saved
         elif default is not None:
             st.session_state[key] = default
+
+
+def keep_money(key, default=None):
+    """Restore old whole-rupee widgets as floats before creating decimal inputs."""
+    keep(key, default)
+    if st.session_state.get(key) is not None:
+        st.session_state[key] = money(st.session_state[key])
 
 
 def remember(key):
@@ -145,7 +153,25 @@ CSS = """
 .stApp .fin-art.has-note .fin-photo {height:calc(100% - 25px);bottom:25px;}
 .stApp .fin-art-note {position:absolute;bottom:0;left:0;right:0;height:25px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:2px 5px;background:#F5F7FA;color:#172B45;text-align:center;font-size:.72rem;line-height:1.2;}
 .stApp .st-key-compare_workspace .cca-panel {padding:18px;}
-.stApp .st-key-compare_workspace .fin-step {margin-bottom:1px;}
+.stApp .st-key-compare_workspace .fin-step {margin-bottom:1px;display:flex;align-items:center;gap:8px;letter-spacing:.045em;}
+.stApp .fin-step .step-number {display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;flex:none;background:color-mix(in srgb,currentColor 9%,transparent);font-size:.76rem;font-weight:750;color:inherit;}
+.stApp .st-key-purchase_inputs .fin-step + div {margin-top:0;}
+.stApp .st-key-purchase_inputs {min-width:0;}
+/* Compact, theme-inheriting guidance; never resize the native sidebar. */
+.stApp .cca-side {font-size:.88rem;line-height:1.48;color:inherit;}
+.stApp .cca-side .side-kicker {font-size:.69rem;font-weight:750;letter-spacing:.075em;text-transform:uppercase;margin:0 0 6px;color:inherit;}
+.stApp .cca-side .side-title {font-size:1.12rem;font-weight:750;line-height:1.28;margin:0 0 7px;color:inherit;}
+.stApp .cca-side p {font-size:.87rem;line-height:1.48;margin:0;color:inherit;}
+.stApp .cca-side .side-section {border-top:1px solid color-mix(in srgb,currentColor 20%,transparent);padding-top:13px;margin-top:14px;}
+.stApp .cca-side .side-label {font-size:.88rem;font-weight:750;margin:0 0 9px;color:inherit;}
+.stApp .cca-side .side-step {display:grid;grid-template-columns:24px minmax(0,1fr);gap:9px;align-items:start;margin:0 0 10px;}
+.stApp .cca-side .side-step:last-child {margin-bottom:0;}
+.stApp .cca-side .side-num {display:grid;place-items:center;width:23px;height:23px;border:1px solid color-mix(in srgb,currentColor 25%,transparent);background:color-mix(in srgb,currentColor 7%,transparent);border-radius:7px;font-size:.73rem;font-weight:750;}
+.stApp .cca-side .side-step strong {display:block;font-size:.87rem;font-weight:700;line-height:1.35;margin-bottom:2px;color:inherit;}
+.stApp .cca-side .side-step span:not(.side-num) {display:block;font-size:.81rem;line-height:1.4;color:inherit;}
+.stApp .cca-side .side-note {border-left:2px solid #688FE8;padding-left:9px;}
+.stApp .cca-side .side-note strong {display:block;font-size:.85rem;margin-bottom:4px;color:inherit;}
+
 .stApp .st-key-compare_workspace [data-testid="stVerticalBlock"] {gap:.65rem;}
 /* The amount retains native controls, but move overlapping instructions
    into normal layout rather than changing their colours. */
@@ -180,29 +206,23 @@ def page_heading(title, sub=None):
 def sidebar():
     """Shared, collapsible guidance. No purchase inputs or new workflows."""
     with st.sidebar:
-        st.subheader("About Card Choice Assistant")
-        st.write(
-            "Not sure which card to use? Compare estimated rewards on cards "
-            "you already own, before you pay."
-        )
-        st.markdown("**How it works**")
         st.markdown(
-            "1. **Select your cards** — choose the exact card variants you own.\n"
-            "2. **Enter purchase details** — amount, category and payment route. "
-            "Adjust reward caps if needed.\n"
-            "3. **Compare and understand** — see estimated rewards, the reason "
-            "and important issuer conditions."
-        )
-        st.markdown("**Your privacy**")
-        st.write(
-            "No card numbers, bank login or persistent wallet. "
-            "Inputs stay in temporary session state. Optional AI sends computed "
-            "purchase facts and relevant card names to Google Gemini."
-        )
-        st.markdown("**Know before you pay**")
-        st.write(
-            "Rewards are conditional estimates for supported domestic, non-EMI "
-            "purchases. Confirm issuer eligibility and remaining caps."
+            '<div class="cca-side">'
+            '<div class="side-kicker">Before you pay</div>'
+            '<div class="side-title">About Card Choice Assistant</div>'
+            '<p>Compare estimated rewards on cards you already own for one purchase.</p>'
+            '<div class="side-section"><div class="side-label">How it works</div>'
+            '<div class="side-step"><span class="side-num">1</span><div>'
+            '<strong>Select your cards</strong><span>Choose the exact card variants you own.</span></div></div>'
+            '<div class="side-step"><span class="side-num">2</span><div>'
+            '<strong>Enter purchase details</strong><span>Amount, category, payment route and reward caps if needed.</span></div></div>'
+            '<div class="side-step"><span class="side-num">3</span><div>'
+            '<strong>Compare and understand</strong><span>Review estimated rewards, reasons and issuer conditions.</span></div></div></div>'
+            '<div class="side-section"><div class="side-note"><strong>Your privacy</strong>'
+            '<p>No card numbers, bank login or persistent wallet. Optional AI shares computed purchase facts and card names with Gemini.</p></div></div>'
+            '<div class="side-section"><div class="side-label">Know before you pay</div>'
+            '<p>Conditional estimates for domestic, non-EMI purchases. Confirm eligibility and remaining caps.</p></div>'
+            '</div>', unsafe_allow_html=True
         )
         with st.expander("Help and limitations"):
             st.markdown("**What does AI do?**")
@@ -225,7 +245,7 @@ def sidebar():
                 "to earn rewards."
             )
             st.markdown("**Provider privacy**")
-            st.write("Hosting and AI providers have their own data-handling policies.")
+            st.write("Inputs stay in temporary session state. Hosting and AI providers have their own data-handling policies.")
             st.markdown("[Google Gemini API terms](https://ai.google.dev/gemini-api/terms)")
         st.caption("Group 07 · IIM Visakhapatnam · Academic MVP")
         st.markdown("[Source repository](https://github.com/sitanshuprusty25-06/dpm-gr07)")

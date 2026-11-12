@@ -6,6 +6,7 @@ This is version-controlled public reference data, not a user database. `cards.py
 - `market_order.json`: all ten IDs in market-informed browsing order; not a purchase recommendation input.
 - `source_register.csv`: one row per product, matching the canonical ID, name, issuer, primary source and review date.
 - `source_notes/`: current modeled treatment, issuer sources and limitations; one shared note for Scapia Visa/RuPay.
+- `link_review.md`: current customer-facing issuer-reference availability and removed/replaced links.
 - `fine_print_review.md`: detailed evidence review and unresolved issues from 12 November 2026.
 
 ## Maintenance

@@ -3,8 +3,8 @@
 Evidence review: 2026-11-12. This note describes the current MVP model, not a fresh issuer confirmation.
 
 ## Issuer references
-- https://www.hsbc.bank.in/credit-cards/products/live-plus/
 - https://www.hsbc.co.in/content/dam/hsbc/in/documents/credit-cards/live-plus-credit-card-services-guide.pdf
+- https://www.hsbc.co.in/credit-cards/products/live-plus/
 
 ## Modeled treatment and limitations
 - Current issuer product material describes 10% on eligible dining, food delivery, grocery, shopping and utility spends sharing a ₹1,200 billing-cycle cap; 1.5% on most other eligible domestic spend.

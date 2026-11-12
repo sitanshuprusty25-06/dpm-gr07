@@ -4,11 +4,27 @@ When merchant classification or after-cap treatment is unresolved, we do not
 pretend to know the winner. This model contains no user storage or API calls.
 """
 import math
+from decimal import Decimal, ROUND_HALF_UP
 from dataclasses import dataclass
 from cards import CATEGORY_LABELS
 
+def decimal_value(x):
+    """Convert a finite numeric input without binary floating-point artifacts."""
+    d = Decimal(str(x))
+    if not d.is_finite():
+        raise ValueError("Monetary values must be finite")
+    return d
+
+def money(x):
+    """Normalize modeled INR to the nearest paise, half up (not issuer settlement)."""
+    return float(decimal_value(x).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+
+def rate_value(amount, rate):
+    """Unrounded percentage calculation; preserve the issuer model's rounding stage."""
+    return decimal_value(amount) * decimal_value(rate) / Decimal(100)
+
 def rnd(x):
-    return int(math.floor(x + 0.5))
+    return int(decimal_value(x).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 def group(n):
     s = str(int(n))
@@ -25,7 +41,7 @@ def group(n):
 
 def inr(n):
     """Display modeled rupee value to paise; avoid rounding positive rewards to zero."""
-    paise = rnd(abs(n)*100)
+    paise = rnd(abs(decimal_value(n))*100)
     whole, fraction = divmod(paise, 100)
     sign = "-" if n < 0 and paise else ""
     return sign + "₹" + group(whole) + (f".{fraction:02d}" if fraction else "")
@@ -134,6 +150,12 @@ def reward_bucket(card, cat, channel, merchant_type="unknown"):
     return None
 
 def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unknown", kiwi_remaining=None):
+    # Normalize accepted monetary inputs once, including direct engine calls.
+    # Keep floats at the public result boundary for JSON and Streamlit.
+    if decimal_value(amount) <= 0 or decimal_value(used) < 0 or (kiwi_remaining is not None and decimal_value(kiwi_remaining) < 0):
+        raise ValueError("Invalid purchase amount or negative reward allowance")
+    amount, used = money(amount), money(used)
+    kiwi_remaining = money(kiwi_remaining) if kiwi_remaining is not None else None
     if cat not in CATEGORY_LABELS or channel not in ("online","offline","upi") or amount <= 0 or used < 0:
         raise ValueError("Unsupported category/channel, invalid purchase amount, or negative used cap")
     out = Result(card=card, category=cat, channel=channel)
@@ -172,7 +194,7 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
             if kiwi_remaining < 0:
                 raise ValueError("Negative Kiwi remaining cap")
             value=min(value,kiwi_remaining)
-        out.benefit=round(value,2)
+        out.benefit=money(value)
         out.points=out.benefit/0.25
         out.code="kiwi"
         out.reason=f"{pct(rate)} on completed ₹100 blocks via Kiwi" + ("; before monthly cap (conditional)" if kiwi_remaining is None else "; limited by entered remaining cap")
@@ -196,8 +218,9 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
             return out
         rate=20 if travel else card["coin_rate"]
         # Estimated value of coins, not the published nominal coin-earn rate as cash.
-        out.points=rnd(amount*rate/100) if card["network"]=="Visa" else round(amount*rate/100,2)
-        out.benefit=round(out.points/5,2)
+        coins=rate_value(amount,rate)
+        out.points=rnd(coins) if card["network"]=="Visa" else money(coins)
+        out.benefit=money(decimal_value(out.points)/5)
         out.code="scapia"
         out.reason=f"{pct(rate)} coins = about {pct(rate/5)} rupee-equivalent travel value"
         return out
@@ -215,19 +238,20 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
         if cap is not None and used > cap:
             raise ValueError("Previously earned reward exceeds the applicable cap")
         out.rule = {"rate":rate,"cap":cap,"min":minimum,"bucket":name}
-        out.cap_left_before = None if cap is None else cap-used
+        out.cap_left_before = None if cap is None else money(decimal_value(cap)-decimal_value(used))
         if amount < minimum:
             out.code = "below-min"
             out.reason = f"Below {inr(minimum)} minimum for this reward tier"
             return out
-        possible = amount * rate / 100
+        possible = rate_value(amount,rate)
         if card["model"].startswith("hdfc"):
-            possible = rnd(possible)
+            possible = Decimal(rnd(possible))
         # Axis worked examples confirm the remaining cap is the immediate reward.
         # Surplus held for future refund/EMI adjustments is not immediate cashback.
-        out.benefit = round(possible if cap is None else min(possible,cap-used),2)
-        out.cap_left_after = None if cap is None else max(0,cap-used-out.benefit)
-        out.code = "cap-hit" if cap is not None and possible > cap-used else "bonus"
+        remaining = None if cap is None else decimal_value(out.cap_left_before)
+        out.benefit = money(possible if remaining is None else min(possible,remaining))
+        out.cap_left_after = None if remaining is None else money(max(Decimal(0),remaining-decimal_value(out.benefit)))
+        out.code = "cap-hit" if remaining is not None and possible > remaining else "bonus"
         out.reason = f"{pct(rate)} eligible {name.replace('_',' ')} reward" + (" (Amazon Pay balance)" if card["model"]=="amazon" else "")
         return out
     if card["model"] == "channel_capped":
@@ -235,11 +259,13 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
         if used > rule["cap"]:
             raise ValueError("Previously earned cashback exceeds this channel's cap")
         out.rule = rule
-        out.cap_left_before = max(0.0, rule["cap"] - used)
-        out.bonus_benefit = min(amount * rule["rate"] / 100, out.cap_left_before)
-        out.cap_left_after = max(0.0, out.cap_left_before - out.bonus_benefit)
-        out.benefit = round(out.bonus_benefit, 2)
-        out.code = "cap-hit" if amount * rule["rate"] / 100 > out.cap_left_before + 0.005 else "bonus"
+        remaining = decimal_value(rule["cap"])-decimal_value(used)
+        possible = rate_value(amount,rule["rate"])
+        out.cap_left_before = money(remaining)
+        out.benefit = money(min(possible,remaining))
+        out.bonus_benefit = out.benefit
+        out.cap_left_after = money(max(Decimal(0),remaining-decimal_value(out.benefit)))
+        out.code = "cap-hit" if possible > remaining else "bonus"
         out.reason = f"{pct(rule['rate'])} eligible {channel} cashback, subject to its statement-cycle cap"
         return out
     if card["model"] == "shared_category_cap":
@@ -256,18 +282,19 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
             if used > cap:
                 raise ValueError("Previously earned boosted cashback exceeds the shared cap")
             out.rule = rule
-            out.cap_left_before = max(0.0, cap - used)
-            possible = amount * rule["rate"] / 100
-            out.bonus_benefit = min(possible, out.cap_left_before)
-            out.cap_left_after = max(0.0, out.cap_left_before - out.bonus_benefit)
-            if possible > out.cap_left_before + 0.005:
+            remaining = decimal_value(cap)-decimal_value(used)
+            possible = rate_value(amount,rule["rate"])
+            out.cap_left_before = money(remaining)
+            out.bonus_benefit = money(min(possible,remaining))
+            out.cap_left_after = money(max(Decimal(0),remaining-decimal_value(out.bonus_benefit)))
+            if possible > remaining:
                 return _unknown(out, "HSBC boosted cashback exceeds the remaining shared cap; the rate on the rest is not confirmed by our source material.")
-            out.benefit = round(out.bonus_benefit, 2)
+            out.benefit = out.bonus_benefit
             out.code = "bonus"
             out.reason = f"{pct(rule['rate'])} eligible boosted cashback, subject to a shared billing-cycle cap"
             return out
-        out.base_benefit = amount * card["base"] / 100
-        out.benefit = round(out.base_benefit, 2)
+        out.base_benefit = money(rate_value(amount,card["base"]))
+        out.benefit = out.base_benefit
         out.code = "base"
         out.reason = f"{pct(card['base'])} on this eligible domestic purchase"
         return out

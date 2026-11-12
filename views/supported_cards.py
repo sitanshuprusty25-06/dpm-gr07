@@ -18,7 +18,7 @@ for i in range(0,len(shown),3):
                 st.markdown(library_card(c,highlight(c),inr(c["fee"])),unsafe_allow_html=True)
                 with st.expander("Conditions and source"):
                     st.write(c["caveat"])
-                    st.caption("Issuer source review: "+c["last_verified"])
+                    st.caption("Issuer source review: "+c["last_verified"]+" · Links checked: "+c.get("links_checked_on",c["last_verified"]))
                     for j,source in enumerate(c["sources"],1):
                         st.link_button(f"Issuer terms {j}",source)
 st.caption("Product imagery and issuer icons are for identification. Independent academic MVP; no bank affiliation. Unavailable artwork uses a labeled illustration. Actual merchant eligibility and issuer terms apply.")

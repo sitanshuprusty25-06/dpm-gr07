@@ -3,12 +3,10 @@
 Evidence review: 2026-11-12. This note describes the current MVP model, not a fresh issuer confirmation.
 
 ## Issuer references
-- https://cug.axisbank.com/cards/credit-card/flipkart-axisbank-credit-card
-- https://www.axisbank.com/docs/default-source/default-document-library/cashback-tncs---final.pdf
-- https://campaign.axis.bank.in/generic/terms-and-conditions-generic-all.pdf
 - https://www.axis.bank.in/docs/default-source/default-document-library/cashback-tncs---final.pdf
-- https://www.axisbank.com/docs/default-source/default-document-library/credit-card-tnc/terms-and-conditions-for-flipkart-credit-card.pdf
+- https://www.axis.bank.in/docs/default-source/default-document-library/terms-and-conditions-flipkart-axis-bank-credit-card.pdf
 - https://www.axis.bank.in/docs/default-source/default-document-library/flipkart-axis-bank-credit-card-preferred-merchants.pdf
+- https://www.axis.bank.in/cards/credit-card/flipkart-axisbank-credit-card
 
 ## Modeled treatment and limitations
 - Eligible Myntra: 7.5%; Flipkart and Cleartrip hotel: 5%; each has a separate ₹4,000 statement-quarter cap.

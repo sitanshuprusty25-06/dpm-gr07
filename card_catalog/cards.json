@@ -70,7 +70,8 @@
       "review_note": "Reviewed against issuer FAQ, product description and revision effective 1 April 2026; student team should independently reconfirm before assessed submission.",
       "headline": "5% online · 1% in-store",
       "reward_label": "Cashback",
-      "issuer_domain": "sbicard.com"
+      "issuer_domain": "sbicard.com",
+      "links_checked_on": "2026-11-12"
     },
     {
       "id": "hsbc_live_plus",
@@ -108,13 +109,14 @@
       "last_verified": "2026-11-12",
       "source": "https://www.hsbc.co.in/content/dam/hsbc/in/documents/credit-cards/live-plus-credit-card-services-guide.pdf",
       "sources": [
-        "https://www.hsbc.bank.in/credit-cards/products/live-plus/",
-        "https://www.hsbc.co.in/content/dam/hsbc/in/documents/credit-cards/live-plus-credit-card-services-guide.pdf"
+        "https://www.hsbc.co.in/content/dam/hsbc/in/documents/credit-cards/live-plus-credit-card-services-guide.pdf",
+        "https://www.hsbc.co.in/credit-cards/products/live-plus/"
       ],
       "review_note": "Reviewed against issuer India Live+ page and service guide. Merchant MCC determines boosted or excluded reward. Student team should reconfirm current conditions before submission.",
       "headline": "10% eligible boosted · 1.5% other",
       "reward_label": "Cashback",
-      "issuer_domain": "hsbc.co.in"
+      "issuer_domain": "hsbc.co.in",
+      "links_checked_on": "2026-11-12"
     },
     {
       "id": "swiggy_ornge",
@@ -139,7 +141,8 @@
       "point_value": null,
       "headline": "5% eligible Swiggy & online",
       "reward_label": "Statement credit",
-      "issuer_domain": "hdfc.bank.in"
+      "issuer_domain": "hdfc.bank.in",
+      "links_checked_on": "2026-11-12"
     },
     {
       "id": "swiggy_original",
@@ -165,7 +168,8 @@
       "point_value": null,
       "headline": "10% eligible Swiggy",
       "reward_label": "Statement credit",
-      "issuer_domain": "hdfc.bank.in"
+      "issuer_domain": "hdfc.bank.in",
+      "links_checked_on": "2026-11-12"
     },
     {
       "id": "amazon_icici",
@@ -191,7 +195,8 @@
       "point_value": null,
       "headline": "5% Prime · 3% non-Prime",
       "reward_label": "Amazon Pay balance",
-      "issuer_domain": "icici.bank.in"
+      "issuer_domain": "icici.bank.in",
+      "links_checked_on": "2026-11-12"
     },
     {
       "id": "swiggy_blck",
@@ -202,8 +207,8 @@
       "model": "hdfc_blck",
       "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-blck-hdfc-bank-credit-card/pdf/t-and-cs-swiggy-black-hdfc-bank-credit-card.pdf",
       "sources": [
-        "https://www.hdfc.bank.in/credit-cards/swiggy-blck-hdfc-bank-credit-card",
-        "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-blck-hdfc-bank-credit-card/pdf/t-and-cs-swiggy-black-hdfc-bank-credit-card.pdf"
+        "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-blck-hdfc-bank-credit-card/pdf/t-and-cs-swiggy-black-hdfc-bank-credit-card.pdf",
+        "https://www.hdfc.bank.in/credit-cards/swiggy-blck-hdfc-bank-credit-card"
       ],
       "summary": "10% eligible Swiggy · 5% select online · 1% other",
       "headline": "10% eligible Swiggy",
@@ -217,7 +222,8 @@
       },
       "last_verified": "2026-11-12",
       "point_value": null,
-      "caveat": "Separate ₹1,500 Swiggy and ₹1,500 eligible online caps, plus ₹1,000 other-spend cap per billing cycle. Minimum ₹249 for Swiggy, ₹100 for other tiers. Eligible MCCs and exclusions apply. Welcome membership, Cleartrip/Nykaa temporary offers and fees excluded. Myntra is explicitly listed; Cleartrip promotional terms are not modeled."
+      "caveat": "Separate ₹1,500 Swiggy and ₹1,500 eligible online caps, plus ₹1,000 other-spend cap per billing cycle. Minimum ₹249 for Swiggy, ₹100 for other tiers. Eligible MCCs and exclusions apply. Welcome membership, Cleartrip/Nykaa temporary offers and fees excluded. Myntra is explicitly listed; Cleartrip promotional terms are not modeled.",
+      "links_checked_on": "2026-11-12"
     },
     {
       "id": "flipkart_axis",
@@ -228,12 +234,10 @@
       "model": "flipkart_axis",
       "source": "https://www.axis.bank.in/docs/default-source/default-document-library/cashback-tncs---final.pdf",
       "sources": [
-        "https://cug.axisbank.com/cards/credit-card/flipkart-axisbank-credit-card",
-        "https://www.axisbank.com/docs/default-source/default-document-library/cashback-tncs---final.pdf",
-        "https://campaign.axis.bank.in/generic/terms-and-conditions-generic-all.pdf",
         "https://www.axis.bank.in/docs/default-source/default-document-library/cashback-tncs---final.pdf",
-        "https://www.axisbank.com/docs/default-source/default-document-library/credit-card-tnc/terms-and-conditions-for-flipkart-credit-card.pdf",
-        "https://www.axis.bank.in/docs/default-source/default-document-library/flipkart-axis-bank-credit-card-preferred-merchants.pdf"
+        "https://www.axis.bank.in/docs/default-source/default-document-library/terms-and-conditions-flipkart-axis-bank-credit-card.pdf",
+        "https://www.axis.bank.in/docs/default-source/default-document-library/flipkart-axis-bank-credit-card-preferred-merchants.pdf",
+        "https://www.axis.bank.in/cards/credit-card/flipkart-axisbank-credit-card"
       ],
       "summary": "7.5% eligible Myntra · 5% Flipkart / Cleartrip · 4% preferred · 1% other",
       "headline": "7.5% eligible Myntra · 5% Flipkart",
@@ -248,7 +252,8 @@
       },
       "last_verified": "2026-11-12",
       "point_value": null,
-      "caveat": "Myntra, Flipkart and Cleartrip each have separate ₹4,000 statement-quarter accelerated cashback caps. Preferred merchants earn 4%, other eligible spends 1%; preferred-merchant status and MID must be confirmed. After the individual merchant cap, no further immediate cashback; surplus is only for refund/EMI adjustments. Swiggy food delivery alone qualifies as preferred, not Instamart or Dineout. Flipkart Health excluded from the Flipkart accelerated tier. Gift cards, tolls, rent, wallet loads, education, insurance, fuel, jewellery, government and EMI excluded. Instant discounts excluded."
+      "caveat": "Myntra, Flipkart and Cleartrip each have separate ₹4,000 statement-quarter accelerated cashback caps. Preferred merchants earn 4%, other eligible spends 1%; preferred-merchant status and MID must be confirmed. After the individual merchant cap, no further immediate cashback; surplus is only for refund/EMI adjustments. Swiggy food delivery alone qualifies as preferred, not Instamart or Dineout. Flipkart Health excluded from the Flipkart accelerated tier. Gift cards, tolls, rent, wallet loads, education, insurance, fuel, jewellery, government and EMI excluded. Instant discounts excluded.",
+      "links_checked_on": "2026-11-12"
     },
     {
       "chip": "◆",
@@ -269,13 +274,14 @@
       "model": "kiwi",
       "source": "https://gokiwi.in/rewards-policy-v2/",
       "sources": [
-        "https://www.gokiwi.in/cards/yesbank/",
-        "https://gokiwi.in/rewards-policy-v2/"
+        "https://gokiwi.in/rewards-policy-v2/",
+        "https://www.gokiwi.in/cards/yesbank/"
       ],
       "summary": "1.5% eligible Kiwi QR · 0.5% Kiwi online",
       "headline": "1.5% eligible Kiwi scan & pay",
       "reward_label": "Kiwis (bank-redeemable)",
-      "caveat": "Standard non-Neon program for cards issued via Kiwi since 4 July 2024. Rewards on completed ₹100 blocks; 1 Kiwi = ₹0.25. Monthly cap is expressed in Kiwis and depends on the credit limit. Enter known remaining cap in rupees if available. No Neon milestone or other-app/bank reward points modeled. Virtual card; eligible merchant payments via Kiwi only."
+      "caveat": "Standard non-Neon program for cards issued via Kiwi since 4 July 2024. Rewards on completed ₹100 blocks; 1 Kiwi = ₹0.25. Monthly cap is expressed in Kiwis and depends on the credit limit. Enter known remaining cap in rupees if available. No Neon milestone or other-app/bank reward points modeled. Virtual card; eligible merchant payments via Kiwi only.",
+      "links_checked_on": "2026-11-12"
     },
     {
       "chip": "◆",
@@ -299,15 +305,14 @@
       "minimum": 20,
       "source": "https://www.federal.bank.in/documents/d/guest/cardholder_agreement-v11-30_04_26",
       "sources": [
-        "https://www.federal.bank.in/scapia",
         "https://www.federal.bank.in/documents/d/guest/cardholder_agreement-v11-30_04_26",
-        "https://www.scapia.cards/product/blog/scapia-coins",
-        "https://www.federal.bank.in/documents/d/guest/cardholder-agreement-v14-23_10_2026_final"
+        "https://www.federal.bank.in/scapia"
       ],
       "summary": "10% coins on eligible spends (2% rupee value) · 20% coins on eligible Scapia travel",
       "headline": "2% equivalent value · Scapia Coins",
       "reward_label": "Scapia Coins (travel value)",
-      "caveat": "Visa minimum ₹20. Five coins = ₹1 in Scapia redemption, not cash. Eligible Scapia app travel earns 20% coins (4% equivalent). Domestic non-EMI transactions only; no airport benefits, forex, lounge or redemption fees modeled. Fuel, utility, insurance and other excluded MCCs earn no rewards. Select Federal Bank network, not BOBCARD or Axis variant. Newer Federal agreement dated 23 Oct 2026 confirms the core reward rates and exclusions."
+      "caveat": "Visa minimum ₹20. Five coins = ₹1 in Scapia redemption, not cash. Eligible Scapia app travel earns 20% coins (4% equivalent). Domestic non-EMI transactions only; no airport benefits, forex, lounge or redemption fees modeled. Fuel, utility, insurance and other excluded MCCs earn no rewards. Select Federal Bank network, not BOBCARD or Axis variant. Newer Federal agreement dated 23 Oct 2026 confirms the core reward rates and exclusions.",
+      "links_checked_on": "2026-11-12"
     },
     {
       "chip": "◆",
@@ -331,15 +336,14 @@
       "minimum": 500,
       "source": "https://www.federal.bank.in/documents/d/guest/cardholder_agreement-v11-30_04_26",
       "sources": [
-        "https://www.federal.bank.in/scapia",
         "https://www.federal.bank.in/documents/d/guest/cardholder_agreement-v11-30_04_26",
-        "https://www.scapia.cards/product/blog/scapia-coins",
-        "https://www.federal.bank.in/documents/d/guest/cardholder-agreement-v14-23_10_2026_final"
+        "https://www.federal.bank.in/scapia"
       ],
       "summary": "5% coins on eligible spends (1% rupee value) · 20% coins on eligible Scapia travel",
       "headline": "1% equivalent value · Scapia Coins",
       "reward_label": "Scapia Coins (travel value)",
-      "caveat": "RuPay minimum ₹500 or more according to product page; exactly ₹500 is treated as unresolved because agreement wording differs. Five coins = ₹1 in Scapia redemption, not cash. Eligible Scapia app travel earns 20% coins (4% equivalent). Domestic non-EMI transactions only; no airport benefits, forex, lounge or redemption fees modeled. Fuel, utility, insurance and other excluded MCCs earn no rewards. Select Federal Bank network, not BOBCARD or Axis variant. Newer Federal agreement dated 23 Oct 2026 confirms the core reward rates and exclusions."
+      "caveat": "RuPay minimum ₹500 or more according to product page; exactly ₹500 is treated as unresolved because agreement wording differs. Five coins = ₹1 in Scapia redemption, not cash. Eligible Scapia app travel earns 20% coins (4% equivalent). Domestic non-EMI transactions only; no airport benefits, forex, lounge or redemption fees modeled. Fuel, utility, insurance and other excluded MCCs earn no rewards. Select Federal Bank network, not BOBCARD or Axis variant. Newer Federal agreement dated 23 Oct 2026 confirms the core reward rates and exclusions.",
+      "links_checked_on": "2026-11-12"
     }
   ]
 }

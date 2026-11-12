@@ -2,8 +2,8 @@
 import streamlit as st
 from cards import CARDS, CATEGORIES, DEFAULT_WALLET
 from results import render_result
-from rules_engine import category_label, rank, reward_bucket
-from ui import is_mobile, keep, remember, page_heading
+from rules_engine import category_label, rank, reward_bucket, money
+from ui import is_mobile, keep, keep_money, remember, page_heading
 
 cat_ids = [cid for cid, _ in CATEGORIES]
 by_id = {card["id"]: card for card in CARDS}
@@ -13,7 +13,7 @@ legacy = [c["id"] for c in CARDS if st.session_state.get("p_w_" + c["id"], c["id
 keep("compare_wallet_ids", legacy)
 # A catalogue change must not leave an invalid multiselect option.
 st.session_state["compare_wallet_ids"] = [cid for cid in st.session_state.get("compare_wallet_ids", []) if cid in by_id]
-keep("amount")
+keep_money("amount")
 keep("cat","dining")
 keep("channel","online")
 keep("merchant_type","unknown")
@@ -25,8 +25,8 @@ with st.container(key="compare_workspace"):
     mobile = is_mobile()
     left, right = (st.container(), st.container()) if mobile else st.columns([1.12,1],gap="medium")
     with left:
-        with st.container(border=True):
-            st.markdown('<div class="fin-step">01 / Your cards</div>',unsafe_allow_html=True)
+        with st.container(border=True,key="purchase_inputs"):
+            st.markdown('<div class="fin-step"><span class="step-number">01</span>Your cards</div>',unsafe_allow_html=True)
             selected_ids = st.multiselect(
                 "Cards you own", options=list(by_id), format_func=lambda cid: by_id[cid]["name"],
                 key="compare_wallet_ids", placeholder="Search and select your cards",
@@ -36,9 +36,10 @@ with st.container(key="compare_workspace"):
             selected = [card for card in CARDS if card["id"] in selected_ids]
             # Names remain visible in the native multiselect. Artwork lives in
             # the catalogue; do not fetch image assets while comparing a purchase.
-            st.markdown('<div class="fin-step">02 / Purchase details</div>',unsafe_allow_html=True)
+            st.markdown('<div class="fin-step"><span class="step-number">02</span>Purchase details</div>',unsafe_allow_html=True)
             # Keep the amount field full-width so the editing controls have room.
-            st.number_input("Amount (₹)",min_value=0,step=100,value=None,format="%d",key="amount",placeholder="e.g. 1200",help="Enter the whole-rupee purchase amount. Press Enter or move to the next field to apply.")
+            raw_amount=st.number_input("Amount (₹)",min_value=0.0,step=1.0,value=None,format="%.2f",key="amount",placeholder="e.g. 1200.50",help="Enter rupees and paise (up to two decimal places). Press Enter or move to the next field to apply.")
+            amount=money(raw_amount) if raw_amount is not None else None
             # Short labels fit side by side on desktop; native columns stack
             # on narrower screens. Amount retains the full input width.
             methods,categories=(st.container(),st.container()) if mobile else st.columns(2)
@@ -104,8 +105,9 @@ with st.container(key="compare_workspace"):
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online"):
                 with st.expander("Kiwi · remaining monthly reward cap",expanded=False):
                     st.caption("Enter the remaining Kiwi reward allowance converted to rupees (4 Kiwis = ₹1). Leave blank if unknown; Kiwi will remain unranked rather than assuming an unlimited reward.")
-                    keep("kiwi_remaining")
-                    kiwi_remaining=st.number_input("Remaining Kiwi reward value (₹)",min_value=0.0,value=None,step=1.0,key="kiwi_remaining")
+                    keep_money("kiwi_remaining")
+                    raw_kiwi=st.number_input("Remaining Kiwi reward value (₹)",min_value=0.0,value=None,step=1.0,format="%.2f",key="kiwi_remaining")
+                    kiwi_remaining=money(raw_kiwi) if raw_kiwi is not None else None
                     remember("kiwi_remaining")
             used_by_card={}
             capped=[]
@@ -121,11 +123,12 @@ with st.container(key="compare_workspace"):
                     st.caption("Zero assumes the relevant cap is unused. SBI uses statement cycles, HDFC/HSBC billing cycles, and Axis accelerated categories separate statement-quarter caps.")
                     for c,cap,bucket_name in capped:
                         usage_key=f"used_{c['id']}_{bucket_name}"
-                        keep(usage_key,0)
-                        used_by_card[c["id"]]=st.number_input(
+                        keep_money(usage_key,0.0)
+                        raw_used=st.number_input(
                             f"{c['name']} · {bucket_name} cashback already earned (₹)",
-                            min_value=0,max_value=int(cap),step=50,format="%d",
+                            min_value=0.0,max_value=float(cap),step=1.0,format="%.2f",
                             key=usage_key)
+                        used_by_card[c["id"]]=money(raw_used)
                         remember(usage_key)
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online") and kiwi_remaining is None:
                 st.caption("Kiwi will remain unranked until its remaining monthly reward allowance is entered.")
@@ -133,8 +136,8 @@ with st.container(key="compare_workspace"):
             use_ai = st.checkbox("Include AI-assisted explanation",key="compare_use_ai",
                                  help="If enabled, the comparison sends computed purchase facts to Google Gemini. No card numbers or banking credentials are requested.")
             remember("compare_use_ai")
-            st.caption("Compare with AI shares computed purchase facts and relevant card names with Google. Uncheck for rules only.")
-            current_sig=repr((tuple(c["id"] for c in selected),st.session_state.get("amount"),
+            st.caption("AI enabled: computed purchase facts and relevant card names go to Gemini." if use_ai else "AI off: compare using local rules only.")
+            current_sig=repr((tuple(c["id"] for c in selected),amount,
                               st.session_state["cat"],st.session_state["channel"],
                               st.session_state.get("merchant_type","unknown"),emi,sorted(used_by_card.items()),kiwi_remaining,use_ai))
             if st.session_state.get("last") and st.session_state["last"].get("signature")!=current_sig:
@@ -143,7 +146,6 @@ with st.container(key="compare_workspace"):
             go=st.button("Compare with AI" if use_ai else "Compare my cards",type="primary",use_container_width=True)
             error=None
             if go:
-                amount=st.session_state.get("amount")
                 if not selected:
                     error="Select at least one card."
                 elif not amount or amount<=0:
@@ -164,7 +166,7 @@ with st.container(key="compare_workspace"):
                         "ai_text":None,"ai_status":None if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
                     }
     with right:
-        st.markdown('<div class="fin-step">03 / Your result</div>',unsafe_allow_html=True)
+        st.markdown('<div class="fin-step"><span class="step-number">03</span>Your result</div>',unsafe_allow_html=True)
         if error:
             st.error(error)
         elif st.session_state.get("last"):

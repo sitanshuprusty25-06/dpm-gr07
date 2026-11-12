@@ -5,7 +5,7 @@ import csv
 from pathlib import Path
 from unittest.mock import patch
 from cards import CARDS,MARKET,CATALOG
-from rules_engine import evaluate,rank,inr,key_condition,reward_bucket
+from rules_engine import evaluate,rank,inr,key_condition,reward_bucket,money
 from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_error_category,explanation_parts
 
 BY_ID={c["id"]:c for c in CARDS}
@@ -350,6 +350,54 @@ class RepositoryConsistencyTests(unittest.TestCase):
     def test_only_current_views_remain_in_active_directory(self):
         root=Path(__file__).resolve().parent
         self.assertEqual({p.name for p in (root/"views").glob("*.py")},{"compare.py","supported_cards.py"})
+
+class DecimalMoneyTests(unittest.TestCase):
+    def test_purchase_paise_and_half_up(self):
+        r=evaluate(BY_ID["sbi_cashback"],"dining",1200.50,merchant_type="other")
+        self.assertEqual(r.benefit,60.03)
+        self.assertEqual(r.cap_left_after,1939.97)
+        self.assertEqual(inr(r.benefit),"₹60.03")
+
+    def test_partial_cap_in_paise(self):
+        r=evaluate(BY_ID["sbi_cashback"],"dining",1200.50,used=1999.75,merchant_type="other")
+        self.assertEqual(r.benefit,0.25)
+        self.assertEqual(r.cap_left_after,0.0)
+
+    def test_hdfc_minimum_with_paise(self):
+        c=BY_ID["swiggy_blck"]
+        self.assertEqual(evaluate(c,"dining",248.99,merchant_type="swiggy_food").benefit,0)
+        self.assertEqual(evaluate(c,"dining",249.00,merchant_type="swiggy_food").benefit,25)
+
+    def test_axis_remaining_cap_paise(self):
+        r=evaluate(BY_ID["flipkart_axis"],"shopping",1000.49,used=3999.89,merchant_type="flipkart")
+        self.assertEqual(r.benefit,0.11)
+        self.assertEqual(r.cap_left_after,0.0)
+
+    def test_kiwi_completed_blocks_and_fractional_cap(self):
+        c=BY_ID["kiwi_yes_klick"]
+        r=evaluate(c,"groceries",199.99,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=1.25)
+        self.assertEqual(r.benefit,1.25)
+
+    def test_decimal_payload_consistency(self):
+        r=evaluate(BY_ID["sbi_cashback"],"dining",1200.50,merchant_type="other")
+        p=build_payload(r,None,1200.50,"dining")
+        self.assertEqual(p["purchase"]["amount_inr"],1200.50)
+        self.assertEqual(p["recommended"]["benefit_inr"],60.03)
+        good={"card_id":"sbi_cashback","benefit_inr":60.03,"reward_form":"Cashback","reason_id":"eligibility","caution_id":"issuer_condition"}
+        self.assertTrue(validate(json.dumps(good),p))
+        self.assertFalse(validate(json.dumps(dict(good,benefit_inr=60.02)),p))
+
+    def test_money_and_display_rounding(self):
+        self.assertEqual(money(2.675),2.68)
+        self.assertEqual(inr(2.675),"₹2.68")
+        self.assertEqual(money(0.005),0.01)
+
+    def test_link_register_is_unique_and_primary_first(self):
+        for c in CARDS:
+            self.assertEqual(c["sources"][0],c["source"])
+            self.assertEqual(len(c["sources"]),len(set(c["sources"])))
+            self.assertTrue(all(url.startswith("https://") for url in c["sources"]))
+            self.assertEqual(c["links_checked_on"],"2026-11-12")
 
 if __name__=="__main__":
     unittest.main()

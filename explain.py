@@ -7,7 +7,7 @@ import json
 import time
 from importlib.metadata import version, PackageNotFoundError
 
-from rules_engine import category_label, key_condition, inr
+from rules_engine import category_label, key_condition, inr, rate_value, money
 
 SYSTEM_PROMPT = (
     "Help the shopper understand this purchase decision. Choose the most useful "
@@ -27,7 +27,7 @@ def build_payload(win, second, amount, cat):
     if win.card["model"] == "channel_capped" and win.code == "cap-hit" and win.rule:
         # Explain arithmetic here; reserve the actual limit for the caution.
         eligibility = (f"At {win.rule['rate']:g}%, the cashback before the cap "
-                       f"would be {inr(amount * win.rule['rate'] / 100)}")
+                       f"would be {inr(rate_value(amount,win.rule['rate']))}")
     reasons = {"eligibility": eligibility}
     if second and second.comparable and getattr(second, "available", True) and win.benefit > second.benefit:
         reasons["advantage"] = (
@@ -49,7 +49,7 @@ def build_payload(win, second, amount, cat):
     return {
         "recommended": {"card_id": win.card["id"], "card": win.card["name"],
                         "benefit_inr": round(float(win.benefit), 2), "reward_form": form},
-        "purchase": {"amount_inr": amount, "category": category_label(cat), "channel": win.channel},
+        "purchase": {"amount_inr": money(amount), "category": category_label(cat), "channel": win.channel},
         "reason_options": reasons, "caution_options": cautions,
     }
 

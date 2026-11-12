@@ -3,10 +3,8 @@
 Evidence review: 2026-11-12. This note describes the current MVP model, not a fresh issuer confirmation.
 
 ## Issuer references
-- https://www.federal.bank.in/scapia
 - https://www.federal.bank.in/documents/d/guest/cardholder_agreement-v11-30_04_26
-- https://www.scapia.cards/product/blog/scapia-coins
-- https://www.federal.bank.in/documents/d/guest/cardholder-agreement-v14-23_10_2026_final
+- https://www.federal.bank.in/scapia
 
 ## Modeled treatment and limitations
 - Federal Visa: 10 coins per ₹100 of eligible domestic spend (2% estimated redemption value), ₹20 minimum; model rounds Visa coins to the nearest whole coin.
