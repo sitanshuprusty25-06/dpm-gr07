@@ -51,6 +51,8 @@ class Result:
     channel: str = "online"
 
 def highlight(card):
+    if card.get("summary"):
+        return card["summary"]
     if card["model"] == "channel_capped":
         a, b = card["channel_rules"]["online"], card["channel_rules"]["offline"]
         return f"{pct(a['rate'])} online (cap {inr(a['cap'])}/cycle); {pct(b['rate'])} in-store (cap {inr(b['cap'])}/cycle)"
@@ -63,6 +65,41 @@ def _unknown(out, message):
     out.uncertainty = message
     return out
 
+def reward_bucket(card, cat, channel, merchant_type="unknown"):
+    """Single applicable reward bucket; None means classification unknown."""
+    model = card["model"]
+    if model == "channel_capped":
+        r = card["channel_rules"][channel]
+        return (channel, r["rate"], r["cap"], 0)
+    if model == "shared_category_cap":
+        if cat in card["rules"] and not (cat == "shopping" and merchant_type in ("amazon_prime","amazon_nonprime","marketplace","amazon_pay")):
+            return ("shared", 10, 1200, 0)
+        return ("base", 1.5, None, 0)
+    if model in ("hdfc_ornge","hdfc_original"):
+        orange = model == "hdfc_ornge"
+        if merchant_type == "swiggy" and channel == "online" and cat in ("dining","groceries"):
+            return ("boost" if orange else "swiggy", 5 if orange else 10, 1500, 249 if orange else 100)
+        if channel == "online" and merchant_type in ("amazon_prime","amazon_nonprime","marketplace","eligible_online") and cat in ("shopping","cinema"):
+            return ("boost" if orange else "online", 5, 1500, 249 if orange else 100)
+        if channel == "online" and merchant_type != "other":
+            return None
+        if cat == "utilities":
+            return None
+        return ("base", 1, 1000 if orange else 500, 100)
+    if model == "amazon":
+        if channel == "online" and cat == "shopping" and merchant_type in ("amazon_prime","amazon_nonprime"):
+            return ("amazon",5 if merchant_type=="amazon_prime" else 3,None,0)
+        if channel == "online" and merchant_type == "amazon_pay":
+            return ("amazon_pay",2,None,0)
+        if cat == "utilities":
+            if merchant_type == "other":
+                return ("excluded",0,None,0)
+            return None
+        if channel == "online" and merchant_type == "unknown":
+            return None
+        return ("base",1,None,0)
+    return None
+
 def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unknown"):
     if cat not in CATEGORY_LABELS or channel not in ("online","offline") or amount <= 0 or used < 0:
         raise ValueError("Unsupported category/channel, invalid purchase amount, or negative used cap")
@@ -70,6 +107,27 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
     if cat in card.get("excl", {}):
         out.code = "excluded"
         out.reason = card["excl"][cat]
+        return out
+    if card["model"] in ("hdfc_ornge","hdfc_original","amazon"):
+        bucket = reward_bucket(card,cat,channel,merchant_type)
+        if bucket is None:
+            return _unknown(out,"Select the specific merchant or confirm ordinary eligible spend; the reward tier is not established.")
+        name,rate,cap,minimum = bucket
+        if cap is not None and used > cap:
+            raise ValueError("Previously earned reward exceeds the applicable cap")
+        out.rule = {"rate":rate,"cap":cap,"min":minimum}
+        out.cap_left_before = None if cap is None else cap-used
+        if amount < minimum:
+            out.code = "below-min"
+            out.reason = f"Below {inr(minimum)} minimum for this reward tier"
+            return out
+        possible = amount * rate / 100
+        if card["model"].startswith("hdfc"):
+            possible = rnd(possible)
+        out.benefit = round(possible if cap is None else min(possible,cap-used),2)
+        out.cap_left_after = None if cap is None else max(0,cap-used-out.benefit)
+        out.code = "cap-hit" if cap is not None and possible > cap-used else "bonus"
+        out.reason = f"{pct(rate)} eligible {name.replace('_',' ')} reward" + (" (Amazon Pay balance)" if card["model"]=="amazon" else "")
         return out
     if card["model"] == "channel_capped":
         rule = card["channel_rules"][channel]
@@ -86,7 +144,7 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
     if card["model"] == "shared_category_cap":
         rule = card["rules"].get(cat)
         if cat == "shopping":
-            if merchant_type == "marketplace":
+            if merchant_type in ("marketplace","amazon_prime","amazon_nonprime"):
                 rule = None  # HSBC gives 1.5% on Amazon / Flipkart / Myntra.
             else:
                 return _unknown(out, "HSBC shopping reward depends on the merchant's MCC; this app cannot confirm its 10% eligibility.")
@@ -128,6 +186,13 @@ def key_condition(r):
         return r.uncertainty
     if r.code == "excluded":
         return r.reason
+    if card["model"] in ("hdfc_ornge","hdfc_original","amazon"):
+        if r.code == "below-min":
+            return r.reason
+        if card["model"] == "amazon":
+            return "Reward is credited as Amazon Pay balance; eligible purchases only, not a cash statement credit."
+        return (f"Applicable billing-cycle cap {inr(r.rule['cap'])}; "
+                f"{inr(r.cap_left_after)} remains after this purchase. Minimum {inr(r.rule['min'])}; issuer exclusions apply.")
     if card["model"] == "channel_capped":
         rule = card["channel_rules"][r.channel]
         if r.code == "cap-hit":

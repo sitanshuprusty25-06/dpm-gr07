@@ -109,6 +109,72 @@
         "https://www.hsbc.co.in/content/dam/hsbc/in/documents/credit-cards/live-plus-credit-card-services-guide.pdf"
       ],
       "review_note": "Reviewed against issuer India Live+ page and service guide. Merchant MCC determines boosted or excluded reward. Student team should reconfirm current conditions before submission."
+    },
+    {
+      "id": "swiggy_ornge",
+      "name": "Swiggy ORNGE HDFC",
+      "issuer": "HDFC Bank",
+      "hue": "#E66B30",
+      "chip": "◆",
+      "model": "hdfc_ornge",
+      "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-ornge-hdfc-bank-credit-card/pdf/swiggy-orange.pdf",
+      "sources": [
+        "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-ornge-hdfc-bank-credit-card/pdf/swiggy-orange.pdf"
+      ],
+      "summary": "5% eligible Swiggy / select online · ₹1,500 shared cap; 1% other · ₹1,000 cap",
+      "caveat": "₹249 minimum on 5% tier; ₹100 on 1% tier. Merchant eligibility, exclusions and unused cap apply. Instant offers and memberships excluded.",
+      "fee": 500,
+      "base": 1,
+      "rules": {},
+      "excl": {
+        "fuel": "No modeled cashback on fuel."
+      },
+      "last_verified": "2026-11-12",
+      "point_value": null
+    },
+    {
+      "id": "swiggy_original",
+      "name": "Swiggy HDFC (original)",
+      "issuer": "HDFC Bank",
+      "hue": "#C95328",
+      "chip": "◆",
+      "model": "hdfc_original",
+      "source": "https://www.hdfcbank.com/content/bbp/repositories/723fb80a-2dde-42a3-9793-7ae1be57c87f/?path=%2FPersonal%2FPay%2FCards%2FCredit+Card%2FCredit+Card+Landing+Page%2FCredit+Cards%2FSwiggy+HDFC+Bank+Credit+Card%2FT-and-C-Swiggy-HDFC-Bank-Credit-Card.pdf",
+      "sources": [
+        "https://www.hdfcbank.com/content/bbp/repositories/723fb80a-2dde-42a3-9793-7ae1be57c87f/?path=%2FPersonal%2FPay%2FCards%2FCredit+Card%2FCredit+Card+Landing+Page%2FCredit+Cards%2FSwiggy+HDFC+Bank+Credit+Card%2FT-and-C-Swiggy-HDFC-Bank-Credit-Card.pdf"
+      ],
+      "summary": "10% Swiggy · 5% eligible online · 1% other",
+      "caveat": "Separate ₹1,500 / ₹1,500 / ₹500 billing-cycle caps; ₹100 minimum. Merchant MCC and exclusions apply.",
+      "fee": 500,
+      "base": 1,
+      "rules": {},
+      "excl": {
+        "fuel": "No modeled cashback on fuel."
+      },
+      "last_verified": "2026-11-12",
+      "point_value": null
+    },
+    {
+      "id": "amazon_icici",
+      "name": "Amazon Pay ICICI",
+      "issuer": "ICICI Bank",
+      "hue": "#B26C28",
+      "chip": "◆",
+      "model": "amazon",
+      "source": "https://www.icici.bank.in/about-us/news-room/2025/amazon-pay-and-icici-bank-renew-partnership-enhance-indias-most-adopted-co-branded-credit-card",
+      "sources": [
+        "https://www.icici.bank.in/about-us/news-room/2025/amazon-pay-and-icici-bank-renew-partnership-enhance-indias-most-adopted-co-branded-credit-card"
+      ],
+      "summary": "5% Prime / 3% non-Prime Amazon shopping; 1% eligible outside Amazon",
+      "caveat": "Amazon Pay balance, not statement credit. 2% eligible Amazon Pay payments; excludes fuel and ordinary utility payments. No annual fee.",
+      "fee": 0,
+      "base": 1,
+      "rules": {},
+      "excl": {
+        "fuel": "No modeled cashback on fuel."
+      },
+      "last_verified": "2026-11-12",
+      "point_value": null
     }
   ]
 }

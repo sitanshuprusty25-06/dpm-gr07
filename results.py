@@ -36,7 +36,7 @@ def panel_html(win,second,amount,cat):
         f'<div class="cname">{html.escape(win.card["name"])}</div>'
         f'<div class="issuer">{html.escape(win.card["issuer"])}</div>'
         f'<div class="figure">{inr(win.benefit)}</div>'
-        f'<div class="delta">estimated cashback for this {inr(amount)} '
+        f'<div class="delta">estimated reward value for this {inr(amount)} '
         f'{html.escape(category_label(cat).lower())} purchase</div>'
         f'<div class="delta">{delta}</div></div>'
     )
@@ -80,8 +80,9 @@ def render_result(L):
                                          bool(text)),unsafe_allow_html=True)
     if L.get("ai_status") in {"no_key","error","mismatch"}:
         st.info("Gemini text was unavailable or did not pass the checks. The deterministic explanation remains.")
-    st.markdown("**All selected cards**")
+    st.markdown("**Reward comparison**")
     st.markdown(others_html(ranked,True),unsafe_allow_html=True)
+    st.caption("Amazon Pay rewards are balance credit; other modeled rewards are cashback. Fees, interest and promotions are excluded.")
     st.caption(f"Issuer sources reviewed {win.card['last_verified']}. Results are conditional estimates, "
                "not guaranteed cashback. Merchant MCC and other exclusions may affect actual rewards. "
                "No card number or banking credential is requested.")

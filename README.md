@@ -11,7 +11,7 @@ One user (a multi-card selective comparer), one problem (choosing a card for one
 
 - The application is **stateless with respect to permanent user storage**. Streamlit temporarily holds user inputs in session state. No login, database or transaction linking.
 - `card_catalog/` is **persistent reference data**, with issuer terms, source links, review dates and caveats. It is not user data.
-- The first real issuer products are **CASHBACK SBI Card** and **HSBC Live+ Credit Card**. Read their `card_catalog/source_notes/` before changing the rules.
+- The five supported issuer products are CASHBACK SBI Card, HSBC Live+, Swiggy ORNGE HDFC, original Swiggy HDFC and Amazon Pay ICICI. Read their `card_catalog/source_notes/` before changing the rules.
 - Merchant MCCs are generally unknown at checkout; results are estimates. HSBC boosted categories are sometimes intentionally marked **not comparable** when eligibility or after-cap cashback is unresolved. This protects users against false precision.
 - Only domestic, non-EMI transactions in the supported categories are considered. Transaction fees, interest, international charges and most promotional offers are out of scope.
 

@@ -274,8 +274,7 @@ def header():
         with theme_col:
             st.radio("Theme", ["Auto", "Light", "Dark"], horizontal=True, key="theme", help=theme_help)
         with signin_col:
-            st.button("Sign in · soon", disabled=True, use_container_width=True,
-                      help="Accounts are not part of the first version.")
+            st.caption("Private by design")
     else:
         left, mid, right = st.columns([5, 3, 2], vertical_alignment="center")
         with left:
@@ -283,12 +282,25 @@ def header():
         with mid:
             st.radio("Theme", ["Auto", "Light", "Dark"], horizontal=True, key="theme", help=theme_help)
         with right:
-            st.button("Sign in · coming soon", disabled=True, use_container_width=True,
-                      help="Accounts are not part of the first version.")
+            st.caption("Private by design")
 
     palette = PALETTES[effective_theme(st.session_state["theme"])]
     css = streamlit_override_css(palette) + custom_css(palette) + responsive_css(mobile)
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+    st.markdown("""<style>
+    .stApp .block-container {max-width:1240px;padding-left:2rem;padding-right:2rem;}
+    .stApp .cca-hero {background:#103D3E;border-radius:20px;padding:42px 36px;}
+    .stApp .cca-hero h1 {font-size:clamp(2rem,4vw,3.3rem);letter-spacing:-.045em;}
+    .stApp .cca-card,.stApp .cca-explain {border-radius:18px;border:1px solid var(--line);}
+    .stApp .cca-panel {border-radius:20px;padding:28px;}
+    .stApp .cca-panel .figure {letter-spacing:-.05em;}
+    .stApp .cca-empty {padding:60px 24px;background:var(--surface);}
+    .stApp .cca-empty h3 {color:var(--ink);}
+    .stApp .cca-row {padding:14px 0;}
+    .stApp [data-testid="stVerticalBlockBorderWrapper"] {border-radius:18px;}
+    .stApp .stButton button {border-radius:10px;min-height:42px;font-weight:600;}
+    @media(max-width:760px){.stApp .block-container{padding-left:1rem;padding-right:1rem;}.stApp .cca-hero{padding:24px 20px;}}
+    </style>""",unsafe_allow_html=True)
 
     if SAMPLE_DATA:
         st.markdown(
@@ -339,7 +351,7 @@ def footer():
 
     st.caption(
         "Group 07 · Digital Product Management · IIM Visakhapatnam. Results are estimates for the "
-        "supported cards and dated rules, not a guarantee of reward. Nothing you enter is stored."
+        "supported cards and dated rules, not a guarantee of reward. No persistent user account. Optional Gemini calls share computed facts with Google."
     )
     st.session_state.setdefault("layout", "Auto")
     st.radio(

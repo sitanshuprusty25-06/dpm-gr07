@@ -15,7 +15,7 @@ NUMBER_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")
 SYSTEM_PROMPT = (
     "You explain a credit card recommendation to a shopper in 2 or 3 short, plain "
     "sentences. Use ONLY the facts in the JSON. Do not calculate anything yourself. "
-    "Include the exact estimated cashback in rupees only once; do not write any "
+    "Include the exact estimated reward value in rupees only once; do not write any "
     "other amounts, percentages, dates, numbers or ordinals. The full condition is "
     "displayed separately by the rules engine. Use the recommended card's name exactly as "
     "given. Call the figure an estimate. Say why this card gives the most benefit among "

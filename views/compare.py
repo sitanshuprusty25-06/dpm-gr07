@@ -2,7 +2,7 @@
 import streamlit as st
 from cards import CARDS, CATEGORIES, DEFAULT_WALLET
 from results import render_result
-from rules_engine import category_label, highlight, inr, rank
+from rules_engine import category_label, highlight, inr, rank, reward_bucket
 from ui import is_mobile, keep, remember
 
 cat_ids = [cid for cid, _ in CATEGORIES]
@@ -13,7 +13,7 @@ keep("cat","dining")
 keep("channel","online")
 keep("merchant_type","unknown")
 
-st.markdown("## Compare my cards")
+st.markdown('<div class="cca-sec"><h2>Compare your cards</h2><p>One purchase. A clearer decision.</p></div>',unsafe_allow_html=True)
 st.caption("Choose the cards you own and describe one domestic, non-EMI purchase. No card numbers or bank login.")
 
 mobile = is_mobile()
@@ -35,12 +35,10 @@ with left:
         st.number_input("Amount (₹)",min_value=0,step=100,value=None,format="%d",key="amount",placeholder="e.g. 8000")
         st.radio("Purchase channel",["online","offline"],format_func=lambda v:"Online" if v=="online" else "Physical store",horizontal=True,key="channel")
         st.selectbox("Purchase category",cat_ids,format_func=category_label,key="cat")
-        if st.session_state["cat"]=="shopping":
-            st.selectbox("Shopping merchant",["unknown","marketplace"],
-                         format_func=lambda v:"Other / not sure (MCC not confirmed)" if v=="unknown" else "Amazon / Flipkart / Myntra",
-                         key="merchant_type",
-                         help="HSBC boosted shopping eligibility depends on the issuer's merchant category code.")
-            remember("merchant_type")
+        merchants={"unknown":"Not sure / merchant not classified","other":"Other eligible ordinary purchase (not a special merchant)","swiggy":"Swiggy eligible food / Instamart / Dineout","amazon_prime":"Amazon India shopping · Prime","amazon_nonprime":"Amazon India shopping · non-Prime","marketplace":"Flipkart / Myntra shopping","amazon_pay":"Eligible Amazon Pay partner checkout","eligible_online":"Other issuer-listed eligible online merchant"}
+        st.selectbox("Merchant / payment context",list(merchants),format_func=merchants.get,key="merchant_type",
+                     help="Choose a listed merchant only if the transaction meets its issuer's eligibility. Otherwise choose Not sure.")
+        remember("merchant_type")
         st.caption("For a domestic, non-EMI purchase only. Issuer exclusions and merchant MCCs still apply.")
         emi = st.checkbox("This is an EMI transaction",value=False,key="emi")
         remember("amount");remember("cat");remember("channel")
@@ -48,19 +46,20 @@ with left:
         used_by_card={}
         capped=[]
         for c in selected:
-            if c["model"]=="channel_capped" and st.session_state["cat"] not in c.get("excl",{}):
-                capped.append((c,c["channel_rules"][st.session_state["channel"]]["cap"],
-                               "cashback already earned in this channel during the current statement cycle"))
-            elif c["model"]=="shared_category_cap" and st.session_state["cat"] in c["rules"]:
-                capped.append((c,1200,"accelerated cashback already earned across ALL boosted categories this billing cycle"))
+            if st.session_state["cat"] in c.get("excl",{}):
+                continue
+            bucket=reward_bucket(c,st.session_state["cat"],st.session_state["channel"],st.session_state["merchant_type"])
+            if bucket and bucket[2] is not None:
+                name,rate,cap,minimum=bucket
+                capped.append((c,cap,name))
         if capped:
             with st.expander("Optional: cashback already earned this cycle"):
                 st.caption("The app cannot track prior rewards. A zero input assumes the relevant cap is unused.")
-                for c,cap,description in capped:
+                for c,cap,bucket_name in capped:
                     used_by_card[c["id"]]=st.number_input(
-                        f"{c['name']}: {description} (₹)",
+                        f"{c['name']}: already earned in {bucket_name} bucket (₹)",
                         min_value=0,max_value=int(cap),step=50,value=0,format="%d",
-                        key=f"used_{c['id']}_{st.session_state['channel'] if c['model']=='channel_capped' else 'shared'}")
+                        key=f"used_{c['id']}_{bucket_name}")
         current_sig=repr((tuple(c["id"] for c in selected),st.session_state.get("amount"),
                           st.session_state["cat"],st.session_state["channel"],
                           st.session_state.get("merchant_type","unknown"),emi,sorted(used_by_card.items())))
@@ -96,4 +95,4 @@ with right:
     elif st.session_state.get("last"):
         render_result(st.session_state["last"])
     else:
-        st.info("Your estimated comparison will appear here. Start by choosing the cards you actually hold.")
+        st.markdown('<div class="cca-empty"><h3>Your decision starts here</h3><p>Select your cards and enter a purchase to see the estimated reward, key conditions and comparison.</p></div>',unsafe_allow_html=True)

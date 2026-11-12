@@ -6,8 +6,8 @@ from rules_engine import highlight,inr
 from ui import grid,is_mobile
 
 st.markdown("## Supported cards and issuer sources")
-st.caption("Two real issuer products, with dated reference rules and recorded limitations. No customer information is stored in this catalogue.")
-NCOLS=1 if is_mobile() else 2
+st.caption("Five issuer products, with dated reference rules and recorded limitations. No customer information is stored in this catalogue.")
+NCOLS=1 if is_mobile() else 3
 cols=grid(NCOLS)
 for i,c in enumerate(CARDS):
     with cols[i%NCOLS]:

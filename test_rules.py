@@ -44,7 +44,7 @@ class IssuerRulesTests(unittest.TestCase):
 
 class ExplanationChecks(unittest.TestCase):
     def setUp(self):
-        r=rank(CARDS,"dining",8000,channel="online")
+        r=rank([BY_ID["sbi_cashback"],BY_ID["hsbc_live_plus"]],"dining",8000,channel="online")
         self.w,self.s=r[0],r[1]
         self.p=build_payload(self.w,self.s,8000,"dining")
     def test_accepts_right_amount(self):
@@ -55,6 +55,20 @@ class ExplanationChecks(unittest.TestCase):
         self.assertFalse(validate(msg,self.p))
     def test_rejects_wrong_card(self):
         self.assertFalse(validate("Use Other Card. Cashback ₹800.",self.p))
+
+class AdditionalCardsTests(unittest.TestCase):
+    def test_orange_swiggy(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_ornge"],"dining",1000,merchant_type="swiggy").benefit,50)
+    def test_orange_minimum(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_ornge"],"dining",200,merchant_type="swiggy").benefit,0)
+    def test_orange_shared_cap(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_ornge"],"shopping",1000,used=1480,merchant_type="amazon_prime").benefit,20)
+    def test_original_swiggy(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_original"],"dining",1000,merchant_type="swiggy").benefit,100)
+    def test_amazon_prime(self):
+        self.assertEqual(evaluate(BY_ID["amazon_icici"],"shopping",1000,merchant_type="amazon_prime").benefit,50)
+    def test_amazon_nonprime(self):
+        self.assertEqual(evaluate(BY_ID["amazon_icici"],"shopping",1000,merchant_type="amazon_nonprime").benefit,30)
 
 if __name__=="__main__":
     unittest.main()
