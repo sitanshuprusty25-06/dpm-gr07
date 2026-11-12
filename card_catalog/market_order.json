@@ -1,0 +1,53 @@
+{
+  "reviewed": "2026-11-12",
+  "issuer_period": "September 2026",
+  "method": "Published product adoption first (two large, directly disclosed products); remaining cards grouped by descending issuer-level cards outstanding. Same-issuer variants use a fixed browsing order, not an inferred popularity ranking. Product customer counts and cards in force are different measures at different dates. No complete product-level usage or issuance ranking is available. Market order is for discovery, never the purchase reward ranking.",
+  "display_order": [
+    "amazon_icici",
+    "flipkart_axis",
+    "swiggy_original",
+    "swiggy_blck",
+    "swiggy_ornge",
+    "sbi_cashback",
+    "kiwi_yes_klick",
+    "scapia_visa",
+    "scapia_rupay",
+    "hsbc_live_plus"
+  ],
+  "issuer_source": "https://www.rbi.org.in/Scripts/ATMView.aspx?atmid=187",
+  "issuer_crosscheck": "https://data.indiadispatch.com/payments/credit-cards",
+  "issuer_cards_million": {
+    "HDFC Bank": 27.38,
+    "SBI Card": 23.17,
+    "ICICI Bank": 19.86,
+    "Axis Bank": 16.55,
+    "YES BANK": 3.12,
+    "Federal Bank": 2.82,
+    "HSBC India": 1.02
+  },
+  "product_disclosures": {
+    "amazon_icici": {
+      "label": "50 lakh+ customers",
+      "period": "October 2025",
+      "source": "https://www.icici.bank.in/about-us/news-room/2025/amazon-pay-and-icici-bank-renew-partnership-enhance-indias-most-adopted-co-branded-credit-card"
+    },
+    "flipkart_axis": {
+      "label": "42 lakh cards in force",
+      "period": "Q2 FY27 (quarter ended September 2026)",
+      "source": "https://financialfilings.com/filings/axis-bank-limited/earnings-release/2026/73678730/",
+      "official_index": "https://www.axis.bank.in/shareholders-corner/other-information/investor-presentations"
+    }
+  },
+  "additional_context": [
+    {
+      "scope": "Swiggy HDFC original",
+      "note": "January 2024 press report cited about 120,000 cards distributed; older, non-comparable and not a current variant count.",
+      "source": "https://economictimes.indiatimes.com/tech/technology/hdfc-bank-rides-cobranded-credit-card-wave-issues-large-number-of-cards-with-swiggy-and-tata-neu/articleshow/106738146.cms"
+    },
+    {
+      "scope": "Kiwi platform, all partners",
+      "note": "March 2026 reporting cited more than 200,000 cards issued through the platform across lenders; not a YES BANK Klick-specific count.",
+      "source": "https://www.business-standard.com/companies/start-ups/fintech-kiwi-appoints-cbo-to-scale-credit-on-upi-126032500829_1.html"
+    }
+  ]
+}

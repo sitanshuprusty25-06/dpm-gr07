@@ -1,6 +1,6 @@
 """Product-first landing page."""
 import streamlit as st
-from cards import CARDS
+from cards import CARDS,MARKET
 from results import panel_html,others_html
 from rules_engine import rank
 from ui import grid,section
@@ -27,11 +27,14 @@ for slot,(title,detail) in zip(grid(3),[
 ]):
     slot.markdown(f'<div class="cca-card"><h3>{title}</h3><p>{detail}</p></div>',unsafe_allow_html=True)
 
-section("Supported cards","Ten supported credit-card products. See exact card variants, reward forms and issuer conditions in the catalogue.")
-featured=[c for c in CARDS if c["id"] in ("sbi_cashback","swiggy_blck","amazon_icici")]
+section("Supported cards","Ten supported products, listed using published adoption and issuer footprint. See the catalogue for sources and limitations.")
+featured=CARDS[:3]
 for slot,c in zip(grid(3,mobile=1),featured):
     with slot:
         st.markdown(card_art(c),unsafe_allow_html=True)
         st.markdown("**"+c["name"]+"**")
+        evidence=MARKET["product_disclosures"].get(c["id"])
+        if evidence:
+            st.caption(evidence["label"]+" · "+evidence["period"])
 if st.button("Browse all supported cards",use_container_width=True):
     st.switch_page("views/supported_cards.py")

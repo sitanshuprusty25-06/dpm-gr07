@@ -30,10 +30,10 @@ with st.container(key="compare_workspace"):
             selected_ids = st.multiselect(
                 "Cards you own", options=list(by_id), format_func=lambda cid: by_id[cid]["name"],
                 key="compare_wallet_ids", placeholder="Search and select your cards",
-                help="Type a bank or card name to find any of the ten supported cards."
+                help="Search any of the ten supported cards. The catalogue is ordered by published product adoption and issuer footprint; the recommendation depends only on your purchase."
             )
             remember("compare_wallet_ids")
-            selected = [by_id[cid] for cid in selected_ids]
+            selected = [card for card in CARDS if card["id"] in selected_ids]
             # Names remain visible in the native multiselect. Artwork lives in
             # the catalogue; do not fetch image assets while comparing a purchase.
             st.markdown('<div class="fin-step">02 / Purchase details</div>',unsafe_allow_html=True)

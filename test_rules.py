@@ -2,7 +2,7 @@
 import unittest
 import json
 from unittest.mock import patch
-from cards import CARDS
+from cards import CARDS,MARKET,CATALOG
 from rules_engine import evaluate,rank,inr,key_condition,reward_bucket
 from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_error_category
 
@@ -244,6 +244,20 @@ class ProviderConfigurationTests(unittest.TestCase):
 
     def test_sdk_configuration_error_has_safe_diagnostic(self):
         self.assertEqual(_error_category(TypeError("private payload")),"Gemini SDK or request configuration error.")
+
+class MarketDisplayOrderTests(unittest.TestCase):
+    def test_display_order_contains_every_card_once(self):
+        ids=[c["id"] for c in CARDS]
+        self.assertEqual(ids,MARKET["display_order"])
+        self.assertEqual(len(ids),len(set(ids)))
+        self.assertEqual(set(ids),{c["id"] for c in CATALOG["cards"]})
+
+    def test_reward_ranking_independent_of_display_order(self):
+        selected=[BY_ID["sbi_cashback"],BY_ID["swiggy_blck"]]
+        a=rank(selected,"dining",1200,channel="online",merchant_type="swiggy")
+        b=rank(list(reversed(selected)),"dining",1200,channel="online",merchant_type="swiggy")
+        self.assertEqual([(r.card["id"],r.benefit) for r in a],[(r.card["id"],r.benefit) for r in b])
+        self.assertEqual(a[0].card["id"],"swiggy_blck")
 
 if __name__=="__main__":
     unittest.main()

@@ -15,3 +15,6 @@ This directory is **reference data**, not a database of users. The Streamlit app
 6. Commit the change; Streamlit Cloud then redeploys the application.
 
 The 2026-11-12 source review was prepared using publicly visible issuer documents. It is **not** a claim that the Group 07 students independently verified the entries. They should review the linked issuer documents before using this in their assessed submission. Merchant MCC and statement/billing-cycle usage remain unknown unless entered or independently checked.
+
+
+Market data is stored separately in `market_order.json` and governs browsing only. The dated public evidence is not an input to any reward rule or recommendation. Issuer totals must not be attributed to a specific card variant. Update the display order and sources together, and rerun the catalogue tests when changing products.
