@@ -1,30 +1,39 @@
-"""Landing page with a live, eligible example sourced from the same rule engine."""
+"""Product-first landing page."""
 import streamlit as st
 from cards import CARDS
-from results import others_html,panel_html
-from rules_engine import rank,inr,category_label
+from results import panel_html,others_html
+from rules_engine import rank
 from ui import grid,section
-
-ranked=rank([c for c in CARDS if c["id"] in ("sbi_cashback","hsbc_live_plus")],"dining",8000,channel="online")
-left,right=grid(2,desktop=[6,5],gap="large")
+from visuals import card_art
+st.markdown('<div class="fin-eyebrow">Compare before you pay</div>',unsafe_allow_html=True)
+left,right=grid(2,desktop=[5,5],gap="large")
 with left:
-    st.markdown('<div class="cca-hero"><div class="kicker">SMARTER PAYMENTS · NO ACCOUNT REQUIRED</div>'
-                '<h1>Make every payment <em>count.</em></h1>'
-                '<p>Your cards. Your purchase. A clear comparison of estimated rewards, with the terms that matter.</p></div>',
-                unsafe_allow_html=True)
+    st.markdown('<div class="fin-heading">Make every payment count.</div><div class="fin-copy">The right card depends on what you buy, where you pay and which reward caps remain. Compare your own cards before checkout.</div>',unsafe_allow_html=True)
+    st.write("")
     if st.button("Compare my cards",type="primary",use_container_width=True):
         st.switch_page("views/compare.py")
-    st.caption("No bank login, no saved wallet, no transaction-history integration.")
+    st.markdown('<span class="fin-pill">No bank login</span><span class="fin-pill">No saved wallet</span><span class="fin-pill">Issuer-linked terms</span>',unsafe_allow_html=True)
+    st.caption("Independent academic MVP · indicative estimates, not guaranteed rewards.")
 with right:
-    st.caption(f"Worked example: {inr(8000)} in {category_label('dining').lower()}, online, cap assumed unused.")
-    st.markdown(panel_html(ranked[0],ranked[1],8000,"dining"),unsafe_allow_html=True)
+    sample=[c for c in CARDS if c["id"] in ("swiggy_ornge","swiggy_blck","sbi_cashback")]
+    ranked=rank(sample,"dining",1200,channel="online",merchant_type="swiggy")
+    st.caption("Live worked example · eligible ₹1,200 Swiggy order · unused caps")
+    st.markdown(panel_html(ranked[0],ranked[1],1200,"dining"),unsafe_allow_html=True)
     st.markdown(others_html(ranked,True),unsafe_allow_html=True)
-
-section("How it works","A simple, private purchase-level workflow")
-for col,(title,desc) in zip(grid(3),[
-    ("1 · Pick your cards","Choose from the supported issuer products."),
-    ("2 · Enter the purchase","Amount, category and online/in-store channel; optionally specify already earned cashback."),
-    ("3 · Read the result","Rule-based cashback and its key limitation; Gemini can optionally explain the result.")
+section("Recognise your cards","Choose from seven supported products. Card images are for identification only.")
+for i in range(0,len(CARDS),4):
+    batch=CARDS[i:i+4]
+    for slot,c in zip(grid(len(batch),mobile=1),batch):
+        with slot:
+            st.markdown(card_art(c),unsafe_allow_html=True)
+            st.markdown("**"+c["name"]+"**")
+            st.caption(c.get("headline",""))
+if st.button("Browse the card library"):
+    st.switch_page("views/supported_cards.py")
+section("One purchase. Three steps.")
+for slot,(title,detail) in zip(grid(3),[
+    ("01 · Know","Choose the cards you already own."),
+    ("02 · Compare","Enter amount, category and the relevant merchant route."),
+    ("03 · Decide","See the reward estimate, restrictions and optional Gemini explanation.")
 ]):
-    col.markdown(f'<div class="cca-card"><h3>{title}</h3><p>{desc}</p></div>',unsafe_allow_html=True)
-st.warning("Card terms are conditional on issuer classifications. Some ambiguous purchases are intentionally not ranked.")
+    slot.markdown(f'<div class="cca-card"><h3>{title}</h3><p>{detail}</p></div>',unsafe_allow_html=True)

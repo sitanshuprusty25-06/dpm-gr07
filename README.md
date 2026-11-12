@@ -11,7 +11,7 @@ One user (a multi-card selective comparer), one problem (choosing a card for one
 
 - The application is **stateless with respect to permanent user storage**. Streamlit temporarily holds user inputs in session state. No login, database or transaction linking.
 - `card_catalog/` is **persistent reference data**, with issuer terms, source links, review dates and caveats. It is not user data.
-- The five supported issuer products are CASHBACK SBI Card, HSBC Live+, Swiggy ORNGE HDFC, original Swiggy HDFC and Amazon Pay ICICI. Read their `card_catalog/source_notes/` before changing the rules.
+- Seven supported products: CASHBACK SBI, HSBC Live+, original Swiggy HDFC, Swiggy ORNGE, Swiggy BLCK, Amazon Pay ICICI and Flipkart Axis Bank. Read their `card_catalog/source_notes/` before changing the rules.
 - Merchant MCCs are generally unknown at checkout; results are estimates. HSBC boosted categories are sometimes intentionally marked **not comparable** when eligibility or after-cap cashback is unresolved. This protects users against false precision.
 - Only domestic, non-EMI transactions in the supported categories are considered. Transaction fees, interest, international charges and most promotional offers are out of scope.
 
@@ -44,3 +44,10 @@ The official issuer documents were reviewed on 2026-11-12 for this draft. **Grou
 
 ## Course AI-use disclosure
 The course permits assistance with Phase-2 coding under its rules. The team must document the AI tools used and personally verify and explain the code. **Do not submit AI-generated report/PRD text, images or tables unless the instructor expressly permits them.**
+
+## UX update
+Reference product pictures, issuer-site icons, mobile-aware card selection, conditional merchant fields, a clear result hierarchy, comparison bars, cap assumptions and source links. The image register is `assets/card_images.json`; fallback art is explicitly labeled. All marks belong to their owners. See `assets/README.md`. No bank affiliation. No new account/database or user history.
+
+BLCK and original Swiggy are separate; 10% tier requires ₹249 minimum. Flipkart Axis uses distinct statement-quarter caps for eligible Flipkart, Myntra and Cleartrip; if the remaining accelerated cap is insufficient the engine withholds a definitive winner. Confirm issuer rules independently before use.
+
+Live app: https://dpm-gr07-vhiacq5l6mcewqexuxwvl2.streamlit.app/

@@ -1,0 +1,3 @@
+# Visual references
+
+The application uses publicly visible reference product imagery for identification, with source-page links in the card library. Card and bank marks belong to their respective owners; this is an independent academic project, not a bank-affiliated service. Where a source image is unavailable or cannot be loaded, the app displays an explicitly labeled illustrative tile. Amazon Pay ICICI currently uses an illustration, not an unverified photo. Issuer icons are public website favicon references, not complete official wordmarks. Image requests use static URLs, not user purchase data. Before any commercial/public redistribution beyond the course demo, confirm permission to use the assets. No user card numbers or private card photos are stored.

@@ -1,0 +1,32 @@
+{
+  "sbi_cashback": {
+    "url": "https://www.refpo.com/logos/sbi-cashback-credit-card.webp",
+    "source": "https://www.refpo.com/credit-cards/sbi-cashback-credit-card"
+  },
+  "hsbc_live_plus": {
+    "url": "https://www.hsbc.co.in/content/dam/hsbc/en/images/16-9/14248-hsbc-live-plus-visa-signature-vertical-card-face-800x450.jpg",
+    "source": "https://www.hsbc.co.in/credit-cards/compare/visa-platinum-credit-card/"
+  },
+  "swiggy_ornge": {
+    "url": "https://pbs.twimg.com/media/HCwHR99aUAA5-jx.jpg",
+    "source": "https://x.com/AmazingCreditC/status/2030007644031963182",
+    "label": "Public promotional photo"
+  },
+  "swiggy_original": {
+    "url": "https://cdn.zeebiz.com/sites/default/files/2023/07/27/253494-news18-bl-zb.jpg?im=FitAndFill%3D%281200%2C900%29",
+    "source": "https://www.zeebiz.com/personal-finance/banking/news-swiggy-hdfc-bank-credit-card-10-cashback-on-swiggy-5-on-amazon-flipkart-and-ola-know-more-features-stst-246414"
+  },
+  "swiggy_blck": {
+    "url": "https://www.mybankingtips.com/assest/image/credit-cards/262_facia-swiggy-blck-cc.png.webp",
+    "source": "https://www.mybankingtips.com/credit-cards/best-online-shopping-credit-cards"
+  },
+  "flipkart_axis": {
+    "url": "https://images.moneycontrol.com/static-hindinews/2025/11/Screenshot-2025-11-20-155807.png",
+    "source": "https://hindi.moneycontrol.com/news/photos/your-money/great-benefits-at-low-fees-know-which-are-the-top-credit-cards-with-annual-fees-less-than-rupees-1000-2289314.html"
+  },
+  "amazon_icici": {
+    "url": "",
+    "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/amazon-pay-credit-card",
+    "label": "Illustrative tile until a permitted product image is available"
+  }
+}

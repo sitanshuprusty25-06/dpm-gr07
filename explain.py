@@ -18,8 +18,8 @@ SYSTEM_PROMPT = (
     "Include the exact estimated reward value in rupees only once; do not write any "
     "other amounts, percentages, dates, numbers or ordinals. The full condition is "
     "displayed separately by the rules engine. Use the recommended card's name exactly as "
-    "given. Call the figure an estimate. Say why this card gives the most benefit among "
-    "the cards the shopper selected, and state its key condition. Do not claim it is the "
+    "given. Call the figure an estimate, use the reward form from the JSON, and explain why it leads. "
+    "The exact conditions are displayed separately. Do not claim it is the "
     "best card overall. Do not give general financial advice. Plain text only: no "
     "markdown, no bullet points."
 )
@@ -43,6 +43,7 @@ def build_payload(win, second, amount, cat):
         "recommended": {
             "card": win.card["name"],
             "issuer": win.card["issuer"],
+            "reward_form": win.card.get("reward_label","cashback"),
             "benefit_inr": rnd(win.benefit),
             "reason": win.reason,
             "condition": key_condition(win),
@@ -74,6 +75,8 @@ def validate(text, payload):
     expected_card = payload["recommended"]["card"]
     expected_benefit = payload["recommended"]["benefit_inr"]
     if expected_card not in text:
+        return False
+    if payload["recommended"].get("reward_form")=="Amazon Pay balance" and "amazon pay balance" not in text.lower():
         return False
     # Extract complete currency amounts. Prefix matches such as ₹800 in ₹8000
     # are intentionally not accepted.

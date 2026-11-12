@@ -1,7 +1,7 @@
 """Tests for the two issuer-models and the Gemini numeric safeguards."""
 import unittest
 from cards import CARDS
-from rules_engine import evaluate,rank,inr,key_condition
+from rules_engine import evaluate,rank,inr,key_condition,reward_bucket
 from explain import build_payload,validate
 
 BY_ID={c["id"]:c for c in CARDS}
@@ -69,6 +69,31 @@ class AdditionalCardsTests(unittest.TestCase):
         self.assertEqual(evaluate(BY_ID["amazon_icici"],"shopping",1000,merchant_type="amazon_prime").benefit,50)
     def test_amazon_nonprime(self):
         self.assertEqual(evaluate(BY_ID["amazon_icici"],"shopping",1000,merchant_type="amazon_nonprime").benefit,30)
+
+class ExpandedCardTests(unittest.TestCase):
+    def test_original_minimum_updated(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_original"],"dining",200,merchant_type="swiggy").benefit,0)
+    def test_blck_eligible_swiggy(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_blck"],"dining",1200,merchant_type="swiggy").benefit,120)
+    def test_blck_minimum(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_blck"],"dining",200,merchant_type="swiggy").benefit,0)
+    def test_blck_other_cap(self):
+        self.assertEqual(evaluate(BY_ID["swiggy_blck"],"dining",5000,used=990,channel="offline",merchant_type="other").benefit,10)
+    def test_axis_flipkart(self):
+        self.assertEqual(evaluate(BY_ID["flipkart_axis"],"shopping",10000,merchant_type="flipkart").benefit,500)
+    def test_axis_myntra(self):
+        self.assertEqual(evaluate(BY_ID["flipkart_axis"],"shopping",10000,merchant_type="myntra").benefit,750)
+    def test_axis_cleartrip(self):
+        self.assertEqual(evaluate(BY_ID["flipkart_axis"],"hotel",10000,merchant_type="cleartrip").benefit,500)
+    def test_axis_separate_buckets(self):
+        c=BY_ID["flipkart_axis"]
+        self.assertNotEqual(reward_bucket(c,"shopping","online","flipkart")[0],reward_bucket(c,"shopping","online","myntra")[0])
+    def test_axis_cap_unresolved(self):
+        self.assertFalse(evaluate(BY_ID["flipkart_axis"],"shopping",10000,used=3900,merchant_type="flipkart").comparable)
+    def test_axis_utilities_excluded(self):
+        self.assertEqual(evaluate(BY_ID["flipkart_axis"],"utilities",1000).benefit,0)
+    def test_wrong_merchant_context(self):
+        self.assertFalse(evaluate(BY_ID["swiggy_blck"],"hotel",1000,merchant_type="swiggy").comparable)
 
 if __name__=="__main__":
     unittest.main()

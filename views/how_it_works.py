@@ -20,3 +20,6 @@ st.write(
 st.caption("Only domestic, non-EMI transactions from the supported categories are modeled; issuer rules and exclusions apply.")
 if st.button("Compare my selected cards",type="primary"):
     st.switch_page("views/compare.py")
+
+st.markdown("### Another example: merchant context matters")
+st.write("An eligible ₹10,000 Myntra transaction, with an unused quarterly cap, earns an estimated ₹750 on Flipkart Axis. An eligible ₹10,000 Flipkart purchase earns ₹500. These are separate issuer buckets. We do not combine them into one cap.")

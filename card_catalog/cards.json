@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source_reviewed_on": "2026-11-12",
-  "scope": "Domestic, non-EMI, supported purchase categories. Indicative cashback subject to merchant MCC and issuers' actual terms.",
+  "scope": "Domestic non-EMI eligible personal purchases only. Reference rules, merchant eligibility and remaining caps determine conditional estimates. No guarantees, fees, interest or temporary promotions.",
   "categories": [
     {
       "id": "dining",
@@ -38,7 +38,7 @@
       "name": "CASHBACK SBI Card",
       "issuer": "SBI Card",
       "chip": "🟦",
-      "hue": "#285B77",
+      "hue": "#4336A0",
       "fee": 999,
       "base": 0,
       "model": "channel_capped",
@@ -67,14 +67,17 @@
         "https://www.sbicard.com/en/personal/credit-cards/cashback-sbi-card.html",
         "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/cashback-revised.pdf"
       ],
-      "review_note": "Reviewed against issuer FAQ, product description and revision effective 1 April 2026; student team should independently reconfirm before assessed submission."
+      "review_note": "Reviewed against issuer FAQ, product description and revision effective 1 April 2026; student team should independently reconfirm before assessed submission.",
+      "headline": "5% online · 1% in-store",
+      "reward_label": "Cashback",
+      "issuer_domain": "sbicard.com"
     },
     {
       "id": "hsbc_live_plus",
       "name": "HSBC Live+ Credit Card",
       "issuer": "HSBC India",
       "chip": "🟩",
-      "hue": "#3B766F",
+      "hue": "#B52F42",
       "fee": 999,
       "base": 1.5,
       "model": "shared_category_cap",
@@ -108,13 +111,16 @@
         "https://www.hsbc.bank.in/credit-cards/products/live-plus/",
         "https://www.hsbc.co.in/content/dam/hsbc/in/documents/credit-cards/live-plus-credit-card-services-guide.pdf"
       ],
-      "review_note": "Reviewed against issuer India Live+ page and service guide. Merchant MCC determines boosted or excluded reward. Student team should reconfirm current conditions before submission."
+      "review_note": "Reviewed against issuer India Live+ page and service guide. Merchant MCC determines boosted or excluded reward. Student team should reconfirm current conditions before submission.",
+      "headline": "10% eligible boosted · 1.5% other",
+      "reward_label": "Cashback",
+      "issuer_domain": "hsbc.co.in"
     },
     {
       "id": "swiggy_ornge",
       "name": "Swiggy ORNGE HDFC",
       "issuer": "HDFC Bank",
-      "hue": "#E66B30",
+      "hue": "#F36E26",
       "chip": "◆",
       "model": "hdfc_ornge",
       "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-ornge-hdfc-bank-credit-card/pdf/swiggy-orange.pdf",
@@ -130,21 +136,25 @@
         "fuel": "No modeled cashback on fuel."
       },
       "last_verified": "2026-11-12",
-      "point_value": null
+      "point_value": null,
+      "headline": "5% eligible Swiggy & online",
+      "reward_label": "Statement credit",
+      "issuer_domain": "hdfc.bank.in"
     },
     {
       "id": "swiggy_original",
       "name": "Swiggy HDFC (original)",
       "issuer": "HDFC Bank",
-      "hue": "#C95328",
+      "hue": "#BA3D43",
       "chip": "◆",
       "model": "hdfc_original",
-      "source": "https://www.hdfcbank.com/content/bbp/repositories/723fb80a-2dde-42a3-9793-7ae1be57c87f/?path=%2FPersonal%2FPay%2FCards%2FCredit+Card%2FCredit+Card+Landing+Page%2FCredit+Cards%2FSwiggy+HDFC+Bank+Credit+Card%2FT-and-C-Swiggy-HDFC-Bank-Credit-Card.pdf",
+      "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-hdfc-bank-credit-card/pdf/terms-and-conditions-swiggy-hdfc-bank-credit-card-26052026.pdf",
       "sources": [
-        "https://www.hdfcbank.com/content/bbp/repositories/723fb80a-2dde-42a3-9793-7ae1be57c87f/?path=%2FPersonal%2FPay%2FCards%2FCredit+Card%2FCredit+Card+Landing+Page%2FCredit+Cards%2FSwiggy+HDFC+Bank+Credit+Card%2FT-and-C-Swiggy-HDFC-Bank-Credit-Card.pdf"
+        "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-hdfc-bank-credit-card/pdf/terms-and-conditions-swiggy-hdfc-bank-credit-card-26052026.pdf",
+        "https://www.hdfc.bank.in/credit-cards/swiggy-hdfc-bank-credit-card"
       ],
       "summary": "10% Swiggy · 5% eligible online · 1% other",
-      "caveat": "Separate ₹1,500 / ₹1,500 / ₹500 billing-cycle caps; ₹100 minimum. Merchant MCC and exclusions apply.",
+      "caveat": "Separate ₹1,500 / ₹1,500 / ₹500 billing-cycle caps. Minimum ₹249 for the 10% Swiggy tier, ₹100 for other eligible tiers. Merchant MCC and exclusions apply.",
       "fee": 500,
       "base": 1,
       "rules": {},
@@ -152,13 +162,16 @@
         "fuel": "No modeled cashback on fuel."
       },
       "last_verified": "2026-11-12",
-      "point_value": null
+      "point_value": null,
+      "headline": "10% eligible Swiggy",
+      "reward_label": "Statement credit",
+      "issuer_domain": "hdfc.bank.in"
     },
     {
       "id": "amazon_icici",
       "name": "Amazon Pay ICICI",
       "issuer": "ICICI Bank",
-      "hue": "#B26C28",
+      "hue": "#263649",
       "chip": "◆",
       "model": "amazon",
       "source": "https://www.icici.bank.in/about-us/news-room/2025/amazon-pay-and-icici-bank-renew-partnership-enhance-indias-most-adopted-co-branded-credit-card",
@@ -174,7 +187,64 @@
         "fuel": "No modeled cashback on fuel."
       },
       "last_verified": "2026-11-12",
-      "point_value": null
+      "point_value": null,
+      "headline": "5% Prime · 3% non-Prime",
+      "reward_label": "Amazon Pay balance",
+      "issuer_domain": "icici.bank.in"
+    },
+    {
+      "id": "swiggy_blck",
+      "name": "Swiggy BLCK HDFC Bank",
+      "issuer": "HDFC Bank",
+      "hue": "#202637",
+      "chip": "◆",
+      "model": "hdfc_blck",
+      "source": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-blck-hdfc-bank-credit-card/pdf/t-and-cs-swiggy-black-hdfc-bank-credit-card.pdf",
+      "sources": [
+        "https://www.hdfc.bank.in/credit-cards/swiggy-blck-hdfc-bank-credit-card",
+        "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-blck-hdfc-bank-credit-card/pdf/t-and-cs-swiggy-black-hdfc-bank-credit-card.pdf"
+      ],
+      "summary": "10% eligible Swiggy · 5% select online · 1% other",
+      "headline": "10% eligible Swiggy",
+      "reward_label": "Statement credit",
+      "issuer_domain": "hdfc.bank.in",
+      "fee": 1000,
+      "base": 1,
+      "rules": {},
+      "excl": {
+        "fuel": "Fuel purchases do not earn cashback."
+      },
+      "last_verified": "2026-11-12",
+      "point_value": null,
+      "caveat": "Separate ₹1,500 Swiggy and ₹1,500 eligible online caps, plus ₹1,000 other-spend cap per billing cycle. Minimum ₹249 for Swiggy, ₹100 for other tiers. Eligible MCCs and exclusions apply. Welcome membership, Cleartrip/Nykaa temporary offers and fees excluded."
+    },
+    {
+      "id": "flipkart_axis",
+      "name": "Flipkart Axis Bank Credit Card",
+      "issuer": "Axis Bank",
+      "hue": "#8B1955",
+      "chip": "◆",
+      "model": "flipkart_axis",
+      "source": "https://www.axisbank.com/docs/default-source/default-document-library/cashback-tncs---final.pdf",
+      "sources": [
+        "https://cug.axisbank.com/cards/credit-card/flipkart-axisbank-credit-card",
+        "https://www.axisbank.com/docs/default-source/default-document-library/cashback-tncs---final.pdf",
+        "https://campaign.axis.bank.in/generic/terms-and-conditions-generic-all.pdf"
+      ],
+      "summary": "7.5% eligible Myntra · 5% Flipkart / Cleartrip · 4% preferred · 1% other",
+      "headline": "7.5% eligible Myntra · 5% Flipkart",
+      "reward_label": "Statement credit",
+      "issuer_domain": "axisbank.com",
+      "fee": 500,
+      "base": 1,
+      "rules": {},
+      "excl": {
+        "fuel": "Fuel purchases do not earn cashback.",
+        "utilities": "Utility and telecom categories excluded from cashback."
+      },
+      "last_verified": "2026-11-12",
+      "point_value": null,
+      "caveat": "Myntra, Flipkart and Cleartrip each have separate ₹4,000 statement-quarter accelerated cashback caps. Preferred merchants earn 4%, other eligible spends 1%; preferred-merchant status and MID must be confirmed. Post-cap treatment not established in catalogue. Gift cards, tolls, rent, wallet loads, education, insurance, fuel, jewellery, government and EMI excluded. Instant discounts excluded."
     }
   ]
 }

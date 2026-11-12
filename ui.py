@@ -12,15 +12,15 @@ from cards import SAMPLE_DATA
 
 PALETTES = {
     "light": {
-        "bg": "#E9F0EF", "surface": "#FFFFFF", "ink": "#0B2E33", "muted": "#46666D",
-        "line": "#CFDDDB", "brand": "#0F5C63", "brand_ink": "#FFFFFF", "soft": "#E3EEEC",
-        "panel": "#0F3D44", "panel_ink": "#EAF7F4", "panel_muted": "#A8CBC7",
-        "accent": "#F2A93B", "warn_bg": "#FCEBEC", "warn_ink": "#8E2433", "ok": "#1C7C5A",
+        "bg": "#F4F6FB", "surface": "#FFFFFF", "ink": "#0B2E33", "muted": "#46666D",
+        "line": "#CFDDDB", "brand": "#2454CD", "brand_ink": "#FFFFFF", "soft": "#E3EEEC",
+        "panel": "#142C52", "panel_ink": "#EAF7F4", "panel_muted": "#A8CBC7",
+        "accent": "#FFCD7A", "warn_bg": "#FCEBEC", "warn_ink": "#8E2433", "ok": "#1C7C5A",
     },
     "dark": {
-        "bg": "#081A1D", "surface": "#102A2E", "ink": "#E6F2F0", "muted": "#9BB8B4",
-        "line": "#22444A", "brand": "#7FD1B9", "brand_ink": "#06282B", "soft": "#16373B",
-        "panel": "#175057", "panel_ink": "#F0FBF8", "panel_muted": "#B6D9D4",
+        "bg": "#101827", "surface": "#102A2E", "ink": "#E6F2F0", "muted": "#9BB8B4",
+        "line": "#22444A", "brand": "#82ACFF", "brand_ink": "#06282B", "soft": "#16373B",
+        "panel": "#1D355F", "panel_ink": "#F0FBF8", "panel_muted": "#B6D9D4",
         "accent": "#F2A93B", "warn_bg": "#3A1A20", "warn_ink": "#F3B4BC", "ok": "#6FD3A8",
     },
 }
@@ -288,8 +288,36 @@ def header():
     css = streamlit_override_css(palette) + custom_css(palette) + responsive_css(mobile)
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
     st.markdown("""<style>
+    .stApp .block-container {max-width:1280px;}
+    .stApp .fin-eyebrow {font-size:.73rem; font-weight:750; letter-spacing:.11em; text-transform:uppercase; color:var(--muted); margin:6px 0;}
+    .stApp .fin-heading {font-size:clamp(1.9rem,4vw,3.25rem);font-weight:800;line-height:1.08;letter-spacing:-.055em;color:var(--ink);margin:10px 0;}
+    .stApp .fin-copy {color:var(--muted);font-size:1.07rem;line-height:1.6;max-width:650px;}
+    .stApp .fin-pill {display:inline-block;padding:5px 10px;border-radius:9px;background:var(--soft);color:var(--ink);font-size:.79rem;font-weight:650;margin:3px 4px 3px 0;}
+    .stApp .fin-step {font-size:.78rem;letter-spacing:.09em;color:var(--muted);font-weight:800;text-transform:uppercase;margin:0 0 8px;}
+    .stApp .fin-art {position:relative;width:100%;aspect-ratio:1.65;overflow:hidden;border-radius:13px;background:var(--surface);}
+    .stApp .fin-fallback {box-sizing:border-box;height:100%;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;color:white;background:var(--card-color);font-size:13px;border-radius:13px;}
+    .stApp .fin-fallback strong {font-size:1rem;color:white;}
+    .stApp .fin-fallback small {font-size:.68rem;color:white;}
+    .stApp .fin-chip {display:block;width:28px;height:21px;background:#DCC495;border-radius:5px;border:1px solid #A99572;}
+    .stApp .fin-photo {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;}
+    .stApp .fin-issuer {display:flex;align-items:center;gap:7px;color:var(--muted);font-size:.77rem;font-weight:650;margin:8px 0;}
+    .stApp .fin-issuer-icon {width:20px;height:20px;object-fit:contain;border-radius:4px;}
+    .stApp .fin-visual.compact .fin-art {max-width:210px;}
+    .stApp .fin-visual.compact {margin-bottom:5px;}
+    .stApp .fin-resultbar {height:8px;background:var(--soft);border-radius:8px;overflow:hidden;margin:5px 0 10px;}
+    .stApp .fin-resultbar span {display:block;height:100%;border-radius:8px;}
+    .stApp .cca-panel {background:#142C52;border-radius:20px;}
+    .stApp .cca-panel .figure {color:#FFCD7A;letter-spacing:-.05em;}
+    .stApp .cca-hero {background:#142C52 !important;}
+    .stApp .cca-hero h1 {letter-spacing:-.045em;}
+    .stApp .cca-card {border-radius:16px;}
+    .stApp [data-testid="stVerticalBlockBorderWrapper"] {border-radius:16px;}
+    .stApp .stButton button {border-radius:11px;min-height:44px;font-weight:650;}
+    @media(max-width:760px){.stApp .fin-heading{font-size:2.1rem;}.stApp .fin-visual.compact .fin-art{max-width:100%;}}
+    </style>""",unsafe_allow_html=True)
+    st.markdown("""<style>
     .stApp .block-container {max-width:1240px;padding-left:2rem;padding-right:2rem;}
-    .stApp .cca-hero {background:#103D3E;border-radius:20px;padding:42px 36px;}
+    .stApp .cca-hero {background:#142C52;border-radius:20px;padding:42px 36px;}
     .stApp .cca-hero h1 {font-size:clamp(2rem,4vw,3.3rem);letter-spacing:-.045em;}
     .stApp .cca-card,.stApp .cca-explain {border-radius:18px;border:1px solid var(--line);}
     .stApp .cca-panel {border-radius:20px;padding:28px;}
@@ -337,17 +365,10 @@ def footer():
         st.page_link("views/about.py", label="About & contact")
         st.page_link("views/roadmap.py", label="Roadmap")
         st.page_link("views/faq.py", label="FAQ")
-    later = (
-        '<div class="cca-foot-h">Coming later</div>'
-        '<div class="cca-foot-dead">Blog</div>'
-        '<div class="cca-foot-dead">Privacy policy</div>'
-        '<div class="cca-foot-dead">Terms of use</div>'
-    )
     if c4 is not None:
         with c4:
-            st.markdown(later, unsafe_allow_html=True)
-    else:
-        st.markdown(later, unsafe_allow_html=True)
+            st.markdown("**Independent academic MVP**")
+            st.caption("No bank affiliation. No saved wallet.")
 
     st.caption(
         "Group 07 · Digital Product Management · IIM Visakhapatnam. Results are estimates for the "

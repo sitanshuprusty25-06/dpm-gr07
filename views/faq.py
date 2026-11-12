@@ -2,6 +2,9 @@
 import streamlit as st
 st.markdown("## Frequently asked questions")
 questions=[
+("Which Swiggy card do I select?","The original, ORNGE and BLCK cards have different terms. Select the exact product shown in your wallet. BLCK has separate Swiggy, online and other billing-cycle buckets."),
+("What is a statement-quarter cap?","Flipkart Axis has separate accelerated cashback caps for Myntra, Flipkart and Cleartrip per statement quarter. Enter previously earned cashback for the specific merchant bucket."),
+("Do the bank logos mean the banks endorse this app?","No. Product images and website icons are for identification. This is an independent academic project."),
 ("Do you need my card number?","No. Select issuer card names only. We never request CVV, expiry, OTP, PIN or bank credentials."),
 ("Does the application save my wallet?","No accounts or persistent wallet are created. Selections and inputs remain in temporary Streamlit session state while you use the app."),
 ("Does Gemini receive my data?","Only if you click the Gemini rewording button. It receives selected card names and computed purchase facts needed to form an explanation. Check the provider's data-handling terms."),

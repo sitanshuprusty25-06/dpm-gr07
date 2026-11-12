@@ -22,7 +22,7 @@ pages = [
     st.Page("views/how_it_works.py", title="How it works", icon="⚙️", url_path="how-it-works"),
     st.Page("views/roadmap.py", title="Roadmap", icon="🗺️", url_path="roadmap"),
     st.Page("views/faq.py", title="FAQ", icon="❓", url_path="faq"),
-    st.Page("views/about.py", title="About & contact", icon="👥", url_path="about"),
+    st.Page("views/about.py", title="About", icon="👥", url_path="about"),
 ]
 
 ui.header()

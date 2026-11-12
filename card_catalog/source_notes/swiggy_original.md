@@ -1,9 +1,5 @@
-# Swiggy HDFC (original)
+# Original Swiggy HDFC Bank
 
-Issuer source: https://www.hdfcbank.com/content/bbp/repositories/723fb80a-2dde-42a3-9793-7ae1be57c87f/?path=%2FPersonal%2FPay%2FCards%2FCredit+Card%2FCredit+Card+Landing+Page%2FCredit+Cards%2FSwiggy+HDFC+Bank+Credit+Card%2FT-and-C-Swiggy-HDFC-Bank-Credit-Card.pdf
+Current issuer terms: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/swiggy-hdfc-bank-credit-card/pdf/terms-and-conditions-swiggy-hdfc-bank-credit-card-26052026.pdf
 
-10% Swiggy · 5% eligible online · 1% other
-
-Separate ₹1,500 / ₹1,500 / ₹500 billing-cycle caps; ₹100 minimum. Merchant MCC and exclusions apply.
-
-Reviewed 2026-11-12. Team must independently verify merchant eligibility and current terms. Model excludes unverified promotions.
+Effective 21 April 2026, minimum transaction ₹249 for 10% eligible Swiggy cashback; ₹100 for 5% eligible online and 1% other. Separate billing-cycle caps ₹1,500, ₹1,500 and ₹500 respectively. Do not conflate with BLCK or ORNGE. Team to independently verify.
