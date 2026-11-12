@@ -4,7 +4,6 @@ import streamlit as st
 from rules_engine import category_label,inr,key_condition,template_explain
 from explain import explain_comparison
 from ui import get_secret
-from visuals import card_art
 
 def others_html(ranked,mark_best):
     rows=[]
@@ -128,11 +127,13 @@ def render_result(L, request_ai=False):
     else:
         status_slot.caption("Rules-based explanation. Select Compare with AI to request AI assistance.")
 
-    if len(tied)==1:
-        st.markdown('<div class="fin-result-preview">'+card_art(win.card,compact=True)+'</div>',unsafe_allow_html=True)
     st.markdown("**Reward comparison**")
-    st.markdown(others_html(ranked,True),unsafe_allow_html=True)
-    st.caption("Reward values compare face-value rupees: Amazon Pay balance and Scapia Coins are restricted redemption value; Kiwi rewards are bank-redeemable. Fees, interest and promotions are excluded.")
+    # Keep the first three visible. Large wallets can expand the full list.
+    st.markdown(others_html(ranked[:3],True),unsafe_allow_html=True)
+    if len(ranked)>3:
+        with st.expander(f"Compare all {len(ranked)} selected cards"):
+            st.markdown(others_html(ranked,True),unsafe_allow_html=True)
+    st.caption("Estimated rupee value, not guaranteed cashback. Reward forms differ; fees, interest and promotions are excluded.")
     st.caption(f"Issuer sources reviewed {win.card['last_verified']}. Results are conditional estimates, "
                "not guaranteed cashback. Merchant MCC and other exclusions may affect actual rewards. "
                "No card number or banking credential is requested.")
@@ -160,11 +161,13 @@ def render_result(L, request_ai=False):
         elif not diag:
             st.caption("No AI request was made for this comparison.")
     with st.expander("All card conditions and official sources"):
+        st.caption("Amazon Pay balance and Scapia Coins are restricted redemption value; Kiwi rewards are bank-redeemable. See issuer terms for redemption and eligibility.")
         for item in ranked:
             st.markdown("**"+item.card["name"]+"**")
             st.write(key_condition(item))
             st.caption(item.card["caveat"])
-            st.link_button("Official terms · "+item.card["name"],item.card["source"])
+            for j,source in enumerate(item.card.get("sources",[item.card["source"]]),1):
+                st.link_button(f"Official terms {j} · {item.card['name']}",source)
     feedback=get_secret("FEEDBACK_URL")
     if feedback:
         st.link_button("Report wrong information",feedback)

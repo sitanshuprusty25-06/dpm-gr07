@@ -11,9 +11,9 @@ section("Now: V1 (this version)")
 st.markdown(
     '<div class="cca-card"><ul>'
     "<li>Choose your cards from a hand-checked list</li>"
-    "<li>Enter a purchase amount and category</li>"
-    "<li>Rupee benefit per card, ranked, with the key condition to watch out for</li>"
-    "<li>Rule-based explanation, with optional AI wording checked against the numbers</li>"
+    "<li>Enter a purchase amount, category and payment context</li>"
+    "<li>Conditional rupee estimates, ranked only when the applicable reward is established</li>"
+    "<li>Optional AI selection of approved reasons and cautions, with six grounding checks</li>"
     "</ul></div>",
     unsafe_allow_html=True,
 )
@@ -36,4 +36,4 @@ for col, (title, items) in zip((c1, c2, c3), later):
         unsafe_allow_html=True,
     )
 
-st.caption("Release contents are plans, not commitments. They can change as we learn from users.")
+st.caption("Release contents are hypotheses, not commitments. Improve coverage only after verifying issuer rules; consider saved wallets or integrations only if user evidence supports them and privacy safeguards are feasible.")

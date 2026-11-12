@@ -361,6 +361,19 @@ def header():
     .stApp .cca-empty {padding:60px 24px;background:var(--surface);}
     .stApp .cca-empty h3 {color:var(--ink);}
     .stApp .cca-row {padding:14px 0;}
+    /* Compare page: compact hierarchy, preserve native controls and keyboard focus. */
+    .stApp .st-key-compare_workspace .fin-compare-title {font-size:clamp(1.45rem,2.4vw,2rem);font-weight:750;line-height:1.2;color:var(--ink);margin:0;}
+    .stApp .st-key-compare_workspace .fin-step {margin:0 0 2px;}
+    .stApp .st-key-compare_workspace .cca-empty {padding:26px 16px;}
+    .stApp .st-key-compare_workspace .cca-panel {padding:18px 20px;}
+    .stApp .st-key-compare_workspace .cca-panel .figure {font-size:2.6rem;margin:8px 0 3px;}
+    .stApp .st-key-compare_workspace .cca-panel .cname {font-size:1.32rem;}
+    .stApp .st-key-compare_workspace .cca-explain,.stApp .st-key-compare_workspace .cca-watch {padding:12px 14px;margin-top:4px;}
+    .stApp .st-key-compare_workspace .cca-row {padding:7px 0;}
+    .stApp .st-key-compare_workspace .fin-resultbar {height:5px;margin:0 0 4px;}
+    .stApp .st-key-compare_workspace [data-testid="stVerticalBlock"] {gap:.65rem;}
+    @media(max-width:760px){.stApp .st-key-compare_workspace .cca-panel{padding:15px;}.stApp .st-key-compare_workspace .cca-panel .figure{font-size:2.2rem;}}
+
     .stApp [data-testid="stVerticalBlockBorderWrapper"] {border-radius:18px;}
     .stApp .stButton button {border-radius:10px;min-height:42px;font-weight:600;}
     @media(max-width:760px){.stApp .block-container{padding-left:1rem;padding-right:1rem;}.stApp .cca-hero{padding:24px 20px;}}

@@ -24,7 +24,11 @@ def group(n):
     return ",".join(parts + [tail])
 
 def inr(n):
-    return "₹" + group(rnd(n))
+    """Display modeled rupee value to paise; avoid rounding positive rewards to zero."""
+    paise = rnd(abs(n)*100)
+    whole, fraction = divmod(paise, 100)
+    sign = "-" if n < 0 and paise else ""
+    return sign + "₹" + group(whole) + (f".{fraction:02d}" if fraction else "")
 
 def pct(n):
     return f"{float(n):g}%"

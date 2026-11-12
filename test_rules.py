@@ -43,6 +43,9 @@ class IssuerRulesTests(unittest.TestCase):
         self.assertTrue(all(r.benefit==0 for r in ranked))
     def test_inr_format(self):
         self.assertEqual(inr(120000),"₹1,20,000")
+        self.assertEqual(inr(0.25),"₹0.25")
+        self.assertEqual(inr(120000.75),"₹1,20,000.75")
+        self.assertEqual(inr(10.10),"₹10.10")
 
 class ExplanationChecks(unittest.TestCase):
     def setUp(self):
