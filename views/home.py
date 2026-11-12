@@ -23,7 +23,7 @@ with right:
 section("Recognise your cards","Choose from 10 supported products. Card images are for identification only.")
 for i in range(0,len(CARDS),4):
     batch=CARDS[i:i+4]
-    for slot,c in zip(grid(len(batch),mobile=1),batch):
+    for slot,c in zip(grid(4,mobile=1),batch):
         with slot:
             st.markdown(card_art(c),unsafe_allow_html=True)
             st.markdown("**"+c["name"]+"**")

@@ -9,6 +9,14 @@ from urllib.request import Request, urlopen
 import streamlit as st
 from PIL import Image
 
+
+def _encode_image(image):
+    """Normalize images while keeping their original aspect ratio."""
+    image.thumbnail((720,450))
+    out=io.BytesIO()
+    image.convert("RGBA").save(out,format="PNG",optimize=True)
+    return "data:image/png;base64,"+base64.b64encode(out.getvalue()).decode("ascii")
+
 IMAGES=json.loads((Path(__file__).parent/"assets"/"card_images.json").read_text(encoding="utf-8"))
 
 @st.cache_data(ttl=3600, show_spinner=False, max_entries=24)
@@ -23,12 +31,41 @@ def image_data_uri(url):
         if len(raw)>4_000_000:
             return ""
         with Image.open(io.BytesIO(raw)) as image:
-            image.thumbnail((720,450))
-            out=io.BytesIO()
-            image.convert("RGBA").save(out,format="PNG",optimize=True)
-        return "data:image/png;base64,"+base64.b64encode(out.getvalue()).decode("ascii")
+            return _encode_image(image)
     except Exception:
         return ""
+
+@st.cache_data(ttl=3600, show_spinner=False, max_entries=4)
+def guide_card_data_uri(url):
+    """Fallback: extract the card artwork from the official YES BANK guide.
+
+    Only use a uniquely identified, landscape card-shaped embedded image.
+    Do not display a bank logo, page screenshot or ambiguous candidate as card art.
+    """
+    if not url or not url.startswith("https://"):
+        return ""
+    try:
+        from pypdf import PdfReader
+        req=Request(url,headers={"User-Agent":"Mozilla/5.0","Accept":"application/pdf"})
+        with urlopen(req,timeout=5) as response:
+            raw=response.read(5_000_001)
+        if len(raw)>5_000_000:
+            return ""
+        reader=PdfReader(io.BytesIO(raw))
+        candidates=[]
+        for item in reader.pages[0].images:
+            try:
+                img=item.image
+                w,h=img.size
+                if w>=120 and h>=70 and 1.45<=w/h<=1.85:
+                    candidates.append(img)
+            except Exception:
+                continue
+        if len(candidates)==1:
+            return _encode_image(candidates[0].copy())
+    except Exception:
+        pass
+    return ""
 
 def card_art(card, compact=False):
     info=IMAGES.get(card["id"],{})
@@ -40,13 +77,21 @@ def card_art(card, compact=False):
               f'<span>{issuer}</span><span class="fin-chip"></span>'
               f'<strong>{name}</strong><small>Illustrative card</small></div>')
     # Only emit an image after successful decoding. No inline JavaScript event handlers.
-    uri=image_data_uri(info.get("url",""))
+    uri=""
+    for url in [info.get("url","")]+info.get("alternate_urls",[]):
+        uri=image_data_uri(url)
+        if uri:
+            break
+    if not uri and info.get("guide_pdf"):
+        uri=guide_card_data_uri(info["guide_pdf"])
     photo=(f'<img class="fin-photo" src="{uri}" alt="{name} product image">' if uri else "")
     icon=(f'<img class="fin-issuer-icon" src="https://www.google.com/s2/favicons?domain={domain}&amp;sz=64" '
           'alt="" loading="lazy" referrerpolicy="no-referrer">' if domain else "")
     size_class="compact" if compact else ""
+    note=info.get("image_caption","")
+    caption=f'<div class="fin-art-note">{html.escape(note)}</div>' if uri and note else ""
     return (f'<div class="fin-visual {size_class}">'
-            f'<div class="fin-art">{fallback}{photo}</div>'
+            f'<div class="fin-art">{fallback}{photo}</div>{caption}'
             f'<div class="fin-issuer">{icon}<span>{issuer}</span></div></div>')
 
 def library_card(card, summary, fee_text):

@@ -10,7 +10,7 @@ shown=[c for c in CARDS if issuer=="All issuers" or c["issuer"]==issuer]
 st.caption(f"{len(shown)} of {len(CARDS)} supported cards · annual fees before tax")
 for i in range(0,len(shown),3):
     batch=shown[i:i+3]
-    for slot,c in zip(grid(len(batch),mobile=1),batch):
+    for slot,c in zip(grid(3,mobile=1),batch):
         with slot:
             with st.container(border=True):
                 st.markdown(library_card(c,highlight(c),inr(c["fee"])),unsafe_allow_html=True)

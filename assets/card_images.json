@@ -32,21 +32,26 @@
     "fallback_gradient": "linear-gradient(125deg,#222b3b,#394b60)"
   },
   "kiwi_yes_klick": {
-    "url": "",
-    "source": "https://www.gokiwi.in/cards/yesbank/",
-    "fallback_gradient": "linear-gradient(125deg,#174f42,#38a67e)",
-    "label": "Illustrative digital card"
+    "url": "https://www.paisabazaar.com/wp-content/uploads/2017/10/Yes-Bank-Klick-RuPay-Credit-Card.webp",
+    "source": "https://www.paisabazaar.com/yes-bank/klick-credit-card/",
+    "fallback_gradient": "linear-gradient(125deg,#15397a,#2763b4)",
+    "label": "YES BANK Klick RuPay product artwork",
+    "guide_pdf": "https://www.yes.bank.in/sites/web/content/published/api/v1.1/assets/CONTD761E1D607794FB484485C383950BC34/native/ybl_yes_bank_user_guide_klick_rupay_credit_card.pdf?download=false"
   },
   "scapia_visa": {
-    "url": "",
-    "source": "https://www.federal.bank.in/scapia",
-    "fallback_gradient": "linear-gradient(125deg,#272e55,#5c659c)",
-    "label": "Illustrative Visa card"
+    "url": "https://www.paisabazaar.com/wp-content/webp-express/webp-images/doc-root/wp-content/uploads/2017/10/Scapia-Federal-Card-image.png.webp",
+    "source": "https://www.paisabazaar.com/federal-bank/scapia-credit-card/",
+    "fallback_gradient": "linear-gradient(125deg,#24272c,#f45c28)",
+    "label": "Federal Bank Scapia Visa product artwork; alternative shows both official cards",
+    "alternate_urls": [
+      "https://framerusercontent.com/images/DqJMUERQe7CMTsm74Q4H3Sbm8.png?height=1126&width=1096"
+    ]
   },
   "scapia_rupay": {
-    "url": "",
-    "source": "https://www.federal.bank.in/scapia",
-    "fallback_gradient": "linear-gradient(125deg,#284c61,#57859c)",
-    "label": "Illustrative RuPay card"
+    "url": "https://framerusercontent.com/images/DqJMUERQe7CMTsm74Q4H3Sbm8.png?height=1126&width=1096",
+    "source": "https://www.scapia.cards/",
+    "fallback_gradient": "linear-gradient(125deg,#1e2725,#1a9b49)",
+    "label": "Official Scapia pair artwork: green card is RuPay; orange is Visa",
+    "image_caption": "Green RuPay card in the official Scapia pair"
   }
 }

@@ -294,29 +294,30 @@ def header():
     .stApp .fin-copy {color:var(--muted);font-size:1.07rem;line-height:1.6;max-width:650px;}
     .stApp .fin-pill {display:inline-block;padding:5px 10px;border-radius:9px;background:var(--soft);color:var(--ink);font-size:.79rem;font-weight:650;margin:3px 4px 3px 0;}
     .stApp .fin-step {font-size:.78rem;letter-spacing:.09em;color:var(--muted);font-weight:800;text-transform:uppercase;margin:0 0 8px;}
-    .stApp .fin-art {position:relative;width:100%;aspect-ratio:1.65;overflow:hidden;border-radius:13px;background:var(--surface);}
+    .stApp .fin-art {position:relative;width:100%;max-width:300px;aspect-ratio:1.65;overflow:hidden;border-radius:13px;background:var(--surface);margin:0 auto;}
     .stApp .fin-fallback {box-sizing:border-box;height:100%;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;color:white;background:var(--card-color);font-size:13px;border-radius:13px;}
     .stApp .fin-fallback strong {font-size:1rem;color:white;}
     .stApp .fin-fallback small {font-size:.68rem;color:white;}
     .stApp .fin-chip {display:block;width:28px;height:21px;background:#DCC495;border-radius:5px;border:1px solid #A99572;}
-    .stApp .fin-photo {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;}
+    .stApp .fin-photo {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:5px;box-sizing:border-box;}
     .stApp .fin-issuer {display:flex;align-items:center;gap:7px;color:var(--muted);font-size:.77rem;font-weight:650;margin:8px 0;}
     .stApp .fin-issuer-icon {width:20px;height:20px;object-fit:contain;border-radius:4px;}
-    .stApp .fin-visual.compact .fin-art {max-width:100%;}
+    .stApp .fin-visual.compact .fin-art {max-width:300px;}
     .stApp .fin-library-card {display:flex;flex-direction:column;gap:0;}
-    .stApp .fin-library-card .fin-art {aspect-ratio:1.65;max-width:none;background:#fff;border:1px solid var(--line);}
+    .stApp .fin-library-card .fin-art {aspect-ratio:1.65;max-width:300px;background:#fff;border:1px solid var(--line);}
     .stApp .fin-library-card .fin-issuer {min-height:32px;margin:8px 0 0;padding:0 0 9px;border-bottom:1px solid var(--line);}
     .stApp .fin-library-title {font-size:1.06rem;font-weight:750;line-height:1.3;min-height:3.25rem;padding:12px 0 4px;color:var(--ink);}
     .stApp .fin-library-label {display:block;text-transform:uppercase;font-size:.68rem;font-weight:750;letter-spacing:.055em;color:var(--muted);margin-bottom:5px;}
     .stApp .fin-library-benefit {font-size:.94rem;line-height:1.45;min-height:6.25rem;padding:10px 0 14px;border-bottom:1px solid var(--line);}
     .stApp .fin-library-meta {display:grid;grid-template-columns:1fr 1.45fr;gap:12px;min-height:4.4rem;padding:12px 0;}
     .stApp .fin-library-meta strong {font-size:.84rem;line-height:1.35;color:var(--ink);}
-    .stApp .fin-selection .fin-art {max-width:none;}
+    .stApp .fin-selection .fin-art {max-width:300px;}
     .stApp .fin-issuer {border-bottom:1px solid var(--line);padding-bottom:7px;}
     .stApp [data-testid="stExpander"] details {border-radius:10px;}
     @media(max-width:760px){.stApp .fin-library-title,.stApp .fin-library-benefit,.stApp .fin-library-meta{min-height:0;}}
 
     .stApp .fin-visual.compact {margin-bottom:5px;}
+    .stApp .fin-art-note {text-align:center;color:var(--muted);font-size:.68rem;line-height:1.2;margin-top:4px;}
     .stApp .fin-resultbar {height:8px;background:var(--soft);border-radius:8px;overflow:hidden;margin:5px 0 10px;}
     .stApp .fin-resultbar span {display:block;height:100%;border-radius:8px;}
     .stApp .cca-panel {background:#142C52;border-radius:20px;}
