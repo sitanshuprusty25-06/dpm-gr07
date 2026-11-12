@@ -2,8 +2,9 @@
 import streamlit as st
 from cards import CARDS, CATEGORIES, DEFAULT_WALLET
 from results import render_result
+from explain import explain_comparison
 from rules_engine import category_label, rank, reward_bucket
-from ui import is_mobile, keep, remember
+from ui import is_mobile, keep, remember, get_secret
 from visuals import card_art
 
 cat_ids = [cid for cid, _ in CATEGORIES]
@@ -112,13 +113,16 @@ with left:
                         key=f"used_{c['id']}_{bucket_name}")
         if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online") and kiwi_remaining is None:
             st.caption("Kiwi will remain unranked until its remaining monthly reward allowance is entered.")
+        use_ai = st.checkbox("Include AI-assisted explanation",value=True,key="compare_use_ai",
+                             help="If enabled, the comparison sends computed purchase facts to Google Gemini. No card numbers or banking credentials are requested.")
+        st.caption("With AI enabled, Compare shares the selected product names and computed purchase facts with Gemini. Uncheck to compare using local rules only.")
         current_sig=repr((tuple(c["id"] for c in selected),st.session_state.get("amount"),
                           st.session_state["cat"],st.session_state["channel"],
-                          st.session_state.get("merchant_type","unknown"),emi,sorted(used_by_card.items()),kiwi_remaining))
+                          st.session_state.get("merchant_type","unknown"),emi,sorted(used_by_card.items()),kiwi_remaining,use_ai))
         if st.session_state.get("last") and st.session_state["last"].get("signature")!=current_sig:
             st.session_state.pop("last",None)
-            st.caption("Inputs changed — select Compare my cards for an updated result.")
-        go=st.button("Compare my cards",type="primary",use_container_width=True)
+            st.caption("Inputs changed — compare again for an updated result.")
+        go=st.button("Compare with AI" if use_ai else "Compare my cards",type="primary",use_container_width=True)
         error=None
         if go:
             amount=st.session_state.get("amount")
@@ -139,8 +143,16 @@ with left:
                 st.session_state["last"]={
                     "ranked":ranked,"win":ranked[0],"second":ranked[1] if len(ranked)>1 else None,
                     "amount":amount,"cat":st.session_state["cat"],
-                    "ai_text":None,"ai_status":None,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
+                    "ai_text":None,"ai_status":None,"ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
                 }
+                # Explicit button action only; no automatic call on page load,
+                # expanding diagnostics, changing theme or ordinary widget reruns.
+                with st.spinner("Checking the recommendation with AI..." if use_ai else "Preparing comparison..."):
+                    ai_text,ai_status,ai_detail=explain_comparison(
+                        ranked,amount,st.session_state["cat"],use_ai,
+                        api_key=get_secret("GEMINI_API_KEY") if use_ai else None,
+                        model=get_secret("GEMINI_MODEL","gemini-3.5-flash-lite"))
+                st.session_state["last"].update(ai_text=ai_text,ai_status=ai_status,ai_detail=ai_detail)
 with right:
     st.markdown('<div class="fin-step">03 / Your result</div>',unsafe_allow_html=True)
     if error:

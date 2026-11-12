@@ -34,6 +34,6 @@ section("One purchase. Three steps.")
 for slot,(title,detail) in zip(grid(3),[
     ("01 · Know","Choose the cards you already own."),
     ("02 · Compare","Enter amount, category and the relevant merchant route."),
-    ("03 · Decide","See the reward estimate, restrictions and optional Gemini explanation.")
+    ("03 · Decide","See the reward estimate, optional checked AI explanation and restrictions in one result.")
 ]):
     slot.markdown(f'<div class="cca-card"><h3>{title}</h3><p>{detail}</p></div>',unsafe_allow_html=True)

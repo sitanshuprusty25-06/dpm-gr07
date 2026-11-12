@@ -122,7 +122,7 @@ def _error_category(exc):
     return "Provider request failed. Check Streamlit app configuration."
 
 
-def ai_reword(win, second, amount, cat, api_key, model="gemini-2.5-flash"):
+def ai_reword(win, second, amount, cat, api_key, model="gemini-3.5-flash-lite"):
     """Return (approved explanation or None, status, session-only diagnostics)."""
     diag = {"model": str(model), "api_response": False, "checks": {},
             "elapsed_ms": None, "message": ""}
@@ -148,3 +148,22 @@ def ai_reword(win, second, amount, cat, api_key, model="gemini-2.5-flash"):
         return None, "error", diag
     finally:
         diag["elapsed_ms"] = round((time.perf_counter()-start)*1000)
+
+
+def explain_comparison(ranked, amount, cat, enabled, api_key=None, model="gemini-3.5-flash-lite"):
+    """Run at most one AI request for an explicit, eligible comparison.
+
+    Called only by the Compare button, never by ordinary widget rerenders.
+    Do not send data if AI is disabled or a reliable positive unique result
+    cannot be established. The existing rules result is never modified.
+    """
+    if not enabled:
+        return None, "disabled", {}
+    eligible = [r for r in ranked if r.available]
+    if not eligible or any(not r.comparable for r in eligible):
+        return None, "skipped", {}
+    win = eligible[0]
+    if win.benefit <= 0.005 or any(abs(r.benefit-win.benefit)<0.005 for r in eligible[1:]):
+        return None, "skipped", {}
+    second = eligible[1] if len(eligible)>1 else None
+    return ai_reword(win, second, amount, cat, api_key, model)

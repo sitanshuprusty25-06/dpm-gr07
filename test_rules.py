@@ -4,7 +4,7 @@ import json
 from unittest.mock import patch
 from cards import CARDS
 from rules_engine import evaluate,rank,inr,key_condition,reward_bucket
-from explain import build_payload,validate,check_response,ai_reword
+from explain import build_payload,validate,check_response,ai_reword,explain_comparison
 
 BY_ID={c["id"]:c for c in CARDS}
 
@@ -181,6 +181,47 @@ class KiwiScapiaTests(unittest.TestCase):
         ranked=rank([BY_ID["sbi_cashback"],BY_ID["scapia_rupay"],BY_ID["kiwi_yes_klick"]],"groceries",1000,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=100)
         self.assertEqual(ranked[0].card["id"],"kiwi_yes_klick")
         self.assertFalse(ranked[-1].available)
+
+class AutomaticExplanationTests(unittest.TestCase):
+    def setUp(self):
+        self.ranked=rank([BY_ID["swiggy_blck"],BY_ID["sbi_cashback"]],"dining",1200,
+                         channel="online",merchant_type="swiggy")
+
+    def test_enabled_comparison_calls_ai_once_without_changing_ranking(self):
+        before=[(r.card["id"],r.benefit) for r in self.ranked]
+        with patch("explain.ai_reword",return_value=("approved","ok",{})) as call:
+            text,status,diag=explain_comparison(self.ranked,1200,"dining",True,"test-key")
+        call.assert_called_once()
+        self.assertEqual(status,"ok")
+        self.assertEqual(before,[(r.card["id"],r.benefit) for r in self.ranked])
+
+    def test_disabled_comparison_never_sends_data(self):
+        with patch("explain.ai_reword") as call:
+            text,status,diag=explain_comparison(self.ranked,1200,"dining",False,"test-key")
+        call.assert_not_called()
+        self.assertEqual(status,"disabled")
+
+    def test_tied_comparison_never_calls_ai(self):
+        tied=rank([BY_ID["swiggy_blck"],BY_ID["swiggy_original"]],"dining",1200,
+                  channel="online",merchant_type="swiggy")
+        with patch("explain.ai_reword") as call:
+            text,status,diag=explain_comparison(tied,1200,"dining",True,"test-key")
+        call.assert_not_called()
+        self.assertEqual(status,"skipped")
+
+    def test_unresolved_comparison_never_calls_ai(self):
+        uncertain=rank([BY_ID["hsbc_live_plus"],BY_ID["sbi_cashback"]],"shopping",1200)
+        with patch("explain.ai_reword") as call:
+            text,status,diag=explain_comparison(uncertain,1200,"shopping",True,"test-key")
+        call.assert_not_called()
+        self.assertEqual(status,"skipped")
+
+    def test_zero_reward_never_calls_ai(self):
+        excluded=rank([BY_ID["sbi_cashback"]],"fuel",1200)
+        with patch("explain.ai_reword") as call:
+            text,status,diag=explain_comparison(excluded,1200,"fuel",True,"test-key")
+        call.assert_not_called()
+        self.assertEqual(status,"skipped")
 
 if __name__=="__main__":
     unittest.main()

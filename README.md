@@ -7,7 +7,7 @@ IIM Visakhapatnam, EMBA 2025–27, Digital Product Management.
 **Repository:** https://github.com/sitanshuprusty25-06/dpm-gr07
 
 ## Scope and use
-One user (a multi-card selective comparer), one problem (choosing a card for one purchase), one workflow (select cards → enter purchase amount, category and supported payment context (online, physical card, or merchant UPI QR) → apply issuer rules → read conditional comparison → optional Gemini-assisted grounded explanation).
+One user (a multi-card selective comparer), one problem (choosing a card for one purchase), one workflow (select cards → enter purchase amount, category and supported payment context (online, physical card, or merchant UPI QR) → apply issuer rules → read conditional comparison and optional Gemini-assisted grounded explanation together).
 
 - The application is **stateless with respect to permanent user storage**. Streamlit temporarily holds user inputs in session state. No login, database or transaction linking.
 - `card_catalog/` is **persistent reference data**, with issuer terms, source links, review dates and caveats. It is not user data.
@@ -60,7 +60,10 @@ The ten-product catalogue revealed that displaying all card tiles before purchas
 
 ## Verify the AI capability
 - In Compare, select Swiggy BLCK HDFC and CASHBACK SBI; ₹1,200, online, dining, eligible Swiggy, unused caps. Expected estimates ₹120 and ₹60.
-- Click **Help me understand this recommendation**, then open **AI verification · request status and checks**. A successful live request shows provider response received, six PASS checks and elapsed time. The ranking and reward figures stay unchanged. A missing key, provider failure or rejected response is labelled and preserves the rules-based explanation.
+- Leave **Include AI-assisted explanation** enabled and click **Compare with AI**, then open **AI verification · request status and checks**. A successful live request shows provider response received, six PASS checks and elapsed time. The ranking and reward figures stay unchanged. A missing key, provider failure or rejected response is labelled and preserves the rules-based explanation.
 - Run `python -m unittest -v` and `python -m compileall -q app.py cards.py rules_engine.py explain.py results.py views ui.py visuals.py`. Mocked API tests cover successful and rejected responses, invalid JSON, missing key and provider error without contacting Gemini. A live request is a separate test.
 
 Gemini chooses a relevant reason and caution from approved statements; arbitrary model prose is never displayed. These checks establish consistency with our computed facts, not independent verification of issuer terms, model perfection, or evidence of customer value. The diagnostics are temporary session state. No API key or raw provider error is displayed. The team should independently verify the rules, live API and user value before assessed submission.
+
+## AI-first results (one explicit action)
+The Compare page defaults to an AI-assisted explanation with a visible disclosure before submission. Uncheck **Include AI-assisted explanation** for local rules only. Clicking **Compare with AI** calculates and ranks first, then calls Gemini at most once for a reliable, unique, positive result. Ties, unresolved comparisons and zero rewards never trigger an AI request. The result displays the winning card and estimated reward, followed immediately by the checked AI explanation (or local fallback) and mandatory issuer conditions. Diagnostics remain available below the comparison. Widget reruns never send another request; inputs changed invalidate the previous result. The default model is `gemini-3.5-flash-lite`, which the team previously confirmed working; Streamlit Secrets can override it. No new API key, repository, database or deployment required.
