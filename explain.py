@@ -5,6 +5,7 @@ is rendered. The response and diagnostics remain in temporary session state.
 """
 import json
 import time
+from importlib.metadata import version, PackageNotFoundError
 
 from rules_engine import category_label, key_condition, inr
 
@@ -95,6 +96,7 @@ def render_approved(selection, payload):
 
 
 AI_REQUEST_TIMEOUT_MS = 6000
+GEMINI_API_VERSION = "v1beta"
 
 
 def _generation_options(model):
@@ -114,16 +116,20 @@ def _generation_options(model):
 def _call_gemini(prompt, api_key, model):
     from google import genai
     from google.genai import types
+    config = _generation_options(model)
+    if "thinking_config" in config:
+        config["thinking_config"] = types.ThinkingConfig(**config["thinking_config"])
     client = genai.Client(
         api_key=api_key,
         http_options=types.HttpOptions(
+            api_version=GEMINI_API_VERSION,
             timeout=AI_REQUEST_TIMEOUT_MS,
             retry_options=types.HttpRetryOptions(attempts=1),
         ),
     )
     response = client.models.generate_content(
         model=model, contents=prompt,
-        config=types.GenerateContentConfig(**_generation_options(model))
+        config=types.GenerateContentConfig(**config)
     )
     return (response.text or "").strip()
 
@@ -141,6 +147,12 @@ def _error_category(exc):
         return "Provider rejected the key or permissions."
     if "404" in msg or "not found" in msg:
         return "Configured Gemini model is unavailable."
+    if getattr(exc, "code", None) == 400 or "invalid_argument" in msg or "400 bad request" in msg:
+        return "Gemini rejected the request parameters (HTTP 400)."
+    if isinstance(exc, (TypeError, AttributeError, ValueError)):
+        return "Gemini SDK or request configuration error."
+    if getattr(exc, "code", None) in (500, 502, 503, 504):
+        return "Gemini service is temporarily unavailable."
     return "Provider request failed. Check Streamlit app configuration."
 
 
@@ -151,6 +163,11 @@ def ai_reword(win, second, amount, cat, api_key, model="gemini-3.5-flash-lite"):
     if not api_key or not str(api_key).strip():
         diag["message"] = "Gemini API key is not configured."
         return None, "no_key", diag
+    diag["api_version"] = GEMINI_API_VERSION
+    try:
+        diag["sdk_version"] = version("google-genai")
+    except PackageNotFoundError:
+        diag["sdk_version"] = "not installed"
     start = time.perf_counter()
     try:
         payload = build_payload(win, second, amount, cat)
@@ -166,6 +183,11 @@ def ai_reword(win, second, amount, cat, api_key, model="gemini-3.5-flash-lite"):
         return None, "mismatch", diag
     except Exception as exc:
         diag["message"] = _error_category(exc)
+        code = getattr(exc, "code", None)
+        if type(code) is int and 400 <= code <= 599:
+            diag["http_status"] = code
+        # Only fixed category labels and numeric status; never raw messages.
+        diag["failure_type"] = "provider HTTP error" if "http_status" in diag else ("SDK/configuration" if isinstance(exc, (ImportError, TypeError, AttributeError, ValueError)) else "transport or runtime")
         print("Gemini explanation failed: " + diag["message"])
         return None, "error", diag
     finally:

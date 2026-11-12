@@ -4,7 +4,7 @@ import json
 from unittest.mock import patch
 from cards import CARDS
 from rules_engine import evaluate,rank,inr,key_condition,reward_bucket
-from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_generation_options,AI_REQUEST_TIMEOUT_MS
+from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_generation_options,AI_REQUEST_TIMEOUT_MS,GEMINI_API_VERSION,_error_category
 
 BY_ID={c["id"]:c for c in CARDS}
 
@@ -247,6 +247,17 @@ class LatencyConfigurationTests(unittest.TestCase):
         self.assertEqual(status,"error")
         self.assertIn("timed out",diag["message"])
         self.assertFalse(diag["api_response"])
+
+class ProviderConfigurationTests(unittest.TestCase):
+    def test_explicit_api_version(self):
+        self.assertEqual(GEMINI_API_VERSION,"v1beta")
+
+    def test_invalid_parameters_have_safe_diagnostic(self):
+        err=RuntimeError("INVALID_ARGUMENT secret-test-key")
+        self.assertEqual(_error_category(err),"Gemini rejected the request parameters (HTTP 400).")
+
+    def test_sdk_configuration_error_has_safe_diagnostic(self):
+        self.assertEqual(_error_category(TypeError("private payload")),"Gemini SDK or request configuration error.")
 
 if __name__=="__main__":
     unittest.main()
