@@ -56,6 +56,22 @@ class GuidanceTests(unittest.TestCase):
             call.assert_called_once()
         self.assertNotIn("kiwi_yes_klick", {o["card_id"] for o in payload["options"].values()})
 
+    def test_high_value_myntra_partial_cashback_alternative(self):
+        ranked=rank(CARDS,"shopping",560000,merchant_type="myntra")
+        payload=build_guidance(ranked,560000,"shopping")
+        self.assertTrue(payload["comparison_scope"]["partial"])
+        self.assertEqual(payload["rules_winner"],"scapia_visa")
+        highest=payload["options"]["highest_reward"]
+        alternate=payload["options"]["cashlike_alternative"]
+        self.assertEqual((highest["card_id"],highest["benefit_inr"]),("scapia_visa",11200))
+        self.assertEqual((alternate["card_id"],alternate["benefit_inr"]),("hsbc_live_plus",8400))
+        self.assertIn("₹2,800 less",alternate["guidance"])
+        response={k:alternate[k] for k in FIELDS}
+        with patch("ai_guidance._call_gemini",return_value=json.dumps(response)):
+            choice,status,diag=request_guidance(ranked,560000,"shopping",True,"key")
+        self.assertEqual((choice,status),("cashlike_alternative","ok"))
+        self.assertTrue(all(diag["checks"].values()))
+
     def test_ties_and_all_unresolved_skip_provider(self):
         from rules_engine import Result
         tied=[Result(BY_ID["sbi_cashback"],"shopping",benefit=10),

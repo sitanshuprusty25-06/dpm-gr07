@@ -63,7 +63,10 @@ def ai_panel_html(option=None,status=None,partial=False):
         message={"skipped":"AI needs one positive, comparable leader and an approved source.",
                  "no_key":"AI guidance is unavailable. Use the calculated result.",
                  "error":"AI guidance is unavailable. Use the calculated result.",
-                 "mismatch":"AI response failed verification. Use the calculated result."}.get(status,"Checking an approved recommendation…")
+                 "mismatch":"AI response failed verification. Use the calculated result.",
+                 "idle":"AI guidance has not been requested.",
+                 "interrupted":"The previous AI request was interrupted.",
+                 "pending":"Checking an approved recommendation…"}.get(status,"AI guidance has not been requested.")
         return ('<div class="cca-panel cca-ai-panel"><div class="kicker">AI GUIDANCE</div>'
                 '<div class="delta">'+html.escape(message)+'</div></div>')
     return ('<div class="cca-panel cca-ai-panel"><div class="kicker">AI GUIDANCE · VERIFIED CHOICE'
@@ -77,8 +80,15 @@ def ai_panel_html(option=None,status=None,partial=False):
             +html.escape(option["condition"])+'</div></div>'
             '<div class="delta"><a href="'+html.escape(option["source_url"],quote=True)+'" target="_blank" rel="noopener noreferrer">Official reward terms</a></div></div>')
 
-def recommendation_html(rule,ai=None):
-    return '<div class="cca-dual">'+rule+ai+'</div>' if ai is not None else rule
+def recommendation_html(rule,ai=None,alignment="",scope=""):
+    content='<div class="cca-dual">'+rule+ai+'</div>' if ai is not None else rule
+    # Keep the alignment and scope in the same normal-flow block as the cards.
+    # A separate placeholder can briefly retain stale height on Streamlit reruns.
+    if alignment:
+        content+='<div class="cca-alignment">'+html.escape(alignment)+'</div>'
+    if scope:
+        content+='<div class="cca-scope-note">'+html.escape(scope)+'</div>'
+    return '<div class="cca-recommendation">'+content+'</div>'
 
 def render_result(L, request_ai=False):
     ranked,amount,cat=L["ranked"],L["amount"],L["cat"]
@@ -88,14 +98,9 @@ def render_result(L, request_ai=False):
     uncertain=[r for r in eligible if not r.comparable]
     partial=bool(uncertain)
 
-    def scope_note():
-        if partial:
-            st.caption("Both suggestions use comparable cards only. Not included: "
-                       +", ".join(r.card["name"] for r in uncertain)
-                       +". Their rewards could change the result." if enabled else
-                       "Suggestion uses comparable cards only. Not included: "
-                       +", ".join(r.card["name"] for r in uncertain)
-                       +". Their rewards could change the result.")
+    def scope_text():
+        return ("Comparable cards only. Unresolved: "+", ".join(r.card["name"] for r in uncertain)
+                +". Their rewards could change the result.") if partial else ""
 
     def comparison(mark=True):
         st.markdown('<div class="cca-result-heading">Reward comparison</div>',unsafe_allow_html=True)
@@ -163,42 +168,46 @@ def render_result(L, request_ai=False):
         # the navy card retains its own rationale and mandatory conditions.
         same=bool(option and option["card_id"]==win.card["id"])
         rule=panel_html(win,second,amount,cat,partial=partial,split=enabled,detail=not same)
+        alignment=""
+        if option:
+            alignment=("Both recommendations align among comparable cards." if partial else "Both recommendations align.") if same else "Choose higher estimated value or the conditional reward-form alternative."
         if enabled and payload:
-            return recommendation_html(rule,ai_panel_html(option,status,partial))
-        return rule
+            return recommendation_html(rule,ai_panel_html(option,status,partial),alignment,scope_text())
+        return recommendation_html(rule,scope=scope_text())
 
     option=verified_option()
-    status=L.get("ai_status")
+    status=L.get("ai_status") or "idle"
     if status=="ok" and option is None:
         status="mismatch"
+    if status=="pending":
+        status="interrupted"
+        L.update(ai_status=status,ai_option_id=None,ai_detail={"message":"Previous AI request was interrupted."})
+    should_request=bool(enabled and payload and request_ai and status=="idle")
     if enabled and payload:
         panel=st.empty()
-        panel.markdown(display_panels(option,status),unsafe_allow_html=True)
-        alignment=st.empty()
+        panel.markdown(display_panels(option,"pending" if should_request else status),unsafe_allow_html=True)
+        if not option and not should_request and status!="no_key":
+            label="Request AI guidance" if status=="idle" else "Retry AI guidance"
+            should_request=st.button(label,key="request_ai_guidance",
+                                      help="Send this comparison's approved reward options to Google Gemini.") is True
+            if should_request:
+                panel.markdown(display_panels(None,"pending"),unsafe_allow_html=True)
     else:
         st.markdown(display_panels(None,status),unsafe_allow_html=True)
         if enabled:
             st.caption("AI guidance is unavailable for this comparison. The calculated recommendation remains.")
-    scope_note()
     comparison()
-    if enabled and payload and request_ai and L.get("ai_status") is None:
+    if enabled and payload and should_request:
+        L.update(ai_status="pending",ai_option_id=None,ai_detail={})
         with st.spinner("Checking AI guidance against comparable rewards…"):
             option_id,status,diag=request_guidance(ranked,amount,cat,True,
                 api_key=get_secret("GEMINI_API_KEY"),
                 model=get_secret("GEMINI_MODEL","gemini-3.5-flash-lite"))
         L.update(ai_option_id=option_id,ai_status=status,ai_detail=diag)
         option=verified_option()
-    if enabled and payload:
-        status=L.get("ai_status")
         if status=="ok" and option is None:
             status="mismatch"
         panel.markdown(display_panels(option,status),unsafe_allow_html=True)
-        if option:
-            same=option["card_id"]==win.card["id"]
-            alignment.caption(("Both recommendations align among comparable cards." if partial else "Both recommendations align.")
-                              if same else "Choose higher estimated value or the conditional reward-form alternative.")
-        elif status is None:
-            alignment.caption("Select Compare my cards to request AI guidance.")
     diag=L.get("ai_detail") if isinstance(L.get("ai_detail"),dict) and enabled and payload else {}
     if not diag:
         diag={"message":"AI not requested: disabled or no unique positive comparable reward with an approved source."}

@@ -187,7 +187,7 @@ with st.container(key="compare_workspace"):
                     st.session_state["last"]={
                         "ranked":ranked,"win":ranked[0],"second":ranked[1] if len(ranked)>1 else None,
                         "amount":amount,"cat":st.session_state["cat"],
-                        "ai_option_id":None,"ai_status":None if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
+                        "ai_option_id":None,"ai_status":"idle" if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
                     }
     with right:
         st.markdown('<div class="fin-step result-step"><span class="step-number">03</span>Your result</div>',unsafe_allow_html=True)

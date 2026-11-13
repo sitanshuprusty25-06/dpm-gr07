@@ -34,7 +34,7 @@ class ResultRenderingTests(unittest.TestCase):
         self.assertIn("Reward comparison", markdown[1])
         self.assertIn("Not comparable", markdown[3])
         self.assertIn("YES BANK Klick RuPay Credit Card (Kiwi)", markdown[3])
-        self.assertTrue(any("could change the result" in c for c in captions))
+        self.assertIn("could change the result",markdown[0])
         self.assertFalse(info)
         self.assertTrue(details)
 
@@ -57,10 +57,29 @@ class ResultRenderingTests(unittest.TestCase):
             self.assertIn("₹337.50",panel)
             self.assertEqual(panel.count("Check before paying:"),1)
             self.assertNotIn("Why this calculated card?",str(st.markdown.call_args_list))
-            self.assertTrue(any("could change the result" in str(c) for c in st.caption.call_args_list))
+            self.assertIn("could change the result",panel)
+            self.assertIn("cca-alignment",panel)
+            self.assertIn("cca-scope-note",panel)
             self.assertTrue(details.call_args.args[2])
             render_result(state,request_ai=False)
             ai.assert_called_once()
+
+    def test_idle_and_interrupted_ai_not_reported_as_running(self):
+        from results import render_result
+        ranked=rank(CARDS,"shopping",560000,merchant_type="myntra")
+        for status in (None,"idle","pending"):
+            with self.subTest(status=status):
+                state={"ranked":ranked,"amount":560000,"cat":"shopping",
+                       "ai_enabled":True,"ai_status":status}
+                with patch("results.st") as st, patch("results.render_details"), \
+                        patch("results.request_guidance") as ai:
+                    st.button.return_value=False
+                    render_result(state,request_ai=False)
+                    ai.assert_not_called()
+                    panel=st.empty.return_value.markdown.call_args.args[0]
+                    self.assertNotIn("Checking an approved recommendation",panel)
+                    self.assertIn("₹11,200",panel)
+                    self.assertTrue(st.button.called)
 
     def test_partial_tie_is_not_forced_into_single_winner(self):
         ranked = [Result(BY_ID["sbi_cashback"], "shopping", benefit=10),

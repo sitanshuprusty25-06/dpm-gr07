@@ -127,18 +127,23 @@ CSS = """
 .stApp .cca-explain .tag {display:block;font-size:.84rem;font-weight:750;color:inherit;margin-bottom:6px;}
 .stApp .cca-explain .tag.ai {color:inherit;}
 .stApp .cca-panel {margin-bottom:12px;}
-.stApp .cca-dual {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch;}
-.stApp .cca-dual .cca-panel {margin-bottom:0;padding:14px;}
-.stApp .cca-dual .cca-panel .cname {font-size:1.08rem;}
-.stApp .cca-dual .cca-panel .figure {font-size:1.9rem;}
-.stApp .cca-dual .cca-panel .delta {font-size:.85rem;margin-top:6px;}
+.stApp .cca-recommendation {display:flow-root;box-sizing:border-box;width:100%;min-width:0;height:auto;padding-bottom:12px;overflow:visible;}
+.stApp .cca-dual {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%, 235px),1fr));gap:12px;align-items:stretch;width:100%;min-width:0;height:auto;}
+.stApp .cca-panel {box-sizing:border-box;min-width:0;max-width:100%;height:auto;overflow:visible;white-space:normal;overflow-wrap:anywhere;}
+.stApp .cca-dual .cca-panel {margin-bottom:0;padding:14px;min-width:0;}
+.stApp .cca-dual .cca-panel .cname {font-size:1.08rem;line-height:1.4;}
+.stApp .cca-dual .cca-panel .figure {font-size:1.9rem;line-height:1.2;}
+.stApp .cca-dual .cca-panel .delta {font-size:.9rem;line-height:1.55;margin-top:7px;}
+.stApp .cca-panel .kicker,.stApp .cca-panel .issuer,.stApp .cca-panel a,.stApp .cca-panel-detail {white-space:normal;overflow-wrap:anywhere;line-height:1.5;min-width:0;}
+.stApp .cca-alignment {display:block;clear:both;margin:0;padding:12px 0 2px;line-height:1.5;font-size:.9rem;overflow-wrap:anywhere;}
+.stApp .cca-scope-note {display:block;clear:both;padding:8px 0 0;line-height:1.5;font-size:.86rem;overflow-wrap:anywhere;}
 .stApp .cca-ai-panel {background:#4B277A;color:#FFF7FF;}
 .stApp .cca-ai-panel .kicker,.stApp .cca-ai-panel .issuer {color:#EEE0FF;}
 .stApp .cca-ai-panel .figure {color:#FDE4A6;}
 .stApp .cca-ai-panel a {color:#F2E5FF;text-decoration:underline;}
 .stApp .cca-panel-detail {border-top:1px solid rgba(255,255,255,.25);margin-top:10px;padding-top:5px;}
 .stApp .cca-panel-detail .delta {margin-top:6px;}
-@media(max-width:1050px) {.stApp .cca-dual {grid-template-columns:1fr;}}
+/* The grid responds to available result-column width, not viewport width. */
 .stApp .cca-explain {margin:0 0 10px;}
 .stApp .cca-explain .cca-condition {border-top:1px solid color-mix(in srgb,currentColor 20%,transparent);margin-top:12px;padding-top:12px;}
 .stApp .cca-explain .wt {font-weight:750;font-size:.9rem;margin-bottom:4px;}
