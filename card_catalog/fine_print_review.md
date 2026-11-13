@@ -15,3 +15,5 @@ Remaining limitations: no issuer transaction feed, actual MCC/MID, historical ca
 The source register and per-product notes mirror the current catalogue and implementation. No new issuer review or change to financial calculations is implied by documentation synchronization.
 
 Kiwi additional issuer review: [YES BANK Klick product page](https://www.yes.bank.in/personal-banking/yes-individual/cards/credit-cards/klick-credit-card) lists 2 YES Rewardz points per ₹200 on eligible non-UPI spend. Distinct from Kiwi rewards; not converted to rupees or ranked. The 0.5% Kiwi online tier is for eligible online UPI via Kiwi, not ordinary online card payments.
+
+UPI scope clarification (13 November 2026): the YES BANK Klick user guide also lists 4 Rewardz points per ₹200 for eligible UPI transactions above ₹2,000. Issuer points remain unvalued; no stacking is assumed. NPCI and Federal Bank credit-on-UPI documentation establish merchant acceptance and variable issuer/app limits, not a guarantee of payment approval.

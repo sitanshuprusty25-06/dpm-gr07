@@ -26,3 +26,5 @@ Team must independently verify merchant eligibility and settled rewards. See [fi
 
 ## Additional issuer evidence
 - https://www.yes.bank.in/personal-banking/yes-individual/cards/credit-cards/klick-credit-card — lifetime-free, virtual-only card; 2 YES Rewardz points per ₹200 eligible non-UPI spend, distinct from Kiwi cashback. Do not assign 1.5% or 0.5% Kiwi rates to ordinary card-network payments. YES Rewardz is not valued in the current engine; eligibility and applicable redemption value/fees need separate modeling.
+
+- [YES BANK Klick user guide](https://www.yes.bank.in/content/published/api/v1.1/assets/CONTEC25C9A4B18F4AA7BA64228D65B6F8F6/native/ybl_user_guide_klick_rupay_credit_card.pdf?channelToken=21f7ccfa2fc3401091938f541a6f8f2a&download=false) lists 4 Rewardz points per ₹200 on eligible UPI transactions above ₹2,000 and 2 per ₹200 non-UPI. These are issuer points, not the standard Kiwi cashback calculation. No assumption of stacking or point redemption value is made. [NPCI](https://www.npci.org.in/product/rupay/credit-card-on-upi) and [Federal Bank](https://www.federal.bank.in/rupay-credit-card-upi) explain merchant credit-on-UPI and transaction limits.

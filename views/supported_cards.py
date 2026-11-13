@@ -9,8 +9,6 @@ page_heading("Supported cards","Find your exact card and check its reward struct
 issuer=st.selectbox("Filter by issuer",["All issuers"]+list(dict.fromkeys(c["issuer"] for c in CARDS)))
 shown=[c for c in CARDS if issuer=="All issuers" or c["issuer"]==issuer]
 st.caption(f"{len(shown)} of {len(CARDS)} supported cards · listed annual fees before tax; waivers and current terms may vary.")
-if st.button("Compare cards I own",type="primary"):
-    st.switch_page("views/compare.py")
 for i in range(0,len(shown),3):
     batch=shown[i:i+3]
     for slot,c in zip(grid(3,mobile=1),batch):
@@ -23,4 +21,4 @@ for i in range(0,len(shown),3):
                     for j,source in enumerate(c["sources"],1):
                         labels=c.get("source_labels",[])
                         st.link_button(labels[j-1] if j<=len(labels) else f"Issuer terms {j}",source)
-st.caption("Product imagery and issuer icons are for identification. Independent academic MVP; no bank affiliation. Unavailable artwork uses a labeled illustration. Actual merchant eligibility and issuer terms apply.")
+st.caption("Artwork is for identification; unavailable images use a labeled illustration.")

@@ -21,7 +21,7 @@ keep("merchant_type","unknown")
 
 with st.container(key="compare_workspace"):
     page_heading("Which card should you use?")
-    st.caption("Compare cards you own before paying. Domestic, non-EMI purchases only.")
+    st.caption("Compare estimated rewards and choose before paying. Domestic, non-EMI purchases only.")
 
     mobile = is_mobile()
     left, right = (st.container(), st.container()) if mobile else st.columns([1.12,1],gap="medium")
@@ -166,13 +166,12 @@ with st.container(key="compare_workspace"):
                     st.caption(f"Cap assumption: full allowance for {unused_count} of {len(capped)} capped cards. Adjust above if already used.")
                 else:
                     st.caption("Cap estimates use the cashback already earned that you entered.")
-            if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online") and kiwi_remaining is None:
-                st.caption("Kiwi allowance unknown: enter it above to include Kiwi in the recommendation.")
             keep("compare_use_ai",False)
             use_ai = st.checkbox("Add AI guidance (shares purchase and reward details with Google Gemini)",key="compare_use_ai",
                                  help="Optional. Google Gemini receives relevant card names, purchase amount, category, payment method, estimated rewards and relevant reward conditions, including cap information when needed. AI chooses an approved option from comparable cards when there is one positive leader, even if others are unresolved. The app calculates all rewards. No card numbers or bank logins are requested.")
             remember("compare_use_ai")
-            current_sig=repr((tuple(c["id"] for c in selected),amount,
+            # Invalidate results created by older versions of the comparison UI.
+            current_sig=repr(("final-mvp-v1",tuple(c["id"] for c in selected),amount,
                               st.session_state["cat"],st.session_state["channel"],
                               st.session_state.get("merchant_type","unknown"),sorted(used_by_card.items()),kiwi_remaining,upi_limit_confirmed,use_ai))
             if st.session_state.get("last") and st.session_state["last"].get("signature")!=current_sig:
@@ -196,9 +195,9 @@ with st.container(key="compare_workspace"):
                                 channel=st.session_state["channel"],
                                 merchant_type=st.session_state.get("merchant_type","unknown"),kiwi_remaining=kiwi_remaining)
                     st.session_state["last"]={
-                        "ranked":ranked,"win":ranked[0],"second":ranked[1] if len(ranked)>1 else None,
+                        "ranked":ranked,
                         "amount":amount,"cat":st.session_state["cat"],
-                        "ai_option_id":None,"ai_status":"idle" if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"merchant_type":merchant,"kiwi_remaining":kiwi_remaining,"upi_limit_confirmed":upi_limit_confirmed,"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
+                        "ai_option_id":None,"ai_status":"idle" if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_type":merchant,"kiwi_remaining":kiwi_remaining,"upi_limit_confirmed":upi_limit_confirmed,"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
                     }
     with right:
         st.markdown('<div class="fin-step result-step"><span class="step-number">03</span>Your result</div>',unsafe_allow_html=True)
@@ -207,4 +206,4 @@ with st.container(key="compare_workspace"):
         elif st.session_state.get("last"):
             render_result(st.session_state["last"], request_ai=go)
         else:
-            st.markdown('<div class="cca-empty"><h3>Ready when you are</h3><p>Choose your cards, enter your purchase and select Compare my cards. Your estimated rewards and conditions will appear here.</p></div>',unsafe_allow_html=True)
+            st.markdown('<div class="cca-empty"><h3>Ready when you are</h3><p>Select Compare my cards to see your estimated rewards and important conditions.</p></div>',unsafe_allow_html=True)

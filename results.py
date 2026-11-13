@@ -112,11 +112,7 @@ def render_result(L, request_ai=False):
         if len(ranked)>len(visible):
             with st.expander(f"Compare all {len(ranked)} selected cards"):
                 st.markdown(others_html(ranked,mark),unsafe_allow_html=True)
-        if L.get("cap_assumed"):
-            st.caption("Unused caps assumed where prior cashback is zero.")
-        if upi:
-            st.caption("UPI estimates assume linked cards, merchant acceptance and sufficient credit and transaction limits.")
-        st.caption("Conditional estimates; fees, interest and promotions are excluded.")
+        st.caption("Estimates exclude fees, interest and promotions." + (" UPI requires merchant acceptance and sufficient limits." if upi else ""))
 
     def details(diag,checked=False):
         render_details(ranked,diag,checked,show_ai=enabled)
@@ -133,8 +129,6 @@ def render_result(L, request_ai=False):
             st.caption(condition)
         st.caption("These estimates assume eligible merchant payments. They do not confirm available credit, merchant acceptance or payment approval.")
         st.markdown("**Next step:** Select the UPI app and confirm the merchant accepts credit on UPI. For Kiwi, enter the remaining cashback allowance.")
-        st.link_button("RuPay credit on UPI — NPCI","https://www.npci.org.in/product/rupay/credit-card-on-upi")
-        st.link_button("Federal Bank credit-card UPI limits","https://www.federal.bank.in/rupay-credit-card-upi")
         if len(ranked)>len(eligible):
             with st.expander(f"{len(ranked)-len(eligible)} other selected cards — UPI not modeled"):
                 st.markdown(others_html([r for r in ranked if not r.available],False),unsafe_allow_html=True)
@@ -243,13 +237,17 @@ def render_details(ranked,diag,checked=False,show_ai=True):
     """Keep diagnostics and sources accessible even when no winner is possible."""
     with st.expander("All card conditions and official sources"):
         st.caption("Check the selected cards’ issuer terms for redemption and eligibility. Interest or fees can outweigh rewards; use only for planned, affordable purchases.")
-        guidance=redemption_guidance(ranked)
+        guidance=redemption_guidance([r for r in ranked if r.available and r.comparable and r.benefit>0])
         if guidance:
             st.caption(guidance)
+        if any(r.channel=="upi" for r in ranked):
+            st.link_button("RuPay credit on UPI — NPCI","https://www.npci.org.in/product/rupay/credit-card-on-upi")
+            st.link_button("Federal Bank credit-card UPI limits","https://www.federal.bank.in/rupay-credit-card-upi")
         for item in ranked:
             st.markdown("**"+item.card["name"]+"**")
             st.write(key_condition(item))
-            st.caption(item.card["caveat"])
+            if item.available:
+                st.caption(item.card["caveat"])
             st.caption("Issuer terms reviewed: "+review_date(item.card["last_verified"]))
             for j,source in enumerate(item.card.get("sources",[item.card["source"]]),1):
                 labels=item.card.get("source_labels",[])

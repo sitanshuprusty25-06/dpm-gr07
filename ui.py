@@ -1,4 +1,4 @@
-"""Shared look-and-feel for the Card Choice Assistant website: theme, CSS, header, footer.
+"""Shared look-and-feel for the Card Choice Assistant website: theme, CSS, header and sidebar.
 
 Pages live in views/. app.py is the entrypoint that wires them into the top navigation.
 """
@@ -99,6 +99,7 @@ def remember(key):
 CSS = """
 .stApp .block-container {max-width:1240px;padding:3.75rem 2rem 2rem;}
 .stApp .cca-brand {display:flex;align-items:center;gap:10px;font-size:1.2rem;font-weight:750;color:inherit;}
+.stApp .cca-disclosure {font-size:.82rem;line-height:1.5;opacity:.84;overflow-wrap:anywhere;padding:4px 0 10px;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent);}
 .stApp .cca-logo {display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:8px;background:#142C52;color:#FFDB96;font-weight:800;}
 .stApp .cca-banner {border:1px solid currentColor;border-radius:10px;padding:10px 12px;}
 .stApp .fin-heading {font-size:clamp(1.65rem,2.6vw,2.35rem);font-weight:750;line-height:1.18;letter-spacing:-.025em;margin:0 0 8px;color:inherit;}
@@ -228,6 +229,7 @@ def header():
     """One shared header; native Settings controls light and dark mode."""
     st.markdown("<style>"+CSS+"</style>",unsafe_allow_html=True)
     st.markdown('<div class="cca-brand"><span class="cca-logo">₹</span>Card Choice Assistant</div>',unsafe_allow_html=True)
+    st.markdown('<div class="cca-disclosure">Independent academic decision support · Estimates, not financial advice · No bank affiliation</div>',unsafe_allow_html=True)
     if SAMPLE_DATA:
         st.markdown('<div class="cca-banner">Prototype · sample data only.</div>',unsafe_allow_html=True)
 
@@ -240,63 +242,33 @@ def page_heading(title, sub=None):
 
 
 def sidebar():
-    """Shared, collapsible guidance. No purchase inputs or new workflows."""
+    """Compact support for the two-page MVP; no duplicated purchase workflow."""
     with st.sidebar:
         st.markdown(
             '<div class="cca-side">'
             '<div class="side-title">About Card Choice Assistant</div>'
-            '<p>Find the right card for your purchase without checking multiple apps or websites.</p>'
-            '<div class="side-section"><div class="side-label">How it works</div>'
-            '<div class="side-step"><span class="side-num">1</span><div>'
-            '<strong>Select your cards</strong><span>Choose the cards you own.</span></div></div>'
-            '<div class="side-step"><span class="side-num">2</span><div>'
-            '<strong>Enter purchase details</strong><span>Enter the amount, what you are buying and how you are paying.</span></div></div>'
-            '<div class="side-step"><span class="side-num">3</span><div>'
-            '<strong>Compare and decide</strong><span>See estimated rewards and important conditions.</span></div></div></div>'
+            '<p>Choose the right card from those you already own, before paying.</p>'
             '<div class="side-section"><div class="side-note"><strong>Your privacy</strong>'
-            '<p>We never ask for your card number or bank login. The app keeps your selections only for this session.</p>'
-            '<p style="margin-top:7px;">If you enable AI, relevant card names, purchase details and reward information are shared with Google Gemini.</p></div></div>'
-            '<div class="side-section"><div class="side-label">Before you decide</div>'
-            '<p>Rewards are estimates. Check eligibility and remaining cashback limits.</p></div>'
+            '<p>No card numbers or bank logins. Selections are kept for this session only.</p>'
+            '<p style="margin-top:7px;">Optional AI shares relevant purchase and reward details with Google Gemini.</p></div></div>'
             '</div>', unsafe_allow_html=True
         )
         with st.expander("Help and limitations"):
-            st.markdown("**What does AI do?**")
+            st.markdown("**How the recommendations work**")
             st.write(
-                "The app calculates rewards. With AI enabled, Gemini selects an approved "
-                "recommendation or conditional reward-form alternative from comparable cards. "
-                "It cannot change calculated amounts or choose unresolved cards. "
-                "The rules recommendation stays available if AI fails."
+                "Python calculates reward estimates. When enabled, Gemini selects an approved "
+                "recommendation or conditional reward-form alternative. It cannot change amounts "
+                "or use unresolved rewards. The calculated result remains if AI fails."
             )
-            st.markdown("**What if I am unsure about eligibility or caps?**")
+            st.markdown("**Eligibility and limits**")
             st.write(
-                "Choose Not sure where appropriate. Unresolved rewards are excluded from "
-                "both suggestions; the result is provisional. Enter previously earned "
-                "rewards for the relevant cycle and bucket; zero assumes an unused cap."
-            )
-            st.markdown("**What is excluded?**")
-            st.write(
-                UNSUPPORTED_PURCHASES + " The comparison assumes a supported purchase; "
-                "it cannot identify instalments or international payments automatically. "
-                "Fees, interest and promotional offers are not included. "
-                "Restricted redemption value is not cash. Do not spend more just to earn rewards."
+                "Confirm the merchant, payment route and remaining cashback allowance. "
+                "Unresolved rewards are excluded. Credit on UPI requires a linked RuPay card, "
+                "merchant acceptance and sufficient issuer/app limits. Restricted redemption "
+                "value is not cash. Spend only what you can afford."
             )
             st.markdown("**Provider privacy**")
-            st.write("The app does not save a customer wallet or purchase history. Your selections are held temporarily while you use it. Streamlit and Google Gemini have their own data-handling policies.")
+            st.write("Streamlit and Google Gemini have their own data-handling policies.")
             st.markdown("[Google Gemini API terms](https://ai.google.dev/gemini-api/terms)")
         st.caption("Group 07 · IIM Visakhapatnam · Academic MVP")
         st.markdown("[Source repository](https://github.com/sitanshuprusty25-06/dpm-gr07)")
-
-
-def footer():
-    """Keep a short disclaimer visible even when the sidebar is collapsed."""
-    st.caption(
-        "Independent academic decision support · Conditional estimates, not financial advice · "
-        "No bank affiliation"
-    )
-
-
-def section(title, sub=None):
-    import html
-    body=f"<p>{html.escape(sub)}</p>" if sub else ""
-    st.markdown(f'<div class="cca-sec"><h2>{html.escape(title)}</h2>{body}</div>',unsafe_allow_html=True)

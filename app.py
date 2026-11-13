@@ -22,4 +22,3 @@ pages = [
 ui.header()
 ui.sidebar()
 st.navigation(pages, position="top").run()
-ui.footer()
