@@ -399,5 +399,28 @@ class DecimalMoneyTests(unittest.TestCase):
             self.assertTrue(all(url.startswith("https://") for url in c["sources"]))
             self.assertEqual(c["links_checked_on"],"2026-11-12")
 
+class PresentationScenarioTests(unittest.TestCase):
+    def test_swiggy_cap_changes_decision(self):
+        cards=[BY_ID["swiggy_blck"],BY_ID["sbi_cashback"]]
+        for used,expected in [(0,{"swiggy_blck":120,"sbi_cashback":60}),
+                              (1440,{"swiggy_blck":60,"sbi_cashback":60}),
+                              (1470,{"swiggy_blck":30,"sbi_cashback":60})]:
+            with self.subTest(used=used):
+                results=rank(cards,"dining",1200,{"swiggy_blck":used,"sbi_cashback":0},
+                             channel="online",merchant_type="swiggy_food")
+                self.assertTrue(all(item.available and item.comparable for item in results))
+                self.assertEqual({item.card["id"]:item.benefit for item in results},expected)
+                if used==0:
+                    self.assertEqual(results[0].card["id"],"swiggy_blck")
+                elif used==1470:
+                    self.assertEqual(results[0].card["id"],"sbi_cashback")
+                else:
+                    self.assertEqual(results[0].benefit,results[1].benefit)
+
+    def test_unknown_route_withholds_comparison(self):
+        cards=[BY_ID["swiggy_blck"],BY_ID["sbi_cashback"]]
+        results=rank(cards,"dining",1200,channel="online",merchant_type="unconfirmed")
+        self.assertTrue(all(item.available and not item.comparable for item in results))
+
 if __name__=="__main__":
     unittest.main()

@@ -2,7 +2,7 @@
 import streamlit as st
 from cards import CARDS, CATEGORIES, DEFAULT_WALLET
 from results import render_result
-from rules_engine import category_label, rank, reward_bucket, money
+from rules_engine import category_label, rank, reward_bucket, money, inr
 from ui import is_mobile, keep, keep_money, remember, page_heading
 
 cat_ids = [cid for cid, _ in CATEGORIES]
@@ -20,7 +20,7 @@ keep("merchant_type","unknown")
 
 with st.container(key="compare_workspace"):
     page_heading("Which card should you use?")
-    st.caption("Compare the cards you already own before you pay. One domestic, non-EMI purchase; no bank login or card number.")
+    st.caption("Compare cards you own before paying. Domestic, non-EMI purchases only.")
 
     mobile = is_mobile()
     left, right = (st.container(), st.container()) if mobile else st.columns([1.12,1],gap="medium")
@@ -52,40 +52,40 @@ with st.container(key="compare_workspace"):
                              format_func=lambda cid:{"dining":"Dining / food delivery","shopping":"Shopping","cinema":"Cinema","utilities":"Utility bills"}.get(cid,category_label(cid)),
                              key="cat")
             cat, channel = st.session_state["cat"], st.session_state["channel"]
-            merchants={"unconfirmed":"Not sure about eligibility","other":"Other ordinary eligible purchase (not a special reward merchant)"}
+            merchants={"unconfirmed":"Not sure — check eligibility","other":"Other merchant — ordinary eligible purchase"}
             if channel=="online" and cat in ("dining","groceries"):
                 if cat=="dining":
-                    merchants["swiggy_food"]="Eligible Swiggy food delivery"
-                    merchants["swiggy_other"]="Eligible Swiggy Dineout"
+                    merchants["swiggy_food"]="Swiggy food delivery — eligible direct order"
+                    merchants["swiggy_other"]="Swiggy Dineout — eligible payment"
                 else:
-                    merchants["swiggy_other"]="Eligible Swiggy Instamart"
-                    merchants["amazon_flipkart_grocery"]="Amazon / Flipkart groceries · MCC 5411 confirmed"
+                    merchants["swiggy_other"]="Swiggy Instamart — eligible order"
+                    merchants["amazon_flipkart_grocery"]="Amazon / Flipkart groceries — grocery MCC confirmed"
             if channel=="online" and cat=="shopping":
-                merchants.update({"flipkart":"Flipkart eligible shopping","myntra":"Myntra eligible shopping",
-                                  "amazon_prime":"Amazon India eligible goods · Prime",
-                                  "amazon_nonprime":"Amazon India eligible goods · non-Prime",
-                                  "eligible_online":"Other eligible HDFC-listed online merchant"})
+                merchants.update({"flipkart":"Flipkart — eligible shopping","myntra":"Myntra — eligible shopping",
+                                  "amazon_prime":"Amazon India — eligible goods (Prime)",
+                                  "amazon_nonprime":"Amazon India — eligible goods (non-Prime)",
+                                  "eligible_online":"Other HDFC partner — eligibility confirmed"})
             if channel=="online" and cat=="hotel":
-                merchants["cleartrip"]="Eligible Cleartrip hotel booking"
+                merchants["cleartrip"]="Cleartrip — eligible hotel booking"
                 if "amazon_icici" in [c["id"] for c in selected]:
-                    merchants["amazon_travel_prime"]="Eligible Amazon Pay hotel booking · Prime"
-                    merchants["amazon_travel_nonprime"]="Eligible Amazon Pay hotel booking · non-Prime"
+                    merchants["amazon_travel_prime"]="Amazon Pay hotel — eligible (Prime)"
+                    merchants["amazon_travel_nonprime"]="Amazon Pay hotel — eligible (non-Prime)"
                 if any(c["model"].startswith("hdfc") for c in selected):
-                    merchants["eligible_online"]="Confirmed eligible HDFC-listed online hotel merchant"
+                    merchants["eligible_online"]="HDFC partner hotel — eligibility confirmed"
             if channel=="online" and cat=="cinema":
-                merchants["eligible_online"]="Eligible HDFC-listed online cinema merchant"
+                merchants["eligible_online"]="HDFC partner cinema — eligibility confirmed"
             if channel=="online" and "flipkart_axis" in [c["id"] for c in selected] and cat not in ("fuel","utilities"):
-                merchants["axis_preferred"]="Confirmed Axis preferred merchant (check issuer list)"
+                merchants["axis_preferred"]="Axis partner merchant — eligibility confirmed"
             if channel=="online" and cat in ("dining","groceries","shopping","cinema","utilities") and "amazon_icici" in [c["id"] for c in selected]:
-                merchants["amazon_pay"]="Eligible Login and Pay with Amazon partner checkout"
+                merchants["amazon_pay"]="Amazon Pay partner checkout — eligible Login and Pay"
                 if cat in ("shopping","utilities"):
-                    merchants["amazon_digital"]="Eligible Amazon digital purchase / Amazon Pay bill payment (not gift card or wallet load)"
+                    merchants["amazon_digital"]="Amazon digital / bill payment — eligible (no gift card or wallet load)"
             if channel=="online" and cat=="hotel":
-                merchants["scapia_travel"]="Eligible travel booking inside Scapia app"
+                merchants["scapia_travel"]="Scapia app — eligible travel booking"
             if channel=="online" and "kiwi_yes_klick" in [c["id"] for c in selected]:
-                merchants["kiwi_online"]="Eligible online merchant payment via Kiwi app"
+                merchants["kiwi_online"]="Kiwi app — eligible online merchant payment"
             if channel=="upi":
-                merchants={"unconfirmed":"Not sure about eligibility","kiwi_qr":"Eligible merchant QR via Kiwi app / credit on UPI","other":"Eligible merchant QR via another UPI app"}
+                merchants={"unconfirmed":"Not sure — check eligibility","kiwi_qr":"Kiwi app — eligible merchant QR (credit on UPI)","other":"Other UPI app — eligible merchant QR"}
             if channel=="offline":
                 merchant="other"
             else:
@@ -93,17 +93,17 @@ with st.container(key="compare_workspace"):
                 keep(route_key)
                 if route_key in st.session_state and st.session_state[route_key] not in merchants:
                     st.session_state.pop(route_key,None)
-                merchant=st.selectbox("Merchant / payment route",list(merchants),format_func=merchants.get,
-                                      key=route_key,help="Choose a route only if the purchase meets issuer terms. Otherwise choose Not sure.")
+                merchant=st.selectbox("Where are you paying?",list(merchants),format_func=merchants.get,
+                                      key=route_key,help="Choose the actual store or app only if its issuer eligibility is confirmed. For partner offers, check the relevant card terms in Supported cards. Grocery MCC means merchant category code 5411. If unsure, choose Not sure; no winner will be forced.")
                 remember(route_key)
             st.session_state["merchant_type"]=merchant
             keep("emi",False)
-            emi = st.checkbox("EMI, international, gift card, wallet load or other out-of-scope spending",key="emi",help="Also select for rent, education, jewellery, insurance, tax/government, gaming, tolls, cash advances, railway, business expenses or other excluded spending. This MVP does not model these purchases.")
+            emi = st.checkbox("EMI, international or other excluded purchase",key="emi",help="Select for EMI, international spending, gift cards, wallet loads, rent, education, jewellery, insurance, tax/government, gaming, tolls, cash advances, railway, business expenses or other excluded spending. This MVP does not model these purchases.")
             remember("amount");remember("cat");remember("channel");remember("emi")
 
             kiwi_remaining=None
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online"):
-                with st.expander("Kiwi · remaining monthly reward cap",expanded=False):
+                with st.expander("Kiwi · remaining monthly allowance (needed for ranking)",expanded=False):
                     st.caption("Enter the remaining Kiwi reward allowance converted to rupees (4 Kiwis = ₹1). Leave blank if unknown; Kiwi will remain unranked rather than assuming an unlimited reward.")
                     keep_money("kiwi_remaining")
                     raw_kiwi=st.number_input("Remaining Kiwi reward value (₹)",min_value=0.0,value=None,step=1.0,format="%.2f",key="kiwi_remaining")
@@ -119,31 +119,38 @@ with st.container(key="compare_workspace"):
                     name,rate,cap,minimum=bucket
                     capped.append((c,cap,name))
             if capped:
-                with st.expander("Reward caps · unused unless adjusted",expanded=False):
-                    st.caption("Zero assumes the relevant cap is unused. SBI uses statement cycles, HDFC/HSBC billing cycles, and Axis accelerated categories separate statement-quarter caps.")
-                    for c,cap,bucket_name in capped:
-                        usage_key=f"used_{c['id']}_{bucket_name}"
+                with st.expander("Adjust cashback already earned",expanded=False):
+                    st.caption("Enter cashback earned, not purchase spend. Zero assumes the full relevant cap is available.")
+                    for card,cap,bucket_name in capped:
+                        usage_key=f"used_{card['id']}_{bucket_name}"
                         keep_money(usage_key,0.0)
+                        bucket_label={"online":"online","offline":"in-store","swiggy":"Swiggy","boost":"shared boosted","base":"other eligible","shared":"shared boosted","flipkart":"Flipkart","myntra":"Myntra","cleartrip":"Cleartrip"}.get(bucket_name,bucket_name)
+                        cycle=("statement quarter" if card["model"]=="flipkart_axis" else
+                               "statement cycle" if card["model"]=="channel_capped" else "billing cycle")
                         raw_used=st.number_input(
-                            f"{c['name']} · {bucket_name} cashback already earned (₹)",
+                            f"{card['name']} · {bucket_label} cashback earned (₹)",
                             min_value=0.0,max_value=float(cap),step=1.0,format="%.2f",
-                            key=usage_key)
-                        used_by_card[c["id"]]=money(raw_used)
+                            key=usage_key,help=f"Applicable limit: {inr(cap)} per {cycle}. Enter cashback already earned in this bucket, not spending.")
+                        used_by_card[card["id"]]=money(raw_used)
                         remember(usage_key)
+                unused_count=sum(value==0 for value in used_by_card.values())
+                if unused_count:
+                    st.caption(f"Cap assumption: full allowance for {unused_count} of {len(capped)} capped cards. Adjust above if already used.")
+                else:
+                    st.caption("Cap estimates use the cashback already earned that you entered.")
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online") and kiwi_remaining is None:
-                st.caption("Kiwi will remain unranked until its remaining monthly reward allowance is entered.")
-            keep("compare_use_ai",True)
-            use_ai = st.checkbox("Include AI-assisted explanation",key="compare_use_ai",
-                                 help="If enabled, the comparison sends computed purchase facts to Google Gemini. No card numbers or banking credentials are requested.")
+                st.caption("Kiwi allowance unknown: enter it above to establish a complete comparison.")
+            keep("compare_use_ai",False)
+            use_ai = st.checkbox("Add AI explanation (shares computed purchase facts with Gemini)",key="compare_use_ai",
+                                 help="Optional. On eligible comparisons, Gemini receives computed purchase facts and relevant card names. It selects an approved explanation; it does not calculate or rank rewards. No banking credentials are requested.")
             remember("compare_use_ai")
-            st.caption("AI enabled: computed purchase facts and relevant card names go to Gemini." if use_ai else "AI off: compare using local rules only.")
             current_sig=repr((tuple(c["id"] for c in selected),amount,
                               st.session_state["cat"],st.session_state["channel"],
                               st.session_state.get("merchant_type","unknown"),emi,sorted(used_by_card.items()),kiwi_remaining,use_ai))
             if st.session_state.get("last") and st.session_state["last"].get("signature")!=current_sig:
                 st.session_state.pop("last",None)
                 st.caption("Inputs changed — compare again for an updated result.")
-            go=st.button("Compare with AI" if use_ai else "Compare my cards",type="primary",use_container_width=True)
+            go=st.button("Compare my cards",type="primary",use_container_width=True)
             error=None
             if go:
                 if not selected:
@@ -153,7 +160,7 @@ with st.container(key="compare_workspace"):
                 elif amount>10000000:
                     error="The supported amount limit is ₹1,00,00,000."
                 elif emi:
-                    error="This transaction is outside the supported purchase scope."
+                    error="This purchase is outside the MVP scope. Compare only supported domestic, non-EMI purchases."
                 if error:
                     st.session_state.pop("last",None)
                 else:
@@ -172,4 +179,4 @@ with st.container(key="compare_workspace"):
         elif st.session_state.get("last"):
             render_result(st.session_state["last"], request_ai=go)
         else:
-            st.markdown('<div class="cca-empty"><h3>Ready when you are</h3><p>Select your cards and purchase details, then compare. Estimated rewards and important conditions appear here.</p></div>',unsafe_allow_html=True)
+            st.markdown('<div class="cca-empty"><h3>Ready when you are</h3><p>Choose your cards, enter your purchase and select Compare my cards. Your estimated rewards and conditions will appear here.</p></div>',unsafe_allow_html=True)

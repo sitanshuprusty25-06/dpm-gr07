@@ -172,7 +172,13 @@ CSS = """
 .stApp .cca-side .side-note {border-left:2px solid #688FE8;padding-left:9px;}
 .stApp .cca-side .side-note strong {display:block;font-size:.85rem;margin-bottom:4px;color:inherit;}
 
-.stApp .st-key-compare_workspace [data-testid="stVerticalBlock"] {gap:.65rem;}
+.stApp .st-key-compare_workspace [data-testid="stVerticalBlock"] {gap:.5rem;}
+.stApp .st-key-purchase_inputs [data-testid="stVerticalBlock"] {gap:.42rem;}
+.stApp .st-key-compare_workspace .fin-heading {margin-bottom:2px;}
+.stApp .cca-side .side-section {padding-top:10px;margin-top:11px;}
+.stApp .cca-side .side-step {margin-bottom:7px;}
+/* Keep native widget sizes and focus outlines. */
+@media(min-width:761px) { .stApp .block-container {padding-top:3.25rem;} }
 /* The amount retains native controls, but move overlapping instructions
    into normal layout rather than changing their colours. */
 .stApp [data-testid="stNumberInput"] [data-testid="stInputInstructions"],
@@ -210,18 +216,18 @@ def sidebar():
             '<div class="cca-side">'
             '<div class="side-kicker">Before you pay</div>'
             '<div class="side-title">About Card Choice Assistant</div>'
-            '<p>Compare estimated rewards on cards you already own for one purchase.</p>'
+            '<p>Choose a card for a planned purchase with less checking.</p>'
             '<div class="side-section"><div class="side-label">How it works</div>'
             '<div class="side-step"><span class="side-num">1</span><div>'
-            '<strong>Select your cards</strong><span>Choose the exact card variants you own.</span></div></div>'
+            '<strong>Select your cards</strong><span>Choose the exact cards you own.</span></div></div>'
             '<div class="side-step"><span class="side-num">2</span><div>'
-            '<strong>Enter purchase details</strong><span>Amount, category, payment route and reward caps if needed.</span></div></div>'
+            '<strong>Enter purchase details</strong><span>Amount, category, where you pay and any used rewards.</span></div></div>'
             '<div class="side-step"><span class="side-num">3</span><div>'
-            '<strong>Compare and understand</strong><span>Review estimated rewards, reasons and issuer conditions.</span></div></div></div>'
+            '<strong>Compare and understand</strong><span>Review rewards, reasons and conditions.</span></div></div></div>'
             '<div class="side-section"><div class="side-note"><strong>Your privacy</strong>'
-            '<p>No card numbers, bank login or persistent wallet. Optional AI shares computed purchase facts and card names with Gemini.</p></div></div>'
+            '<p>No card numbers, bank login or saved wallet. Optional AI shares computed facts and card names with Gemini.</p></div></div>'
             '<div class="side-section"><div class="side-label">Know before you pay</div>'
-            '<p>Conditional estimates for domestic, non-EMI purchases. Confirm eligibility and remaining caps.</p></div>'
+            '<p>Estimates are conditional. Confirm eligibility and remaining caps.</p></div>'
             '</div>', unsafe_allow_html=True
         )
         with st.expander("Help and limitations"):
@@ -229,7 +235,7 @@ def sidebar():
             st.write(
                 "The rules engine calculates and ranks rewards. Gemini selects "
                 "an approved reason and caution. It cannot change the ranking. "
-                "Disable AI for a rules-only comparison; the calculated result "
+                "AI is optional; the calculated result "
                 "also remains available if AI fails."
             )
             st.markdown("**What if I am unsure about eligibility or caps?**")
