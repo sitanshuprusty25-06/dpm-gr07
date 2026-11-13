@@ -242,12 +242,19 @@ def page_heading(title, sub=None):
 
 
 def sidebar():
-    """Compact support for the two-page MVP; no duplicated purchase workflow."""
+    """Compact onboarding and support for the two-page MVP."""
     with st.sidebar:
         st.markdown(
             '<div class="cca-side">'
             '<div class="side-title">About Card Choice Assistant</div>'
             '<p>Choose the right card from those you already own, before paying.</p>'
+            '<div class="side-section"><div class="side-label">How it works</div>'
+            '<div class="side-step"><span class="side-num">1</span><div>'
+            '<strong>Select your cards</strong><span>Choose the cards you own.</span></div></div>'
+            '<div class="side-step"><span class="side-num">2</span><div>'
+            '<strong>Enter purchase details</strong><span>Enter the amount, what you are buying and how you are paying.</span></div></div>'
+            '<div class="side-step"><span class="side-num">3</span><div>'
+            '<strong>Compare and decide</strong><span>See estimated rewards and important conditions.</span></div></div></div>'
             '<div class="side-section"><div class="side-note"><strong>Your privacy</strong>'
             '<p>No card numbers or bank logins. Selections are kept for this session only.</p>'
             '<p style="margin-top:7px;">Optional AI shares relevant purchase and reward details with Google Gemini.</p></div></div>'

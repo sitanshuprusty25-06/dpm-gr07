@@ -9,7 +9,7 @@ IIM Visakhapatnam · EMBA 2025–27 · Digital Product Management
 
 **Value proposition:** Help multi-card holders choose which card they already own to use for a planned purchase, without checking several apps or websites.
 
-One user, one purchase decision, one workflow: select owned cards → enter purchase amount, category and payment route → compare → decide. Domestic, non-EMI purchases only. The landing page **Compare my cards** and the **Supported cards** reference catalogue are the only active pages. Independent academic decision-support disclosure is visible at the top of both pages. No payment execution, application for new cards, wallet storage, bank connection or product recommendation beyond the selected cards.
+One user, one purchase decision, one workflow: select owned cards → enter purchase amount, category and payment route → compare → decide. Domestic, non-EMI purchases only. The landing page **Compare my cards** and the **Supported cards** reference catalogue are the only active pages. Independent academic decision-support disclosure is visible at the top of both pages. The shared sidebar retains the three-step onboarding guide (select cards, enter purchase details, compare and decide). No payment execution, application for new cards, wallet storage, bank connection or product recommendation beyond the selected cards.
 
 Ten supported products: Amazon Pay ICICI, Flipkart Axis, Swiggy HDFC (original), Swiggy BLCK, Swiggy ORNGE, CASHBACK SBI, YES BANK Klick (Kiwi standard plan), Scapia Federal Visa, Scapia Federal RuPay and HSBC Live+.
 
