@@ -271,9 +271,9 @@ class ExplanationPresentationTests(unittest.TestCase):
         reason,condition=explanation_parts(win,second,42163,"shopping",
                                           {"reason_id":"eligibility","caution_id":"issuer_condition"})
         self.assertEqual(win.benefit,2000)
-        self.assertIn("₹2,108.15",reason)
+        self.assertIn("₹1,500",reason)
         self.assertIn("₹2,000",condition)
-        self.assertNotIn("₹2,000",reason)
+        self.assertIn("also capped",reason)
         self.assertEqual(condition,key_condition(win))
         self.assertTrue(reason.endswith("."))
 
@@ -305,7 +305,8 @@ class ExplanationPresentationTests(unittest.TestCase):
         self.assertEqual(money(win.benefit-second.benefit),3411.52)
         reason,condition=explanation_parts(win,second,74230.33,"shopping",
                                           {"reason_id":"eligibility","caution_id":"redemption"})
-        self.assertIn("Prime membership",reason)
+        self.assertIn("Both cards have a 5%",reason)
+        self.assertIn("₹300",reason)
         self.assertEqual(condition,key_condition(win))
 
     def test_amazon_reason_matches_purchase_route(self):
@@ -465,6 +466,59 @@ class PresentationScenarioTests(unittest.TestCase):
         cards=[BY_ID["swiggy_blck"],BY_ID["sbi_cashback"]]
         results=rank(cards,"dining",1200,channel="online",merchant_type="unconfirmed")
         self.assertTrue(all(item.available and not item.comparable for item in results))
+
+class ContextualReasonTests(unittest.TestCase):
+    def test_amazon_ornge_binding_cap_explained_for_every_reason(self):
+        win,second=rank([BY_ID["amazon_icici"],BY_ID["swiggy_ornge"]],
+                        "shopping",31253.52,{"swiggy_ornge":1200},
+                        channel="online",merchant_type="amazon_prime")
+        self.assertEqual(win.benefit,1562.68)
+        self.assertEqual(second.benefit,300)
+        payload=build_payload(win,second,31253.52,"shopping")
+        for reason_id,reason in payload["reason_options"].items():
+            with self.subTest(reason_id=reason_id):
+                self.assertIn("Both cards have a 5%",reason)
+                self.assertIn("₹300",reason)
+                self.assertIn("no applicable reward cap",reason)
+                self.assertNotIn("₹1,262.68",reason)
+                displayed,condition=explanation_parts(win,second,31253.52,"shopping",
+                    {"reason_id":reason_id,"caution_id":"redemption"})
+                self.assertEqual(displayed,reason)
+                self.assertEqual(condition,key_condition(win))
+        self.assertEqual(explanation_parts(win,second,31253.52,"shopping")[0],
+                         payload["reason_options"]["eligibility"])
+
+    def test_swiggy_demo_cap_explained_when_sbi_leads(self):
+        win,second=rank([BY_ID["swiggy_blck"],BY_ID["sbi_cashback"]],
+                        "dining",1200,{"swiggy_blck":1470},
+                        channel="online",merchant_type="swiggy_food")
+        self.assertEqual(win.card["id"],"sbi_cashback")
+        p=build_payload(win,second,1200,"dining")
+        for reason in p["reason_options"].values():
+            self.assertIn("₹30",reason)
+            self.assertNotIn("Both cards have",reason)
+            self.assertNotIn("no applicable reward cap",reason)
+
+    def test_no_binding_cap_claim_when_cap_does_not_limit_reward(self):
+        win,second=rank([BY_ID["swiggy_blck"],BY_ID["sbi_cashback"]],
+                        "dining",1200,channel="online",merchant_type="swiggy_food")
+        p=build_payload(win,second,1200,"dining")
+        self.assertIn("5% applicable reward rate",p["reason_options"]["advantage"])
+        self.assertNotIn("has only",p["reason_options"]["advantage"])
+
+    def test_two_binding_caps_not_described_as_uncapped(self):
+        win,second=rank([BY_ID["sbi_cashback"],BY_ID["swiggy_ornge"]],
+                        "shopping",50000,{"swiggy_ornge":1200},
+                        channel="online",merchant_type="amazon_prime")
+        p=build_payload(win,second,50000,"shopping")
+        self.assertIn("also capped",p["reason_options"]["advantage"])
+        self.assertIn("₹2,000",p["reason_options"]["advantage"])
+        self.assertIn("₹300",p["reason_options"]["advantage"])
+
+    def test_unresolved_comparator_does_not_generate_comparative_reason(self):
+        win=evaluate(BY_ID["amazon_icici"],"shopping",1000,merchant_type="amazon_prime")
+        second=evaluate(BY_ID["swiggy_ornge"],"shopping",1000,merchant_type="unconfirmed")
+        self.assertNotIn("advantage",build_payload(win,second,1000,"shopping")["reason_options"])
 
 if __name__=="__main__":
     unittest.main()

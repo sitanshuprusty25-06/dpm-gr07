@@ -7,18 +7,62 @@ import json
 import time
 from importlib.metadata import version, PackageNotFoundError
 
-from rules_engine import category_label, key_condition, inr, rate_value, money
+from rules_engine import category_label, key_condition, inr, rate_value, money, pct
 
 SYSTEM_PROMPT = (
     "Help the shopper understand this purchase decision. Choose the most useful "
     "reason and caution from the supplied options, based on the purchase and reward. "
-    "Prefer a reason explaining why the card leads or qualifies, and a caution "
+    "Prefer an explanation of the underlying reward rate, eligibility or binding cap; "
+    "do not merely repeat the numerical advantage shown elsewhere. Choose a caution "
     "about the most relevant constraint or redemption type. Return ONLY a JSON "
     "object containing exactly card_id, benefit_inr, reward_form, reason_id, "
     "caution_id. Copy card_id, benefit_inr and reward_form exactly from recommended. "
     "Choose one reason_id and one caution_id from their respective option maps. "
     "Do not calculate, invent claims, change the recommendation or add prose."
 )
+
+
+def _cashback_cap_binds(result):
+    """Only claim a binding cap when the calculation engine established it."""
+    return (result.available and result.comparable and result.code == "cap-hit"
+            and result.rule is not None and result.rule.get("cap") is not None
+            and result.cap_left_before is not None)
+
+
+def _comparison_reason(win, second):
+    """Use modeled causes, not a repetition of the difference on the result card."""
+    if not (second and second.available and second.comparable
+            and win.available and win.comparable and win.benefit > second.benefit):
+        return None
+    if _cashback_cap_binds(second):
+        win_rate = (win.rule or {}).get("rate")
+        second_rate = second.rule.get("rate")
+        if win_rate is not None and win_rate == second_rate:
+            opening = f"Both cards have a {pct(win_rate)} eligible reward rate for this purchase."
+        else:
+            opening = _sentence(win.reason)
+        cap = (f"{second.card['name']} has only {inr(second.cap_left_before)} of "
+               "applicable cashback allowance available before this purchase.")
+        if win.rule and "cap" in win.rule and win.rule["cap"] is None:
+            conclusion = "The recommended card has no applicable reward cap in this model."
+        elif _cashback_cap_binds(win):
+            conclusion = (f"The recommended card is also capped, but has "
+                          f"{inr(win.cap_left_before)} of applicable allowance available.")
+        else:
+            conclusion = ""
+        return " ".join(part for part in (opening, cap, conclusion) if part)
+    if second.code == "below-min":
+        return _sentence(win.reason) + " " + second.card["name"] + ": " + _sentence(second.reason)
+    if second.code == "excluded":
+        return _sentence(win.reason) + " " + second.card["name"] + " has no modeled reward for this purchase."
+    win_rate = (win.rule or {}).get("rate")
+    second_rate = (second.rule or {}).get("rate")
+    if win_rate is not None and second_rate is not None and win_rate > second_rate:
+        return (_sentence(win.reason) + f" {second.card['name']} has a "
+                f"{pct(second_rate)} applicable reward rate for this purchase.")
+    # If no additional supported cause is established, give the actual
+    # eligibility reason rather than restating the amount difference.
+    return _sentence(win.reason)
 
 
 def build_payload(win, second, amount, cat):
@@ -28,14 +72,16 @@ def build_payload(win, second, amount, cat):
         # Explain arithmetic here; reserve the actual limit for the caution.
         eligibility = (f"At {win.rule['rate']:g}%, the cashback before the cap "
                        f"would be {inr(rate_value(amount,win.rule['rate']))}")
-    reasons = {"eligibility": eligibility}
-    if second and second.comparable and getattr(second, "available", True) and win.benefit > second.benefit:
-        reasons["advantage"] = (
-            f"For this purchase, the estimated reward is {inr(win.benefit-second.benefit)} "
-            f"higher than {second.card['name']}."
-        )
-    if win.cap_left_after is not None:
+    comparison = _comparison_reason(win, second)
+    binding_competitor = bool(comparison and _cashback_cap_binds(second))
+    # A binding competitor cap is material to the decision. Include it in
+    # every approved reason and in the rules-only default.
+    reasons = {"eligibility": comparison if binding_competitor else eligibility}
+    if comparison:
+        reasons["advantage"] = comparison
+    if win.cap_left_after is not None and not binding_competitor:
         reasons["remaining_cap"] = (
+            _sentence(eligibility) + " "
             f"Based on the entered cap usage, the estimated remaining applicable "
             f"reward allowance after this purchase is {inr(win.cap_left_after)}."
         )
