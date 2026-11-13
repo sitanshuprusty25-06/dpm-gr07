@@ -37,12 +37,35 @@ class GuidanceTests(unittest.TestCase):
         self.assertIsNone(check_guidance("not JSON",self.payload)[0])
         raw=json.dumps(self.response())
         self.assertIsNone(check_guidance(raw[:-1]+',"card_id":"sbi_cashback"}',self.payload)[0])
-    def test_disabled_and_incomplete_skip_provider(self):
-        incomplete=rank([BY_ID["kiwi_yes_klick"],BY_ID["sbi_cashback"]],"shopping",50099,merchant_type="myntra")
-        with patch("ai_guidance._call_gemini") as call:
-            self.assertEqual(request_guidance(self.ranked,50099,"shopping",False)[1],"disabled")
-            self.assertEqual(request_guidance(incomplete,50099,"shopping",True,"key")[1],"skipped")
+    def test_partial_myntra_clear_leader_can_request_ai(self):
+        ranked=rank(CARDS,"shopping",4500,merchant_type="myntra")
+        payload=build_guidance(ranked,4500,"shopping")
+        self.assertTrue(payload["comparison_scope"]["partial"])
+        self.assertEqual(payload["rules_winner"],"flipkart_axis")
+        option=payload["options"]["highest_reward"]
+        self.assertEqual(option["benefit_inr"],337.5)
+        self.assertEqual(set(payload["options"]),{"highest_reward"})
+        response={k:option[k] for k in FIELDS}
+        with patch("ai_guidance._call_gemini",return_value=json.dumps(response)) as call:
+            self.assertEqual(request_guidance(ranked,4500,"shopping",False)[1],"disabled")
             call.assert_not_called()
+            choice,status,diag=request_guidance(ranked,4500,"shopping",True,"key")
+            self.assertEqual((choice,status),("highest_reward","ok"))
+            self.assertTrue(all(diag["checks"].values()))
+            self.assertTrue(diag["payload_fingerprint"])
+            call.assert_called_once()
+        self.assertNotIn("kiwi_yes_klick", {o["card_id"] for o in payload["options"].values()})
+
+    def test_ties_and_all_unresolved_skip_provider(self):
+        from rules_engine import Result
+        tied=[Result(BY_ID["sbi_cashback"],"shopping",benefit=10),
+              Result(BY_ID["amazon_icici"],"shopping",benefit=10)]
+        unresolved=[Result(BY_ID["kiwi_yes_klick"],"shopping",comparable=False)]
+        with patch("ai_guidance._call_gemini") as call:
+            for ranked in (tied,unresolved):
+                self.assertEqual(request_guidance(ranked,1000,"shopping",True,"key")[1],"skipped")
+            call.assert_not_called()
+
     def test_provider_choice_and_failure(self):
         with patch("ai_guidance._call_gemini",return_value=json.dumps(self.response())):
             option,status,diag=request_guidance(self.ranked,50099,"shopping",True,"key")

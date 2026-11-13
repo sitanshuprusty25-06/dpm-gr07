@@ -136,6 +136,8 @@ CSS = """
 .stApp .cca-ai-panel .kicker,.stApp .cca-ai-panel .issuer {color:#EEE0FF;}
 .stApp .cca-ai-panel .figure {color:#FDE4A6;}
 .stApp .cca-ai-panel a {color:#F2E5FF;text-decoration:underline;}
+.stApp .cca-panel-detail {border-top:1px solid rgba(255,255,255,.25);margin-top:10px;padding-top:5px;}
+.stApp .cca-panel-detail .delta {margin-top:6px;}
 @media(max-width:1050px) {.stApp .cca-dual {grid-template-columns:1fr;}}
 .stApp .cca-explain {margin:0 0 10px;}
 .stApp .cca-explain .cca-condition {border-top:1px solid color-mix(in srgb,currentColor 20%,transparent);margin-top:12px;padding-top:12px;}
@@ -256,15 +258,15 @@ def sidebar():
         with st.expander("Help and limitations"):
             st.markdown("**What does AI do?**")
             st.write(
-                "The app calculates the rewards. If you turn on AI, Google Gemini helps "
-                "explain the result and selects a practical decision tip from checked options. "
-                "AI cannot change the card recommendation. You can compare without AI, "
-                "and the calculated result stays available if AI fails."
+                "The app calculates rewards. With AI enabled, Gemini selects an approved "
+                "recommendation or conditional reward-form alternative from comparable cards. "
+                "It cannot change calculated amounts or choose unresolved cards. "
+                "The rules recommendation stays available if AI fails."
             )
             st.markdown("**What if I am unsure about eligibility or caps?**")
             st.write(
-                "Choose Not sure where appropriate. An unresolved applicable "
-                "reward prevents a definitive winner. Enter previously earned "
+                "Choose Not sure where appropriate. Unresolved rewards are excluded from "
+                "both suggestions; the result is provisional. Enter previously earned "
                 "rewards for the relevant cycle and bucket; zero assumes an unused cap."
             )
             st.markdown("**What is excluded?**")

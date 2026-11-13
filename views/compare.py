@@ -159,7 +159,7 @@ with st.container(key="compare_workspace"):
                 st.caption("Kiwi allowance unknown: enter it above to include Kiwi in the recommendation.")
             keep("compare_use_ai",False)
             use_ai = st.checkbox("Add AI guidance (shares purchase and reward details with Google Gemini)",key="compare_use_ai",
-                                 help="Optional. Google Gemini receives relevant card names, purchase amount, category, payment method, estimated rewards and relevant reward conditions, including cap information when needed. AI chooses an approved calculated recommendation or conditional reward-form alternative; the app calculates all rewards. No card numbers or bank logins are requested.")
+                                 help="Optional. Google Gemini receives relevant card names, purchase amount, category, payment method, estimated rewards and relevant reward conditions, including cap information when needed. AI chooses an approved option from comparable cards when there is one positive leader, even if others are unresolved. The app calculates all rewards. No card numbers or bank logins are requested.")
             remember("compare_use_ai")
             current_sig=repr((tuple(c["id"] for c in selected),amount,
                               st.session_state["cat"],st.session_state["channel"],

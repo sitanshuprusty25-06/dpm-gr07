@@ -1,5 +1,6 @@
 """Constrained AI selection of calculated reward trade-offs. No generated claims."""
 import json
+import hashlib
 import time
 from importlib.metadata import version, PackageNotFoundError
 from urllib.parse import urlparse
@@ -8,7 +9,9 @@ from explain import _unique_object, _error_category, explanation_parts, _call_ge
 
 GUIDANCE_PROMPT = (
     "Choose exactly one approved option from options. The rules winner maximizes "
-    "estimated monetary reward value; an alternative is conditional on the stated "
+    "estimated reward value among the comparable cards only. Unresolved or unavailable "
+    "cards are not candidates; never claim a definitive winner when scope is partial. "
+    "An alternative is conditional on the stated "
     "reward preference, never a claim about the user's actual preferences. "
     "Prefer the rules winner unless an approved reward-form trade-off is useful. "
     "Copy the option_id, card_id, benefit_inr, reward_form, reason_id and source_url "
@@ -27,8 +30,7 @@ def _source(result):
 
 def build_guidance(ranked, amount, cat):
     """One default option plus the strongest positive cashlike alternative."""
-    if any(r.available and not r.comparable for r in ranked):
-        return None
+    unresolved=sum(r.available and not r.comparable for r in ranked)
     valid=sorted((r for r in ranked if r.available and r.comparable and r.benefit>0.005),
                  key=lambda r:(-r.benefit,r.card["name"]))
     if not valid or (len(valid)>1 and abs(valid[0].benefit-valid[1].benefit)<0.005):
@@ -63,7 +65,13 @@ def build_guidance(ranked, amount, cat):
                 f"{win.card['name']}, but its {other} may be more useful if you would not "
                 f"use {form}. This is a conditional alternative, not a higher reward.")
     return {"purchase":{"amount_inr":money(amount),"category":cat,"channel":win.channel},
+            "comparison_scope":{"partial":bool(unresolved),"unresolved_count":unresolved,
+                                "positive_comparable_count":len(valid)},
             "rules_winner":win.card["id"],"options":options}
+
+def guidance_fingerprint(payload):
+    """Bind session verification to exactly the locally generated options."""
+    return hashlib.sha256(json.dumps(payload,sort_keys=True,ensure_ascii=False).encode("utf-8")).hexdigest()
 
 FIELDS={"option_id","card_id","benefit_inr","reward_form","reason_id","source_url"}
 CHECK_NAMES=("Response format","Approved option","Calculated card identity",
@@ -96,7 +104,7 @@ def request_guidance(ranked,amount,cat,enabled,api_key=None,model="gemini-3.5-fl
         return None,"disabled",{}
     payload=build_guidance(ranked,amount,cat)
     if not payload:
-        return None,"skipped",{"message":"AI skipped: comparison is incomplete, tied or has no positive reward."}
+        return None,"skipped",{"message":"AI skipped: no unique positive comparable reward with an approved source."}
     diag={"model":model,"api_response":False,"checks":{}}
     if not api_key or not str(api_key).strip():
         diag["message"]="Gemini API key is not configured."
@@ -116,6 +124,7 @@ def request_guidance(ranked,amount,cat,enabled,api_key=None,model="gemini-3.5-fl
             diag["message"]="AI choice failed grounding checks; calculated recommendation retained."
             return None,"mismatch",diag
         diag["option_id"]=option["option_id"]
+        diag["payload_fingerprint"]=guidance_fingerprint(payload)
         return option["option_id"],"ok",diag
     except Exception as exc:
         diag["message"]=_error_category(exc)
