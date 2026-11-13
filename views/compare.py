@@ -27,7 +27,7 @@ with st.container(key="compare_workspace"):
     left, right = (st.container(), st.container()) if mobile else st.columns([1.12,1],gap="medium")
     with left:
         with st.container(border=True,key="purchase_inputs"):
-            st.markdown('<div class="fin-step input-step"><span class="step-number">01</span>Your cards</div>',unsafe_allow_html=True)
+            st.markdown('<div class="fin-step input-step">Your cards</div>',unsafe_allow_html=True)
             selected_ids = st.multiselect(
                 "Cards you own", options=list(by_id), format_func=lambda cid: by_id[cid]["name"],
                 key="compare_wallet_ids", placeholder="Search and select your cards",
@@ -37,7 +37,7 @@ with st.container(key="compare_workspace"):
             selected = [card for card in CARDS if card["id"] in selected_ids]
             # Names remain visible in the native multiselect. Artwork lives in
             # the catalogue; do not fetch image assets while comparing a purchase.
-            st.markdown('<div class="fin-step input-step purchase-step"><span class="step-number">02</span>Purchase details</div>',unsafe_allow_html=True)
+            st.markdown('<div class="fin-step input-step purchase-step">Purchase details</div>',unsafe_allow_html=True)
             # Keep the amount field full-width so the editing controls have room.
             raw_amount=st.number_input("Amount (₹)",min_value=0.0,step=1.0,value=None,format="%.2f",key="amount",placeholder="e.g. 1200.50",help="Enter rupees and paise (up to two decimal places). Press Enter or move to the next field to apply.")
             amount=money(raw_amount) if raw_amount is not None else None
@@ -201,9 +201,10 @@ with st.container(key="compare_workspace"):
                     }
             if error:
                 st.error(error)
-    # Keep purchase inputs stable. Reveal the right column contents only
-    # after a valid comparison, never for an initial or stale result.
+    # Keep widget identity stable across reruns. CSS centres the purchase
+    # column until this keyed result container is actually rendered.
     if st.session_state.get("last") and not error:
         with right:
-            st.markdown('<div class="fin-step result-step"><span class="step-number">03</span>Your result</div>',unsafe_allow_html=True)
-            render_result(st.session_state["last"], request_ai=go)
+            with st.container(key="comparison_result"):
+                st.markdown('<div class="fin-step result-step">Your result</div>',unsafe_allow_html=True)
+                render_result(st.session_state["last"], request_ai=go)

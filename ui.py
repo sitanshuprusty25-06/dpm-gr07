@@ -181,12 +181,26 @@ CSS = """
 .stApp .st-key-compare_workspace .cca-panel {padding:18px;}
 .stApp .st-key-compare_workspace .fin-step {margin-bottom:1px;display:flex;align-items:center;gap:8px;letter-spacing:.045em;}
 /* Reserve space below the result heading even when Markdown wrappers compress gaps. */
-.stApp .st-key-compare_workspace .fin-step.result-step {box-sizing:border-box;min-height:38px;line-height:1.35;margin:0;padding:0 0 12px;}
-.stApp .st-key-compare_workspace .fin-step.result-step .step-number {box-sizing:border-box;line-height:1;flex-shrink:0;}
-.stApp .fin-step .step-number {display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;flex:none;background:color-mix(in srgb,currentColor 9%,transparent);font-size:.76rem;font-weight:750;color:inherit;}
+.stApp .st-key-compare_workspace .fin-step.result-step {box-sizing:border-box;line-height:1.4;margin:0;padding:0 0 10px;min-height:32px;}
+/* Only the outer comparison row contains purchase_inputs as a descendant.
+   Keep the native widgets mounted, and centre the form when no result exists.
+   When comparison_result appears, the original two-column layout returns. */
+.stApp .st-key-compare_workspace [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-purchase_inputs):not(:has(.st-key-comparison_result)) {
+    justify-content:center;
+}
+.stApp .st-key-compare_workspace [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-purchase_inputs):not(:has(.st-key-comparison_result)) > [data-testid="stColumn"]:has(.st-key-purchase_inputs) {
+    flex:0 1 720px!important;width:min(100%,720px)!important;max-width:100%!important;min-width:0!important;
+}
+.stApp .st-key-compare_workspace [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-purchase_inputs):not(:has(.st-key-comparison_result)) > [data-testid="stColumn"]:not(:has(.st-key-purchase_inputs)) {
+    display:none!important;
+}
+.stApp .st-key-compare_workspace:not(:has(.st-key-comparison_result)) .fin-heading {text-align:center;}
+/* Constrain the single form on mobile as well, without changing input keys. */
+.stApp .st-key-compare_workspace:not(:has(.st-key-comparison_result)) .st-key-purchase_inputs {width:100%;max-width:720px;margin-inline:auto;}
+.stApp .st-key-comparison_result {min-width:0;width:100%;}
 /* Explicit padding survives Streamlit's compact Markdown wrapper spacing. */
-.stApp .st-key-compare_workspace .st-key-purchase_inputs .fin-step.input-step {box-sizing:border-box;line-height:1.35;margin:0;padding:0 0 10px;min-height:36px;}
-.stApp .st-key-compare_workspace .st-key-purchase_inputs .fin-step.purchase-step {padding-top:12px;min-height:48px;}
+.stApp .st-key-compare_workspace .st-key-purchase_inputs .fin-step.input-step {box-sizing:border-box;line-height:1.4;margin:0;padding:0 0 8px;min-height:28px;}
+.stApp .st-key-compare_workspace .st-key-purchase_inputs .fin-step.purchase-step {padding-top:12px;min-height:40px;}
 .stApp .st-key-purchase_inputs {min-width:0;}
 /* Compact, theme-inheriting guidance; never resize the native sidebar. */
 .stApp .cca-side {font-size:.88rem;line-height:1.48;color:inherit;}
