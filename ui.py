@@ -127,6 +127,16 @@ CSS = """
 .stApp .cca-explain .tag {display:block;font-size:.84rem;font-weight:750;color:inherit;margin-bottom:6px;}
 .stApp .cca-explain .tag.ai {color:inherit;}
 .stApp .cca-panel {margin-bottom:12px;}
+.stApp .cca-dual {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch;}
+.stApp .cca-dual .cca-panel {margin-bottom:0;padding:14px;}
+.stApp .cca-dual .cca-panel .cname {font-size:1.08rem;}
+.stApp .cca-dual .cca-panel .figure {font-size:1.9rem;}
+.stApp .cca-dual .cca-panel .delta {font-size:.85rem;margin-top:6px;}
+.stApp .cca-ai-panel {background:#4B277A;color:#FFF7FF;}
+.stApp .cca-ai-panel .kicker,.stApp .cca-ai-panel .issuer {color:#EEE0FF;}
+.stApp .cca-ai-panel .figure {color:#FDE4A6;}
+.stApp .cca-ai-panel a {color:#F2E5FF;text-decoration:underline;}
+@media(max-width:1050px) {.stApp .cca-dual {grid-template-columns:1fr;}}
 .stApp .cca-explain {margin:0 0 10px;}
 .stApp .cca-explain .cca-condition {border-top:1px solid color-mix(in srgb,currentColor 20%,transparent);margin-top:12px;padding-top:12px;}
 .stApp .cca-explain .wt {font-weight:750;font-size:.9rem;margin-bottom:4px;}

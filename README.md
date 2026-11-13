@@ -12,14 +12,14 @@ One user: the multi-card holder who selectively compares payment benefits.
 One problem: effort and uncertainty in choosing a card before a purchase.
 One use case: compare supported cards already owned for one domestic, non-EMI purchase.
 One workflow: choose cards → enter amount (rupees and paise), category and payment context → compare → understand the result.
-One GenAI capability: select an approved reason, caution and practical decision tip for a calculated result.
+One GenAI capability: choose a pre-approved calculated recommendation or conditional reward-form alternative.
 
 The landing page is **Compare my cards**. The only other primary page is **Supported cards**, a reference catalogue with exact product variants, reward descriptions, fees, conditions and issuer links. A compact, theme-inheriting shared collapsible sidebar shows the value proposition, three-step workflow, privacy and key limitations. Detailed help is collapsed inside the sidebar. Native Streamlit auto mode shows it on larger screens and hides it initially on small devices; users can toggle it. The main footer retains only a short disclaimer. The five retired supporting pages are preserved under [`archive/`](archive/README.md) for development history only; they are not part of active navigation. Future features belong in the team's PRD and roadmap, not the running MVP.
 
 ## Calculation and AI
 
 - The deterministic Python engine calculates modeled eligibility, reward rates, minimum spends, caps and rankings from dated issuer reference material.
-- A unique positive result in a complete comparison can trigger an optional Gemini request on the explicit Compare action. Gemini selects a reason, caution and practical decision tip from approved options; seven checks validate response format, recommended card, amount, reward type, reason, caution and decision tip.
+- A unique positive result in a complete comparison can trigger an optional Gemini request on the explicit Compare action. Gemini selects one approved option; eight checks validate schema, approved option, card identity, reward amount, reward form, rationale, issuer source and eligible positive comparison. The UI renders only locally constructed facts.
 - Rules-based output remains available without AI or if the provider fails. A tie, unresolved applicable reward, unsupported route or zero reward does not trigger AI.
 - The app renders the calculated result before requesting AI. A changed input invalidates the previous result; ordinary reruns do not trigger another request.
 - Rewards are conditional estimates, not guaranteed cashback. Actual merchant MCC/MID, issuer posting, exclusions, caps, refunds and settlement may affect rewards. Restricted redemption values are not cash. Fees, interest and unmodeled promotions are excluded.
@@ -113,3 +113,6 @@ A positive comparable reward now produces a provisional highlighted suggestion e
 
 ### Repository synchronization — 13 November 2026
 The active catalogue uses the specific green YES BANK RuPay image (`assets/kiwi-yes-klick-green.webp`); the superseded promotional asset has been removed from the active tree. Catalogue, source register, artwork register and current documentation agree. Added result-rendering regression tests for provisional suggestions, ties and no positive comparable rewards, and a local artwork integrity check. For the ₹50,099 Myntra scenario with unused applicable caps, the modeled comparison is SBI ₹2,000, Scapia Visa ₹1,002 (rounded coins), Amazon Pay ₹500.99 and Kiwi unresolved; SBI is the provisional suggestion. No live customer test or provider verification is implied.
+
+### Coloured rules and AI guidance panels
+When AI is opted in, the navy rules recommendation and purple AI guidance appear before the top-three comparison. On narrow screens they stack. The full comparison is expandable, including unresolved cards. AI may select the rules winner or the highest eligible cashlike alternative when the winner has a restricted reward form; the alternative is conditional and the reward difference is computed in Python. The model cannot calculate, invent issuer links or render free text. Incomplete, tied and zero-reward comparisons skip the provider; errors or failed validation keep the rules result. The eight new checks do not certify issuer accuracy. No issuer rates changed. Legacy explanation validation functions remain for regression compatibility. Live Gemini and browser verification are pending.

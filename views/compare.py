@@ -159,7 +159,7 @@ with st.container(key="compare_workspace"):
                 st.caption("Kiwi allowance unknown: enter it above to include Kiwi in the recommendation.")
             keep("compare_use_ai",False)
             use_ai = st.checkbox("Add AI guidance (shares purchase and reward details with Google Gemini)",key="compare_use_ai",
-                                 help="Optional. Google Gemini receives relevant card names, purchase amount, category, payment method, estimated rewards and relevant reward conditions, including cap information when needed. AI helps explain the result and offers a decision tip; the app calculates the rewards. No card numbers or bank logins are requested.")
+                                 help="Optional. Google Gemini receives relevant card names, purchase amount, category, payment method, estimated rewards and relevant reward conditions, including cap information when needed. AI chooses an approved calculated recommendation or conditional reward-form alternative; the app calculates all rewards. No card numbers or bank logins are requested.")
             remember("compare_use_ai")
             current_sig=repr((tuple(c["id"] for c in selected),amount,
                               st.session_state["cat"],st.session_state["channel"],
@@ -187,7 +187,7 @@ with st.container(key="compare_workspace"):
                     st.session_state["last"]={
                         "ranked":ranked,"win":ranked[0],"second":ranked[1] if len(ranked)>1 else None,
                         "amount":amount,"cat":st.session_state["cat"],
-                        "ai_text":None,"ai_status":None if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
+                        "ai_option_id":None,"ai_status":None if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
                     }
     with right:
         st.markdown('<div class="fin-step result-step"><span class="step-number">03</span>Your result</div>',unsafe_allow_html=True)

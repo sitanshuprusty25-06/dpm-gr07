@@ -197,10 +197,10 @@ def render_approved(selection, payload):
     )
 
 
-def _call_gemini(prompt, api_key, model):
+def _call_gemini(prompt, api_key, model, system_instruction=SYSTEM_PROMPT):
     from google import genai
     from google.genai import types
-    config = {"system_instruction": SYSTEM_PROMPT, "temperature": 0.1,
+    config = {"system_instruction": system_instruction, "temperature": 0.1,
               "max_output_tokens": 400, "response_mime_type": "application/json"}
     if "2.5" in model and "flash" in model:
         config["thinking_config"] = types.ThinkingConfig(thinking_budget=0)

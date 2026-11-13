@@ -11,9 +11,9 @@ class ResultRenderingTests(unittest.TestCase):
     def render(self, ranked, amount=50099):
         from results import render_result
         state = {"ranked": ranked, "amount": amount, "cat": "shopping",
-                 "ai_enabled": True, "ai_status": None, "cap_assumed": True}
+                 "ai_enabled": False, "ai_status": None, "cap_assumed": True}
         with patch("results.st") as st, patch("results.render_details") as details, \
-                patch("results.explain_comparison") as ai:
+                patch("results.request_guidance") as ai:
             render_result(state, request_ai=True)
             ai.assert_not_called()
             markdown = [str(call.args[0]) for call in st.markdown.call_args_list]

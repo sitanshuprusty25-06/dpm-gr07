@@ -2,7 +2,8 @@
 import html
 import streamlit as st
 from rules_engine import category_label,inr,key_condition
-from explain import explain_comparison, explanation_parts, decision_tips
+from explain import explanation_parts
+from ai_guidance import build_guidance, request_guidance, CHECK_NAMES
 from ui import get_secret
 from display_text import comparison_text, redemption_guidance, review_date
 
@@ -24,7 +25,7 @@ def others_html(ranked,mark_best):
         )
     return "".join(rows)
 
-def panel_html(win,second,amount,cat,partial=False):
+def panel_html(win,second,amount,cat,partial=False,split=False):
     if win.benefit <= 0.005:
         return ('<div class="cca-panel"><div class="kicker">No modeled card reward</div>'
                 '<div class="cname">None of these cards has an eligible calculated reward here</div>'
@@ -43,7 +44,7 @@ def panel_html(win,second,amount,cat,partial=False):
     display_form=form if form=="Amazon Pay balance" or form.startswith(("Scapia Coins","Kiwis")) else form.lower()
     return (
         f'<div class="cca-panel">'
-        f'<div class="kicker">{"Best among comparable cards" if partial else "Equal estimated reward" if tied else "Highest estimated reward value" if second else "Your selected card"}</div>'
+        f'<div class="kicker">{"RULE-BASED RECOMMENDATION · " if split else ""}{"Best among comparable cards" if partial else "Equal estimated reward" if tied else "Highest estimated reward value" if second else "Your selected card"}</div>'
         f'<div class="cname">{html.escape(win.card["name"])}</div>'
         f'<div class="issuer">{html.escape(win.card["issuer"])}</div>'
         f'<div class="figure">{inr(win.benefit)}</div>'
@@ -52,126 +53,117 @@ def panel_html(win,second,amount,cat,partial=False):
         f'<div class="delta">{delta}</div></div>'
     )
 
+def ai_panel_html(option=None,status=None):
+    if option is None:
+        message={"skipped":"AI is not used for incomplete, tied or zero-reward comparisons.",
+                 "no_key":"AI guidance is unavailable. Use the calculated result.",
+                 "error":"AI guidance is unavailable. Use the calculated result.",
+                 "mismatch":"AI response failed verification. Use the calculated result."}.get(status,"Checking an approved recommendation…")
+        return ('<div class="cca-panel cca-ai-panel"><div class="kicker">AI GUIDANCE</div>'
+                '<div class="delta">'+html.escape(message)+'</div></div>')
+    return ('<div class="cca-panel cca-ai-panel"><div class="kicker">AI GUIDANCE · VERIFIED CHOICE</div>'
+            '<div class="cname">'+html.escape(option["card"])+'</div>'
+            '<div class="figure">'+inr(option["benefit_inr"])+'</div>'
+            '<div class="delta">'+html.escape(option["reward_form"])+'</div>'
+            '<div class="delta"><strong>'+html.escape(option["preference"])+'</strong></div>'
+            '<div class="delta">'+html.escape(option["guidance"])+'</div>'
+            '<div class="delta"><a href="'+html.escape(option["source_url"],quote=True)+'" target="_blank" rel="noopener noreferrer">Official reward terms</a></div></div>')
+
+def recommendation_html(rule,ai=None):
+    return '<div class="cca-dual">'+rule+ai+'</div>' if ai is not None else rule
+
 def render_result(L, request_ai=False):
-    ranked,amount,cat=(L["ranked"],L["amount"],L["cat"])
-    # Purchase inputs already show the selected category, method and merchant.
-    # Keep the result header clear so the decision is the first visible output.
-    def cap_note():
-        if L.get("cap_assumed"):
-            st.caption("Estimate assumes unused caps wherever prior cashback is zero. Adjust cashback already earned if needed.")
+    ranked,amount,cat=L["ranked"],L["amount"],L["cat"]
+    enabled=bool(L.get("ai_enabled"))
     eligible=[r for r in ranked if r.available]
-    if not eligible:
-        st.info("No selected card supports this modeled payment route. Check your payment method or choose another card you own.")
-        st.markdown(others_html(ranked,False),unsafe_allow_html=True)
-        cap_note()
-        render_details(ranked,{"message":"AI skipped: no selected card supports this payment route."})
-        return
     comparable=[r for r in eligible if r.comparable]
     uncertain=[r for r in eligible if not r.comparable]
     partial=bool(uncertain)
+    def notes():
+        if partial:
+            st.caption("Not included in the suggestion: "+", ".join(r.card["name"] for r in uncertain)+". Their rewards could change the result; check the conditions below.")
+        if L.get("cap_assumed"):
+            st.caption("Estimate assumes unused caps wherever prior cashback is zero. Adjust cashback already earned if needed.")
+    def comparison(mark=True):
+        st.markdown('<div class="cca-result-heading">Reward comparison</div>',unsafe_allow_html=True)
+        st.markdown(others_html(ranked[:3],mark),unsafe_allow_html=True)
+        if len(ranked)>3:
+            with st.expander(f"Compare all {len(ranked)} selected cards"):
+                st.markdown(others_html(ranked,mark),unsafe_allow_html=True)
+        notes()
     if not comparable or (partial and comparable[0].benefit<=0.005):
         st.info("No positive reward can be estimated reliably yet. Check the payment route or remaining allowance.")
-        st.markdown("**Reward comparison**")
-        st.markdown(others_html(ranked,False),unsafe_allow_html=True)
-        cap_note()
+        if enabled:
+            st.markdown(ai_panel_html(status="skipped"),unsafe_allow_html=True)
+        comparison(False)
         render_details(ranked,{"message":"AI skipped: no reliable positive reward to suggest."})
         return
     win=comparable[0]
     second=comparable[1] if len(comparable)>1 else None
-
-    def partial_note():
-        if partial:
-            st.caption("Not included in the suggestion: "+", ".join(r.card["name"] for r in uncertain)+". Their rewards could change the result; check the conditions below.")
-
-    tied=[x for x in comparable if abs(x.benefit-win.benefit)<0.005]
+    tied=[r for r in comparable if abs(r.benefit-win.benefit)<0.005]
     if win.benefit>0.005 and len(tied)>1:
-        st.markdown(('<div class="cca-panel"><div class="kicker">'+("Equal best among comparable cards" if partial else "Equal highest estimated reward")+'</div>') +
-                    f'<div class="cname">{html.escape(str(len(tied)))} cards are tied</div>'
-                    f'<div class="figure">{inr(win.benefit)}</div>'
-                    '<div class="delta">Compare the reward forms, conditions and convenience before choosing.</div></div>',unsafe_allow_html=True)
-        st.markdown(others_html(ranked,True),unsafe_allow_html=True)
-        partial_note()
-        cap_note()
+        rule=('<div class="cca-panel"><div class="kicker">'+("Equal best among comparable cards" if partial else "Equal highest estimated reward")+'</div>'
+              f'<div class="cname">{len(tied)} cards are tied</div><div class="figure">{inr(win.benefit)}</div>'
+              '<div class="delta">Compare the reward forms and conditions before choosing.</div></div>')
+        st.markdown(recommendation_html(rule,ai_panel_html(status="skipped") if enabled else None),unsafe_allow_html=True)
+        comparison()
         st.markdown("**Check before paying**")
         for item in tied:
             st.caption(item.card["name"]+": "+key_condition(item))
         render_details(ranked,{"message":"AI skipped: equal estimated rewards. No tie-break is imposed."})
         return
-    st.markdown(panel_html(win,second,amount,cat,partial=partial),unsafe_allow_html=True)
+    rule=panel_html(win,second,amount,cat,partial=partial,split=enabled)
+    payload=build_guidance(ranked,amount,cat) if enabled else None
+    def verified_option():
+        diag=L.get("ai_detail")
+        if not payload or L.get("ai_status")!="ok" or not isinstance(diag,dict) or not diag.get("api_response"):
+            return None
+        checks=diag.get("checks",{})
+        if set(checks)!=set(CHECK_NAMES) or any(v is not True for v in checks.values()):
+            return None
+        option_id=L.get("ai_option_id")
+        return payload["options"].get(option_id) if isinstance(option_id,str) and option_id==diag.get("option_id") else None
+    option=verified_option()
+    status=L.get("ai_status")
+    if enabled:
+        panel=st.empty()
+        panel.markdown(recommendation_html(rule,ai_panel_html(option,status if payload else "skipped")),unsafe_allow_html=True)
+        alignment=st.empty()
+    else:
+        st.markdown(rule,unsafe_allow_html=True)
+    comparison(win.benefit>0.005)
     if win.benefit<=0.005:
-        st.markdown("**Selected cards**")
-        st.markdown(others_html(ranked,False),unsafe_allow_html=True)
-        cap_note()
         render_details(ranked,{"message":"AI skipped: no positive modeled reward."})
         return
-    st.markdown('<div class="cca-result-heading">Reward comparison</div>',unsafe_allow_html=True)
-    # Partial results show every selected card; complete comparisons can expand the full list.
-    st.markdown(others_html(ranked if partial else ranked[:3],True),unsafe_allow_html=True)
-    if len(ranked)>3 and not partial:
-        with st.expander(f"Compare all {len(ranked)} selected cards"):
-            st.markdown(others_html(ranked,True),unsafe_allow_html=True)
-    st.caption(f"Conditional estimates, not guaranteed savings. Recommended card issuer terms reviewed: {review_date(win.card['last_verified'])}.")
-    partial_note()
-    cap_note()
-
-    def explain_html(reason, condition, ai, tip=""):
-        label="Why this card? · AI-assisted" if ai else "Why this card?"
-        verified='<div class="cca-verified">Gemini response passed all seven checks.</div>' if ai else ""
-        tip_html=('<div class="cca-condition"><div class="wt">What this means for you</div><div class="txt">'
-                  +html.escape(tip)+'</div></div>') if ai and tip else ""
-        return ('<div class="cca-explain"><div class="tag">'
-                +html.escape(label)+'</div><div class="txt">'
-                +html.escape(reason)+'</div><div class="cca-condition">'
-                '<div class="wt">Check before paying</div><div class="txt">'
-                +html.escape(condition)+'</div></div>'+tip_html+verified+'</div>')
-
-    # Decision and comparison are already visible, even while AI is pending.
-    # Render the complete rules-only explanation before waiting for AI.
-    explanation_slot=st.empty()
-    status_slot=st.empty()
+    st.caption(f"Conditional estimates, not guaranteed savings. Rules winner terms reviewed: {review_date(win.card['last_verified'])}.")
+    # Build every explanation from locally calculated facts, never model prose.
     reason,condition=explanation_parts(win,second,amount,cat)
-    explanation_slot.markdown(explain_html(reason,condition,False),unsafe_allow_html=True)
-    if partial:
-        status_slot.caption("Rules-only suggestion · AI is not requested for an incomplete comparison.")
-        render_details(ranked,{"message":"AI skipped: some selected rewards are unresolved; suggestion uses comparable cards only."})
-        return
-    if request_ai and L.get("ai_enabled") and len(tied)==1 and L.get("ai_status") is None:
-        # Only an explicit Compare action can send purchase facts. Ordinary
-        # reruns and opening diagnostics cannot trigger another request.
-        with status_slot.container():
-            with st.spinner("Your card is ready. Checking the AI explanation…"):
-                ai_text,ai_status,ai_detail=explain_comparison(
-                    ranked,amount,cat,True,
-                    api_key=get_secret("GEMINI_API_KEY"),
-                    model=get_secret("GEMINI_MODEL","gemini-3.5-flash-lite"))
-        L.update(ai_text=ai_text,ai_status=ai_status,ai_detail=ai_detail)
-        status_slot.empty()
-    status=L.get("ai_status")
-    diag=L.get("ai_detail")
-    if not isinstance(diag,dict):
-        diag={}
-    checked=(status=="ok" and bool(L.get("ai_text")) and diag.get("api_response")
-             and len(diag.get("checks",{}))==7 and all(diag["checks"].values())
-             and diag.get("tip_id") in decision_tips(win,second))
-    reason,condition=explanation_parts(win,second,amount,cat,diag if checked else None)
-    tip=decision_tips(win,second).get(diag.get("tip_id"),"") if checked else ""
-    explanation_slot.markdown(explain_html(reason,condition,bool(checked),tip),unsafe_allow_html=True)
-    if checked:
-        status_slot.empty()
-    elif status=="no_key":
-        status_slot.info("AI explanation unavailable. The calculated result is unchanged.")
-    elif status=="error":
-        status_slot.warning("AI explanation unavailable. The calculated result is unchanged.")
-    elif status=="mismatch":
-        status_slot.warning("AI explanation could not be verified. The calculated result is unchanged.")
-    elif status=="disabled":
-        status_slot.caption("Rules-only comparison · AI not requested.")
-        diag={"message":"AI not requested: rules-only comparison selected."}
-    else:
-        status_slot.caption("Rules-based explanation. Enable the optional AI explanation and compare again if desired.")
-
-    render_details(ranked,diag,checked)
-
+    st.markdown('<div class="cca-explain"><div class="tag">Why this calculated card?</div><div class="txt">'
+                +html.escape(reason)+'</div><div class="cca-condition"><div class="wt">Check before paying</div><div class="txt">'
+                +html.escape(condition)+'</div></div></div>',unsafe_allow_html=True)
+    if enabled and payload and request_ai and status is None:
+        with st.spinner("Checking AI guidance against calculated rewards…"):
+            option_id,status,diag=request_guidance(ranked,amount,cat,True,
+                api_key=get_secret("GEMINI_API_KEY"),
+                model=get_secret("GEMINI_MODEL","gemini-3.5-flash-lite"))
+        L.update(ai_option_id=option_id,ai_status=status,ai_detail=diag)
+        option=verified_option()
+    if enabled:
+        status=L.get("ai_status")
+        if payload and status=="ok" and option is None:
+            status="mismatch"
+        panel.markdown(recommendation_html(rule,ai_panel_html(option,status if payload else "skipped")),unsafe_allow_html=True)
+        if option:
+            same=option["card_id"]==win.card["id"]
+            alignment.caption("Both recommendations align." if same else "Your choice depends on which reward you will actually use. The rules winner has the higher estimated value; the AI alternative is conditional.")
+            st.caption("AI choice checked against calculated rewards and approved issuer references; not a live issuer verification.")
+            st.caption(option["card"]+" — "+option["condition"])
+        elif payload and status is None:
+            alignment.caption("Select Compare my cards to request AI guidance.")
+    diag=L.get("ai_detail") if isinstance(L.get("ai_detail"),dict) and enabled and payload else {}
+    if not diag:
+        diag={"message":"AI not requested: disabled or comparison is incomplete, tied or has no positive reward."}
+    render_details(ranked,diag,bool(option))
 
 def render_details(ranked,diag,checked=False):
     """Keep diagnostics and sources accessible even when no winner is possible."""
@@ -214,9 +206,7 @@ def render_details(ranked,diag,checked=False):
         if diag.get("message"):
             st.write(diag["message"])
         if checked:
-            st.write("Selected reason: "+diag["reason_id"])
-            st.write("Selected caution: "+diag["caution_id"])
-            st.write("Selected decision tip: "+diag["tip_id"])
-            st.caption("Only approved financial statements are displayed.")
+            st.write("Selected approved option: "+diag["option_id"])
+            st.caption("All eight grounding checks passed. Only locally approved financial statements and source links are displayed.")
         elif not diag.get("api_response") and not diag.get("elapsed_ms"):
             st.caption("No AI request was made for this comparison.")
