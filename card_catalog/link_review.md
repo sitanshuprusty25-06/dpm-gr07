@@ -8,3 +8,6 @@ Scope: the official reward references shown in the active Supported cards and co
 - SBI, HDFC, ICICI and Kiwi: retained the readable issuer/partner documents. No reward rates or merchant rules changed.
 
 Historical filenames and provenance remain recoverable in Git history; artwork and internal market evidence are not customer-facing issuer terms. Do not rely on link availability alone for financial accuracy. Recheck official terms before assessed use.
+
+## Kiwi refresh — 13 November 2026
+Added the official [application page](https://apply.gokiwi.in/landing) without tracking parameters, [card-specific product page](https://www.gokiwi.in/cards/yesbank/), [cap FAQ](https://gokiwi.in/helpcenter/rewards/6a6/), [Neon](https://gokiwi.in/neon/neon2/), [Boost](https://gokiwi.in/kiwi-boost-membership/) and [issuer guide](https://www.yes.bank.in/sites/web/content/published/api/v1.1/assets/CONTD761E1D607794FB484485C383950BC34/native/ybl_yes_bank_user_guide_klick_rupay_credit_card.pdf?download=false). Rewards policy remains the calculation source. The guide is the card artwork source; the generic landing banner is not a verified YES BANK card image.

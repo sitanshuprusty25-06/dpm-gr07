@@ -168,7 +168,9 @@ def render_details(ranked,diag,checked=False):
             st.write(key_condition(item))
             st.caption(item.card["caveat"])
             for j,source in enumerate(item.card.get("sources",[item.card["source"]]),1):
-                st.link_button(f"Official terms {j} · {item.card['name']}",source)
+                labels=item.card.get("source_labels",[])
+                label=labels[j-1] if j<=len(labels) else f"Official terms {j}"
+                st.link_button(f"{label} · {item.card['name']}",source)
         feedback=get_secret("FEEDBACK_URL")
         if feedback:
             st.link_button("Report wrong information",feedback)

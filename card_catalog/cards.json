@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_reviewed_on": "2026-11-12",
+  "source_reviewed_on": "2026-11-13",
   "scope": "Domestic non-EMI eligible personal purchases only. Reference rules, merchant eligibility and remaining caps determine conditional estimates. No guarantees, fees, interest or temporary promotions.",
   "categories": [
     {
@@ -264,10 +264,10 @@
         "fuel": "Fuel rewards excluded; surcharge waivers not compared.",
         "utilities": "Utility and telecom rewards excluded."
       },
-      "last_verified": "2026-11-12",
+      "last_verified": "2026-11-13",
       "point_value": null,
       "id": "kiwi_yes_klick",
-      "name": "Kiwi YES BANK Klick RuPay",
+      "name": "YES BANK Klick RuPay Credit Card (Kiwi)",
       "issuer": "YES BANK",
       "issuer_domain": "yes.bank.in",
       "hue": "#247E64",
@@ -275,13 +275,28 @@
       "source": "https://gokiwi.in/rewards-policy-v2/",
       "sources": [
         "https://gokiwi.in/rewards-policy-v2/",
-        "https://www.gokiwi.in/cards/yesbank/"
+        "https://www.gokiwi.in/cards/yesbank/",
+        "https://apply.gokiwi.in/landing",
+        "https://gokiwi.in/helpcenter/rewards/6a6/",
+        "https://gokiwi.in/neon/neon2/",
+        "https://gokiwi.in/kiwi-boost-membership/",
+        "https://www.yes.bank.in/sites/web/content/published/api/v1.1/assets/CONTD761E1D607794FB484485C383950BC34/native/ybl_yes_bank_user_guide_klick_rupay_credit_card.pdf?download=false"
       ],
-      "summary": "1.5% eligible Kiwi QR · 0.5% Kiwi online",
+      "summary": "1.5% eligible Kiwi QR · 0.5% Kiwi online · standard plan",
       "headline": "1.5% eligible Kiwi scan & pay",
       "reward_label": "Kiwis (bank-redeemable)",
-      "caveat": "Standard non-Neon program for cards issued via Kiwi since 4 July 2024. Rewards on completed ₹100 blocks; 1 Kiwi = ₹0.25. Monthly cap is expressed in Kiwis and depends on the credit limit. Enter known remaining cap in rupees if available. No Neon milestone or other-app/bank reward points modeled. Virtual card; eligible merchant payments via Kiwi only.",
-      "links_checked_on": "2026-11-12"
+      "caveat": "Standard plan only, for cards issued via Kiwi since 4 July 2024; no Neon or Boost. ₹0 joining and annual card fees. Rewards accrue per completed ₹100 on eligible Kiwi merchant payments; 4 Kiwis = ₹1. Redeem to a linked bank account in multiples of 500 Kiwis (₹125). The monthly cap FAQ describes 1% of credit limit in rupees, while the policy describes a cap in Kiwis; confirm your actual remaining allowance in rupees before ranking. Fuel, utilities and other excluded MCCs earn no regular Kiwi reward. Digital-only YES BANK card; no physical POS or peer payments. Optional Neon (₹999 + tax/year): 2% QR, 0.5% online, milestone top-ups to 3%/4%/5% at ₹50k/₹1L/₹1.5L eligible annual spend with one lounge visit at each milestone. Optional Boost (₹49 + tax/3 months, select users): 1% eligible online. Membership rewards, fees, lounges, issuer points and temporary offers are not included in this comparison.",
+      "links_checked_on": "2026-11-13",
+      "network": "RuPay",
+      "source_labels": [
+        "Kiwi rewards policy",
+        "Kiwi YES BANK card details",
+        "Kiwi application page",
+        "Kiwi monthly cap FAQ",
+        "Kiwi Neon membership terms",
+        "Kiwi Boost membership terms",
+        "YES BANK card guide"
+      ]
     },
     {
       "chip": "◆",

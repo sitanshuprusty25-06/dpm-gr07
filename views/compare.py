@@ -113,7 +113,7 @@ with st.container(key="compare_workspace"):
             kiwi_remaining=None
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online"):
                 with st.expander("Kiwi · remaining monthly allowance (needed for ranking)",expanded=False):
-                    st.caption("Enter the remaining Kiwi reward allowance converted to rupees (4 Kiwis = ₹1). Leave blank if unknown; Kiwi will remain unranked rather than assuming an unlimited reward.")
+                    st.caption("Standard Kiwi plan only (no Neon or Boost). Check your actual remaining monthly allowance in the app; 4 Kiwis = ₹1. Enter it in rupees, not Kiwis. Leave blank if unknown; Kiwi will remain unranked rather than assuming an unlimited reward.")
                     keep_money("kiwi_remaining")
                     raw_kiwi=st.number_input("Remaining Kiwi reward value (₹)",min_value=0.0,value=None,step=1.0,format="%.2f",key="kiwi_remaining")
                     kiwi_remaining=money(raw_kiwi) if raw_kiwi is not None else None

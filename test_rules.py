@@ -165,6 +165,16 @@ class KiwiScapiaTests(unittest.TestCase):
     def test_kiwi_completed_blocks(self):
         r=evaluate(BY_ID["kiwi_yes_klick"],"groceries",1099,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=100)
         self.assertEqual(r.benefit,15)
+    def test_kiwi_exact_minimum_and_sources(self):
+        c=BY_ID["kiwi_yes_klick"]
+        self.assertEqual(c["name"], "YES BANK Klick RuPay Credit Card (Kiwi)")
+        self.assertEqual(c["fee"], 0)
+        self.assertIn("https://apply.gokiwi.in/landing", c["sources"])
+        self.assertEqual(len(c["sources"]), len(c["source_labels"]))
+        for amount, expected in ((99.99, 0), (100, 1.5), (199.99, 1.5), (200, 3)):
+            with self.subTest(amount=amount):
+                r=evaluate(c,"groceries",amount,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=100)
+                self.assertEqual(r.benefit,expected)
     def test_kiwi_cap(self):
         r=evaluate(BY_ID["kiwi_yes_klick"],"groceries",1000,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=4)
         self.assertEqual(r.benefit,4)

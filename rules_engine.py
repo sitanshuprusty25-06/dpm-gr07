@@ -185,7 +185,7 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
             out.reason=card["excl"][cat]
             return out
         if merchant_type not in ("kiwi_qr","kiwi_online"):
-            return _unknown(out,"Confirm the eligible payment is via Kiwi; standard non-Neon rewards only.")
+            return _unknown(out,"Confirm the eligible payment is via Kiwi; standard plan only (no Neon or Boost).")
         if (merchant_type=="kiwi_qr" and channel!="upi") or (merchant_type=="kiwi_online" and channel!="online"):
             return _unknown(out,"Kiwi payment route does not match the selected channel.")
         rate=1.5 if channel=="upi" else 0.5
@@ -327,7 +327,7 @@ def key_condition(r):
     if r.code in ("excluded","below-min"):
         return r.reason
     if card["model"]=="kiwi":
-        return "Standard Kiwi non-Neon rewards via the Kiwi app, completed ₹100 blocks and entered remaining cap. 1 Kiwi = ₹0.25; bank reward points and milestones excluded."
+        return "Standard Kiwi plan only (no Neon or Boost), eligible Kiwi payments, completed ₹100 blocks and entered remaining cap. 4 Kiwis = ₹1; redeem in blocks of 500 Kiwis (₹125). Bank points and milestones excluded."
     if card["model"]=="scapia":
         return "Five Scapia Coins = ₹1 in the Scapia app, not cash. Issuer MCC exclusions apply; travel redemption and potential fees may affect usable value."
     if card["model"] in ("hdfc_ornge","hdfc_original","hdfc_blck","amazon","flipkart_axis"):

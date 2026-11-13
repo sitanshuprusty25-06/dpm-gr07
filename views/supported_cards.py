@@ -21,5 +21,6 @@ for i in range(0,len(shown),3):
                     st.write(c["caveat"])
                     st.caption("Issuer terms reviewed: "+review_date(c["last_verified"])+" · Links checked: "+review_date(c.get("links_checked_on",c["last_verified"])))
                     for j,source in enumerate(c["sources"],1):
-                        st.link_button(f"Issuer terms {j}",source)
+                        labels=c.get("source_labels",[])
+                        st.link_button(labels[j-1] if j<=len(labels) else f"Issuer terms {j}",source)
 st.caption("Product imagery and issuer icons are for identification. Independent academic MVP; no bank affiliation. Unavailable artwork uses a labeled illustration. Actual merchant eligibility and issuer terms apply.")
