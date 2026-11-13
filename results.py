@@ -1,4 +1,4 @@
-"""Present the computed recommendation and its checked AI explanation first."""
+"""Present the computed decision and reward comparison before the explanation."""
 import html
 import streamlit as st
 from rules_engine import category_label,inr,key_condition
@@ -52,13 +52,16 @@ def panel_html(win,second,amount,cat):
 
 def render_result(L, request_ai=False):
     ranked,win,second,amount,cat=(L["ranked"],L["win"],L["second"],L["amount"],L["cat"])
-    st.markdown("".join(f'<span class="fin-pill">{html.escape(str(x))}</span>' for x in [category_label(cat),L.get("channel",""),L.get("merchant_label","")] if x),unsafe_allow_html=True)
-    if L.get("cap_assumed"):
-        st.caption("Estimate assumes unused caps wherever prior cashback is zero. Adjust cashback already earned if needed.")
+    # Purchase inputs already show the selected category, method and merchant.
+    # Keep the result header clear so the decision is the first visible output.
+    def cap_note():
+        if L.get("cap_assumed"):
+            st.caption("Estimate assumes unused caps wherever prior cashback is zero. Adjust cashback already earned if needed.")
     eligible=[r for r in ranked if r.available]
     if not eligible:
         st.info("No selected card supports this modeled payment route. Check your payment method or choose another card you own.")
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
+        cap_note()
         render_details(ranked,{"message":"AI skipped: no selected card supports this payment route."})
         return
     win=eligible[0]
@@ -73,6 +76,7 @@ def render_result(L, request_ai=False):
         st.markdown("**Available partial comparisons**")
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
         st.caption("No recommended card is shown while a selected card's reward is unresolved.")
+        cap_note()
         render_details(ranked,{"message":"AI skipped: one or more applicable rewards cannot be established."})
         return
 
@@ -83,6 +87,7 @@ def render_result(L, request_ai=False):
                     f'<div class="figure">{inr(win.benefit)}</div>'
                     '<div class="delta">Compare the reward forms, conditions and convenience before choosing.</div></div>',unsafe_allow_html=True)
         st.markdown(others_html(ranked,True),unsafe_allow_html=True)
+        cap_note()
         st.markdown("**Check before paying**")
         for item in tied:
             st.caption(item.card["name"]+": "+key_condition(item))
@@ -92,8 +97,18 @@ def render_result(L, request_ai=False):
     if win.benefit<=0.005:
         st.markdown("**Selected cards**")
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
+        cap_note()
         render_details(ranked,{"message":"AI skipped: no positive modeled reward."})
         return
+    st.markdown('<div class="cca-result-heading">Reward comparison</div>',unsafe_allow_html=True)
+    # Keep the first three visible. Large wallets can expand the full list.
+    st.markdown(others_html(ranked[:3],True),unsafe_allow_html=True)
+    if len(ranked)>3:
+        with st.expander(f"Compare all {len(ranked)} selected cards"):
+            st.markdown(others_html(ranked,True),unsafe_allow_html=True)
+    st.caption(f"Conditional estimates, not guaranteed savings. Recommended card issuer terms reviewed: {review_date(win.card['last_verified'])}.")
+    cap_note()
+
     def explain_html(reason, condition, ai, tip=""):
         label="Why this card? · AI-assisted" if ai else "Why this card?"
         verified='<div class="cca-verified">Gemini response passed all seven checks.</div>' if ai else ""
@@ -105,6 +120,7 @@ def render_result(L, request_ai=False):
                 '<div class="wt">Check before paying</div><div class="txt">'
                 +html.escape(condition)+'</div></div>'+tip_html+verified+'</div>')
 
+    # Decision and comparison are already visible, even while AI is pending.
     # Render the complete rules-only explanation before waiting for AI.
     explanation_slot=st.empty()
     status_slot=st.empty()
@@ -145,13 +161,6 @@ def render_result(L, request_ai=False):
     else:
         status_slot.caption("Rules-based explanation. Enable the optional AI explanation and compare again if desired.")
 
-    st.markdown('<div class="cca-result-heading">Reward comparison</div>',unsafe_allow_html=True)
-    # Keep the first three visible. Large wallets can expand the full list.
-    st.markdown(others_html(ranked[:3],True),unsafe_allow_html=True)
-    if len(ranked)>3:
-        with st.expander(f"Compare all {len(ranked)} selected cards"):
-            st.markdown(others_html(ranked,True),unsafe_allow_html=True)
-    st.caption(f"Conditional estimates, not guaranteed savings. Recommended card issuer terms reviewed: {review_date(win.card['last_verified'])}.")
     render_details(ranked,diag,checked)
 
 
