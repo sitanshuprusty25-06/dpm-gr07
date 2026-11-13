@@ -1,6 +1,7 @@
 """Stateless purchase comparison: selectors live only in Streamlit session state."""
 import streamlit as st
-from cards import CARDS, CATEGORIES, DEFAULT_WALLET
+from cards import (CARDS, CATEGORIES, DEFAULT_WALLET, payment_methods,
+                   valid_payment_method, upi_merchant_routes)
 from results import render_result
 from rules_engine import category_label, rank, reward_bucket, money, inr
 from ui import is_mobile, keep, keep_money, remember, page_heading
@@ -43,9 +44,18 @@ with st.container(key="compare_workspace"):
             # Short labels fit side by side on desktop; native columns stack
             # on narrower screens. Amount retains the full input width.
             methods,categories=(st.container(),st.container()) if mobile else st.columns(2)
+            # Normalize before constructing the widget. Clear a stale result when
+            # the last UPI-capable card is removed; remember() saves the reset.
+            channels = payment_methods(selected)
+            valid_channel = valid_payment_method(selected, st.session_state.get("channel"))
+            if st.session_state.get("channel") != valid_channel:
+                st.session_state["channel"] = valid_channel
+                st.session_state["p_channel"] = valid_channel
+                st.session_state.pop("last", None)
+                st.caption("Payment method reset to Online. Compare again using your selected cards.")
             with methods:
-                st.selectbox("Payment method",["online","offline","upi"],
-                             format_func=lambda v:{"online":"Online","offline":"In-store","upi":"Merchant UPI QR"}[v],
+                st.selectbox("Payment method",channels,
+                             format_func=lambda v:{"online":"Online","offline":"In-store","upi":"Merchant QR / UPI"}[v],
                              key="channel")
             with categories:
                 st.selectbox("Purchase category",cat_ids,
@@ -85,7 +95,7 @@ with st.container(key="compare_workspace"):
             if channel=="online" and "kiwi_yes_klick" in [c["id"] for c in selected]:
                 merchants["kiwi_online"]="Kiwi app — eligible online merchant payment"
             if channel=="upi":
-                merchants={"unconfirmed":"Not sure — check eligibility","kiwi_qr":"Kiwi app — eligible merchant QR (credit on UPI)","other":"Other UPI app — eligible merchant QR"}
+                merchants=upi_merchant_routes(selected)
             if channel=="offline":
                 merchant="other"
             else:
@@ -93,12 +103,13 @@ with st.container(key="compare_workspace"):
                 keep(route_key)
                 if route_key in st.session_state and st.session_state[route_key] not in merchants:
                     st.session_state.pop(route_key,None)
+                    st.session_state.pop("p_"+route_key,None)
                 merchant=st.selectbox("Where are you paying?",list(merchants),format_func=merchants.get,
                                       key=route_key,help="Choose the actual store or app only if its issuer eligibility is confirmed. For partner offers, check the relevant card terms in Supported cards. Grocery MCC means merchant category code 5411. If unsure, choose Not sure; no winner will be forced.")
                 remember(route_key)
             st.session_state["merchant_type"]=merchant
             keep("emi",False)
-            emi = st.checkbox("EMI, international or other excluded purchase",key="emi",help="Select for EMI, international spending, gift cards, wallet loads, rent, education, jewellery, insurance, tax/government, gaming, tolls, cash advances, railway, business expenses or other excluded spending. This MVP does not model these purchases.")
+            emi = st.checkbox("This is an EMI, international or excluded purchase",key="emi",help="Tick if this is an EMI (instalment) or international payment, or if you are paying for gift cards, wallet top-ups, rent, education, jewellery, insurance, taxes/government, gaming, tolls, cash advances, railways, business expenses or other unsupported purchases. Leave unchecked for a regular supported domestic purchase.")
             remember("amount");remember("cat");remember("channel");remember("emi")
 
             kiwi_remaining=None
@@ -149,8 +160,8 @@ with st.container(key="compare_workspace"):
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online") and kiwi_remaining is None:
                 st.caption("Kiwi allowance unknown: enter it above to establish a complete comparison.")
             keep("compare_use_ai",False)
-            use_ai = st.checkbox("Add AI explanation (shares computed purchase facts with Gemini)",key="compare_use_ai",
-                                 help="Optional. On eligible comparisons, Gemini receives computed purchase facts and relevant card names. It selects an approved explanation and practical decision tip; it does not calculate or rank rewards. No banking credentials are requested.")
+            use_ai = st.checkbox("Add AI guidance (shares purchase and reward details with Google Gemini)",key="compare_use_ai",
+                                 help="Optional. Google Gemini receives relevant card names, purchase amount, category, payment method, estimated rewards and relevant reward conditions, including cap information when needed. AI helps explain the result and offers a decision tip; the app calculates the rewards. No card numbers or bank logins are requested.")
             remember("compare_use_ai")
             current_sig=repr((tuple(c["id"] for c in selected),amount,
                               st.session_state["cat"],st.session_state["channel"],

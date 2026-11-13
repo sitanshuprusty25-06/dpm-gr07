@@ -29,7 +29,7 @@ The ten supported products are Amazon Pay ICICI, Flipkart Axis, original Swiggy 
 
 ## Privacy and limits
 
-No login, bank credentials, card numbers, database, payment initiation or persistent user wallet. Temporary Streamlit session state holds selections and purchase context, including route and excluded-spending choices when switching pages. The version-controlled catalogue contains public issuer reference data, not user data. AI is off by default for new sessions. Opting in sends computed purchase facts and relevant card names to Google Gemini on eligible comparisons. The Compare my cards action remains the same with or without AI; an existing session retains its choice. Hosting and AI providers have their own policies; no claim is made about their retention. This is an independent academic prototype, not financial advice or a bank-endorsed service.
+No login, bank credentials, card numbers, database, payment initiation or persistent user wallet. Temporary Streamlit session state holds selections and purchase context, including route and excluded-spending choices when switching pages. The version-controlled catalogue contains public issuer reference data, not user data. AI is off by default for new sessions. Opting in sends relevant card names, purchase details (amount, category and payment method), estimated rewards and applicable reward conditions to Google Gemini on eligible comparisons. The Compare my cards action remains the same with or without AI; an existing session retains its choice. Hosting and AI providers have their own policies; no claim is made about their retention. This is an independent academic prototype, not financial advice or a bank-endorsed service.
 
 ## Main files
 
@@ -37,7 +37,7 @@ No login, bank credentials, card numbers, database, payment initiation or persis
 - `views/compare.py` — purchase inputs and comparison
 - `views/supported_cards.py` — reference catalogue
 - `ui.py`, `.streamlit/config.toml` — shared sidebar guidance, native light/dark theme and layout
-- `cards.py`, `card_catalog/` — read-only data, issuer sources and caveats
+- `cards.py`, `card_catalog/` — read-only data, issuer sources, caveats and supported payment choices
 - `rules_engine.py` — modeled calculations and ranking
 - `explain.py`, `results.py` — approved AI explanation, validation, fallback and result presentation
 - `assets/card_images.json`, `assets/README.md` — product artwork provenance and current layout
@@ -87,3 +87,7 @@ The reward comparison uses plain-language cashback descriptions, a separate rewa
 ### Contextual AI decision guidance (13 November 2026)
 
 The full factual comparison and mandatory issuer caution remain available without AI. An opted-in, successfully validated Gemini response additionally selects a practical decision tip from options grounded in the computed purchase, reward forms and applicable cap. The tip appears under What this means for you. The response schema adds `tip_id`; a seventh check rejects unknown or missing tip choices. No unrestricted model prose is rendered. The earlier six-check descriptions in historical change notes refer to previous versions. No issuer rules, calculation, ranking, provider configuration or data persistence changed. This is a testable hypothesis about incremental decision value, not proof of customer benefit. Compare the two modes with real users and update Slide 9 and the PRD to describe the actual seven checks and bounded tip selection. No API key changes are required.
+
+### Test Case 1 — usability refinements (13 November 2026)
+
+The sidebar removes the redundant opening label and uses shorter workflow and privacy wording. The AI checkbox explains sharing with Google Gemini in plain language and remains opt-in. The excluded-purchase checkbox retains its safeguard with simpler wording and examples in help. Merchant QR / UPI is offered only when Kiwi YES BANK Klick RuPay or Scapia Federal RuPay is selected; the Kiwi-specific QR route appears only with Kiwi. Removing the last supported RuPay card resets UPI to Online, clears the previous result and updates the temporary session selection. Invalid saved merchant routes are reset to Not sure when their options disappear. The shared support predicate is identical to the prior engine eligibility guard; no reward rates, calculations, AI checks or scope have changed. Five regression definitions cover the payment-choice behavior. Retest these observations with the participant; this commit records implemented refinements, not a completed retest.

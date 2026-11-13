@@ -218,29 +218,29 @@ def sidebar():
     with st.sidebar:
         st.markdown(
             '<div class="cca-side">'
-            '<div class="side-kicker">Before you pay</div>'
             '<div class="side-title">About Card Choice Assistant</div>'
-            '<p>Choose a card for a planned purchase with less checking.</p>'
+            '<p>Find the right card for your purchase without checking multiple apps or websites.</p>'
             '<div class="side-section"><div class="side-label">How it works</div>'
             '<div class="side-step"><span class="side-num">1</span><div>'
-            '<strong>Select your cards</strong><span>Choose the exact cards you own.</span></div></div>'
+            '<strong>Select your cards</strong><span>Choose the cards you own.</span></div></div>'
             '<div class="side-step"><span class="side-num">2</span><div>'
-            '<strong>Enter purchase details</strong><span>Amount, category, where you pay and any used rewards.</span></div></div>'
+            '<strong>Enter purchase details</strong><span>Enter the amount, what you are buying and how you are paying.</span></div></div>'
             '<div class="side-step"><span class="side-num">3</span><div>'
-            '<strong>Compare and understand</strong><span>Review rewards, reasons and conditions.</span></div></div></div>'
+            '<strong>Compare and decide</strong><span>See estimated rewards and important conditions.</span></div></div></div>'
             '<div class="side-section"><div class="side-note"><strong>Your privacy</strong>'
-            '<p>No card numbers, bank login or saved wallet. Optional AI shares computed facts and card names with Gemini.</p></div></div>'
-            '<div class="side-section"><div class="side-label">Know before you pay</div>'
-            '<p>Estimates are conditional. Confirm eligibility and remaining caps.</p></div>'
+            '<p>We never ask for your card number or bank login. The app keeps your selections only for this session.</p>'
+            '<p style="margin-top:7px;">If you enable AI, relevant card names, purchase details and reward information are shared with Google Gemini.</p></div></div>'
+            '<div class="side-section"><div class="side-label">Before you decide</div>'
+            '<p>Rewards are estimates. Check eligibility and remaining cashback limits.</p></div>'
             '</div>', unsafe_allow_html=True
         )
         with st.expander("Help and limitations"):
             st.markdown("**What does AI do?**")
             st.write(
-                "The rules engine calculates and ranks rewards. Gemini selects "
-                "an approved reason, caution and practical decision tip. It cannot change the ranking. "
-                "AI is optional; the calculated result "
-                "also remains available if AI fails."
+                "The app calculates the rewards. If you turn on AI, Google Gemini helps "
+                "explain the result and selects a practical decision tip from checked options. "
+                "AI cannot change the card recommendation. You can compare without AI, "
+                "and the calculated result stays available if AI fails."
             )
             st.markdown("**What if I am unsure about eligibility or caps?**")
             st.write(
@@ -255,7 +255,7 @@ def sidebar():
                 "to earn rewards."
             )
             st.markdown("**Provider privacy**")
-            st.write("Inputs stay in temporary session state. Hosting and AI providers have their own data-handling policies.")
+            st.write("The app does not save a customer wallet or purchase history. Your selections are held temporarily while you use it. Streamlit and Google Gemini have their own data-handling policies.")
             st.markdown("[Google Gemini API terms](https://ai.google.dev/gemini-api/terms)")
         st.caption("Group 07 · IIM Visakhapatnam · Academic MVP")
         st.markdown("[Source repository](https://github.com/sitanshuprusty25-06/dpm-gr07)")

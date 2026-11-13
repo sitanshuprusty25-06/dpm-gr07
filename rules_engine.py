@@ -6,7 +6,7 @@ pretend to know the winner. This model contains no user storage or API calls.
 import math
 from decimal import Decimal, ROUND_HALF_UP
 from dataclasses import dataclass
-from cards import CATEGORY_LABELS
+from cards import CATEGORY_LABELS, supports_credit_upi
 
 def decimal_value(x):
     """Convert a finite numeric input without binary floating-point artifacts."""
@@ -161,7 +161,7 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
     out = Result(card=card, category=cat, channel=channel)
     model = card["model"]
     # A merchant UPI QR is a different payment rail, not ordinary card POS.
-    if channel == "upi" and not (model == "kiwi" or (model == "scapia" and card.get("network")=="RuPay")):
+    if channel == "upi" and not supports_credit_upi(card):
         out.available = False
         out.code = "unavailable"
         out.reason = "UPI credit-card route not modeled for this product"

@@ -4,7 +4,8 @@ import json
 import csv
 from pathlib import Path
 from unittest.mock import patch
-from cards import CARDS,MARKET,CATALOG
+from cards import (CARDS,MARKET,CATALOG, supports_credit_upi, payment_methods,
+                   valid_payment_method, upi_merchant_routes)
 from rules_engine import evaluate,rank,inr,key_condition,reward_bucket,money
 from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_error_category,explanation_parts,decision_tips
 
@@ -595,6 +596,42 @@ class DecisionTipTests(unittest.TestCase):
         self.assertNotIn("reward_tradeoff",tips)
         self.assertNotIn("cap_tradeoff",tips)
         self.assertIn("use_balance",tips)
+
+class PaymentChoiceTests(unittest.TestCase):
+    def test_no_rupay_no_qr(self):
+        for selected in ([], [BY_ID["amazon_icici"], BY_ID["swiggy_ornge"]],
+                         [BY_ID["scapia_visa"]]):
+            with self.subTest(selected=selected):
+                self.assertEqual(payment_methods(selected), ["online", "offline"])
+                self.assertEqual(upi_merchant_routes(selected), {})
+
+    def test_each_supported_rupay_offers_qr(self):
+        for card_id in ("kiwi_yes_klick", "scapia_rupay"):
+            with self.subTest(card_id=card_id):
+                selected = [BY_ID[card_id], BY_ID["amazon_icici"]]
+                self.assertEqual(payment_methods(selected), ["online", "offline", "upi"])
+                self.assertEqual(valid_payment_method(selected, "upi"), "upi")
+                self.assertTrue(supports_credit_upi(BY_ID[card_id]))
+
+    def test_removing_last_rupay_resets_channel(self):
+        self.assertEqual(valid_payment_method([BY_ID["scapia_visa"]], "upi"), "online")
+        self.assertEqual(valid_payment_method([], "upi"), "online")
+        self.assertEqual(valid_payment_method([BY_ID["amazon_icici"]], "offline"), "offline")
+
+    def test_kiwi_qr_route_only_when_kiwi_selected(self):
+        self.assertEqual(list(upi_merchant_routes([BY_ID["scapia_rupay"]])),
+                         ["unconfirmed", "other"])
+        self.assertEqual(list(upi_merchant_routes([BY_ID["kiwi_yes_klick"]])),
+                         ["unconfirmed", "kiwi_qr", "other"])
+        self.assertIn("kiwi_qr", upi_merchant_routes(
+            [BY_ID["kiwi_yes_klick"], BY_ID["scapia_rupay"]]))
+
+    def test_ui_upi_support_matches_engine(self):
+        for card in CARDS:
+            with self.subTest(card=card["id"]):
+                result = evaluate(card, "shopping", 1000, channel="upi",
+                                  merchant_type="other")
+                self.assertEqual(result.available, supports_credit_upi(card))
 
 if __name__=="__main__":
     unittest.main()
