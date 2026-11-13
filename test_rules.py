@@ -404,6 +404,19 @@ class RepositoryConsistencyTests(unittest.TestCase):
         self.assertEqual(set(artwork),set(BY_ID))
         self.assertTrue(all(entry.get("source") for entry in artwork.values()))
 
+    def test_kiwi_local_artwork_is_current_and_decodable(self):
+        from PIL import Image
+        root=Path(__file__).resolve().parent
+        artwork=json.loads((root/"assets"/"card_images.json").read_text(encoding="utf-8"))
+        kiwi=artwork["kiwi_yes_klick"]
+        self.assertEqual(kiwi["local_path"],"assets/kiwi-yes-klick-green.webp")
+        self.assertNotIn("guide_pdf",kiwi)
+        self.assertFalse((root/"assets"/"kiwi-green-reference.webp").exists())
+        with Image.open(root/kiwi["local_path"]) as im:
+            self.assertEqual(im.format,"WEBP")
+            self.assertEqual(im.size,(360,228))
+            im.load()
+
     def test_source_register_matches_catalogue_and_order(self):
         root=Path(__file__).resolve().parent
         with (root/"card_catalog"/"source_register.csv").open(encoding="utf-8",newline="") as handle:

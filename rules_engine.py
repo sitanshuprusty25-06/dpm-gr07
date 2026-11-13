@@ -1,7 +1,7 @@
 """Deterministic purchase-level comparison of the *supported* issuer rules.
 
-When merchant classification or after-cap treatment is unresolved, we do not
-pretend to know the winner. This model contains no user storage or API calls.
+When merchant classification or after-cap treatment is unresolved, the result
+remains non-comparable; the UI may suggest a different comparable card. This model contains no user storage or API calls.
 """
 import math
 from decimal import Decimal, ROUND_HALF_UP

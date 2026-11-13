@@ -53,7 +53,7 @@ def panel_html(win,second,amount,cat,partial=False):
     )
 
 def render_result(L, request_ai=False):
-    ranked,win,second,amount,cat=(L["ranked"],L["win"],L["second"],L["amount"],L["cat"])
+    ranked,amount,cat=(L["ranked"],L["amount"],L["cat"])
     # Purchase inputs already show the selected category, method and merchant.
     # Keep the result header clear so the decision is the first visible output.
     def cap_note():
@@ -105,7 +105,7 @@ def render_result(L, request_ai=False):
         render_details(ranked,{"message":"AI skipped: no positive modeled reward."})
         return
     st.markdown('<div class="cca-result-heading">Reward comparison</div>',unsafe_allow_html=True)
-    # Keep the first three visible. Large wallets can expand the full list.
+    # Partial results show every selected card; complete comparisons can expand the full list.
     st.markdown(others_html(ranked if partial else ranked[:3],True),unsafe_allow_html=True)
     if len(ranked)>3 and not partial:
         with st.expander(f"Compare all {len(ranked)} selected cards"):

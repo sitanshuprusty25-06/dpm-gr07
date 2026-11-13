@@ -9,10 +9,10 @@ Evidence review: 2026-11-13. Official Kiwi and YES BANK material, not bank confi
 - https://gokiwi.in/helpcenter/rewards/6a6/ — monthly cap FAQ.
 - https://gokiwi.in/neon/neon2/ — optional Neon terms.
 - https://gokiwi.in/kiwi-boost-membership/ — optional Boost terms.
-- https://www.yes.bank.in/sites/web/content/published/api/v1.1/assets/CONTD761E1D607794FB484485C383950BC34/native/ybl_yes_bank_user_guide_klick_rupay_credit_card.pdf?download=false — issuer name, virtual-only card, lifetime-free fees and verified card artwork.
+- https://www.yes.bank.in/sites/web/content/published/api/v1.1/assets/CONTD761E1D607794FB484485C383950BC34/native/ybl_yes_bank_user_guide_klick_rupay_credit_card.pdf?download=false — issuer name, virtual-only card and lifetime-free fees; not the active artwork source.
 
 ## Modeled treatment
-- Standard plan, cards issued via Kiwi since 4 July 2024: 1.5% eligible merchant QR scan & pay and 0.5% online via Kiwi. Count completed ₹100 blocks, including exactly ₹100, from 1 June 2025. The landing page's broad UPI headline is not the calculation rule.
+- Standard plan, cards issued via Kiwi since 4 July 2024: 1.5% eligible merchant QR scan & pay and 0.5% eligible online UPI via Kiwi. Count completed ₹100 blocks, including exactly ₹100, from 1 June 2025. The landing page's broad UPI headline is not the calculation rule.
 - Four Kiwis = ₹1; redemption to the linked bank account in multiples of 500 Kiwis (₹125). Estimated rewards are accrued value, not an immediate bank deposit.
 - The policy describes the cap as 1% of credit limit in Kiwis; the FAQ explicitly illustrates ₹1,000 (4,000 Kiwis) for a ₹1 lakh limit and a reset on the first of each month. Because the wording differs, require the actual remaining allowance in rupees; no automatic credit-limit conversion. Positive estimates without it remain unranked.
 - No joining or annual card fee. Digital-only YES BANK card, eligible merchant payments; physical POS and peer payments are not supported. Fuel, utility, telecom and other excluded MCCs apply.
