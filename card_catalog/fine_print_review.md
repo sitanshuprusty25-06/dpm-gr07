@@ -14,4 +14,4 @@ Remaining limitations: no issuer transaction feed, actual MCC/MID, historical ca
 
 The source register and per-product notes mirror the current catalogue and implementation. No new issuer review or change to financial calculations is implied by documentation synchronization.
 
-Kiwi additional issuer review: [YES BANK Klick product page](https://www.yes.bank.in/personal-banking/yes-individual/cards/credit-cards/klick-credit-card) lists 4 YES Rewardz points per ₹200 on eligible non-UPI spend. Distinct from Kiwi rewards; not converted to rupees or ranked. The 0.5% Kiwi online tier is for eligible online UPI via Kiwi, not ordinary online card payments.
+Kiwi additional issuer review: [YES BANK Klick product page](https://www.yes.bank.in/personal-banking/yes-individual/cards/credit-cards/klick-credit-card) lists 2 YES Rewardz points per ₹200 on eligible non-UPI spend. Distinct from Kiwi rewards; not converted to rupees or ranked. The 0.5% Kiwi online tier is for eligible online UPI via Kiwi, not ordinary online card payments.
