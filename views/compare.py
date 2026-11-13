@@ -93,7 +93,7 @@ with st.container(key="compare_workspace"):
             if channel=="online" and cat=="hotel":
                 merchants["scapia_travel"]="Scapia app — eligible travel booking"
             if channel=="online" and "kiwi_yes_klick" in [c["id"] for c in selected]:
-                merchants["kiwi_online"]="Kiwi app — eligible online merchant payment"
+                merchants["kiwi_online"]="Kiwi app — eligible online UPI payment"
             if channel=="upi":
                 merchants=upi_merchant_routes(selected)
             if channel=="offline":
@@ -105,7 +105,7 @@ with st.container(key="compare_workspace"):
                     st.session_state.pop(route_key,None)
                     st.session_state.pop("p_"+route_key,None)
                 merchant=st.selectbox("Where are you paying?",list(merchants),format_func=merchants.get,
-                                      key=route_key,help="Choose the actual store or app only if its issuer eligibility is confirmed. For partner offers, check the relevant card terms in Supported cards. Grocery MCC means merchant category code 5411. If unsure, choose Not sure; no winner will be forced.")
+                                      key=route_key,help="Choose the actual store or app only if its issuer eligibility is confirmed. For partner offers, check the relevant card terms in Supported cards. Grocery MCC means merchant category code 5411. If unsure, choose Not sure; suggestions use only comparable rewards.")
                 remember(route_key)
             st.session_state["merchant_type"]=merchant
             remember("amount");remember("cat");remember("channel")
@@ -156,7 +156,7 @@ with st.container(key="compare_workspace"):
                 else:
                     st.caption("Cap estimates use the cashback already earned that you entered.")
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online") and kiwi_remaining is None:
-                st.caption("Kiwi allowance unknown: enter it above to establish a complete comparison.")
+                st.caption("Kiwi allowance unknown: enter it above to include Kiwi in the recommendation.")
             keep("compare_use_ai",False)
             use_ai = st.checkbox("Add AI guidance (shares purchase and reward details with Google Gemini)",key="compare_use_ai",
                                  help="Optional. Google Gemini receives relevant card names, purchase amount, category, payment method, estimated rewards and relevant reward conditions, including cap information when needed. AI helps explain the result and offers a decision tip; the app calculates the rewards. No card numbers or bank logins are requested.")

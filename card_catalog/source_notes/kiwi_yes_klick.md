@@ -23,3 +23,6 @@ Evidence review: 2026-11-13. Official Kiwi and YES BANK material, not bank confi
 - No paid membership rewards or costs, milestone calculation, lounge valuation, bank reward points, EMI, referral or temporary offers are modeled. Other Kiwi partner issuers are separate products and not included.
 
 Team must independently verify merchant eligibility and settled rewards. See [fine-print review](../fine_print_review.md) and [structured catalogue](../cards.json).
+
+## Additional issuer evidence
+- https://www.yes.bank.in/personal-banking/yes-individual/cards/credit-cards/klick-credit-card — lifetime-free, virtual-only card; 4 YES Rewardz points per ₹200 eligible non-UPI spend, distinct from Kiwi cashback. Do not assign 1.5% or 0.5% Kiwi rates to ordinary card-network payments. YES Rewardz is not valued in the current engine; eligibility and applicable redemption value/fees need separate modeling.

@@ -185,7 +185,7 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
             out.reason=card["excl"][cat]
             return out
         if merchant_type not in ("kiwi_qr","kiwi_online"):
-            return _unknown(out,"Confirm the eligible payment is via Kiwi; standard plan only (no Neon or Boost).")
+            return _unknown(out,"Kiwi cashback requires an eligible Kiwi UPI route. Other-app UPI or ordinary online card payment is not assigned Kiwi cashback; separate YES Rewardz points are not modeled.")
         if (merchant_type=="kiwi_qr" and channel!="upi") or (merchant_type=="kiwi_online" and channel!="online"):
             return _unknown(out,"Kiwi payment route does not match the selected channel.")
         rate=1.5 if channel=="upi" else 0.5

@@ -33,14 +33,14 @@
   },
   "kiwi_yes_klick": {
     "url": "",
-    "source": "https://apply.gokiwi.in/landing",
+    "source": "https://www.yes.bank.in/personal-banking/yes-individual/cards/credit-cards/klick-credit-card",
     "fallback_gradient": "linear-gradient(125deg,#a8ec00,#6db900)",
-    "label": "Kiwi green RuPay promotional artwork supplied as landing-page screenshot",
-    "image_alt": "Bright green Kiwi RuPay card over the Kiwi app",
+    "label": "Green YES BANK RuPay Klick artwork supplied by project team",
+    "image_alt": "Green YES BANK RuPay credit card",
     "product_reference": "https://www.gokiwi.in/cards/yesbank/",
     "application_reference": "https://apply.gokiwi.in/landing",
-    "local_path": "assets/kiwi-green-reference.webp",
-    "image_caption": "Kiwi promotional artwork"
+    "local_path": "assets/kiwi-yes-klick-green.webp",
+    "image_caption": ""
   },
   "scapia_visa": {
     "url": "https://www.paisabazaar.com/wp-content/webp-express/webp-images/doc-root/wp-content/uploads/2017/10/Scapia-Federal-Card-image.png.webp",

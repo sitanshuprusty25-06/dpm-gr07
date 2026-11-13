@@ -13,3 +13,5 @@ Scope: ten supported products, one domestic non-EMI purchase. No change to Gemin
 Remaining limitations: no issuer transaction feed, actual MCC/MID, historical cap usage or product-specific account status. A single merchant-route choice cannot resolve every cross-issuer condition; unknown cases must be withheld. Test each supported scenario with current official terms before assessed submission. Automated tests added but not executed in this environment.
 
 The source register and per-product notes mirror the current catalogue and implementation. No new issuer review or change to financial calculations is implied by documentation synchronization.
+
+Kiwi additional issuer review: [YES BANK Klick product page](https://www.yes.bank.in/personal-banking/yes-individual/cards/credit-cards/klick-credit-card) lists 4 YES Rewardz points per ₹200 on eligible non-UPI spend. Distinct from Kiwi rewards; not converted to rupees or ranked. The 0.5% Kiwi online tier is for eligible online UPI via Kiwi, not ordinary online card payments.

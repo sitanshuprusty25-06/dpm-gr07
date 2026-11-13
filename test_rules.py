@@ -175,6 +175,18 @@ class KiwiScapiaTests(unittest.TestCase):
             with self.subTest(amount=amount):
                 r=evaluate(c,"groceries",amount,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=100)
                 self.assertEqual(r.benefit,expected)
+    def test_kiwi_bank_source_and_other_online_route(self):
+        c=BY_ID["kiwi_yes_klick"]
+        self.assertIn("https://www.yes.bank.in/personal-banking/yes-individual/cards/credit-cards/klick-credit-card",c["sources"])
+        r=evaluate(c,"shopping",50099,merchant_type="myntra")
+        self.assertFalse(r.comparable)
+        self.assertIn("YES Rewardz",r.uncertainty)
+    def test_partial_screenshot_ranking(self):
+        ranked=rank([BY_ID[x] for x in ("amazon_icici","sbi_cashback","scapia_visa","kiwi_yes_klick")],"shopping",50099,merchant_type="myntra")
+        comparable=[r for r in ranked if r.available and r.comparable]
+        self.assertEqual(comparable[0].card["id"],"sbi_cashback")
+        self.assertEqual(comparable[0].benefit,2000)
+        self.assertTrue(any(not r.comparable for r in ranked))
     def test_kiwi_cap(self):
         r=evaluate(BY_ID["kiwi_yes_klick"],"groceries",1000,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=4)
         self.assertEqual(r.benefit,4)

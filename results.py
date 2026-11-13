@@ -24,7 +24,7 @@ def others_html(ranked,mark_best):
         )
     return "".join(rows)
 
-def panel_html(win,second,amount,cat):
+def panel_html(win,second,amount,cat,partial=False):
     if win.benefit <= 0.005:
         return ('<div class="cca-panel"><div class="kicker">No modeled card reward</div>'
                 '<div class="cname">None of these cards has an eligible calculated reward here</div>'
@@ -37,11 +37,13 @@ def panel_html(win,second,amount,cat):
         delta=f"{inr(win.benefit-second.benefit)} more in estimated reward value than {html.escape(second.card['name'])}"
     else:
         delta="Only one selected card has a comparable result for this route."
+    if partial:
+        delta += " · Provisional suggestion; other selected rewards could not be estimated."
     form=win.card.get("reward_label","reward")
     display_form=form if form=="Amazon Pay balance" or form.startswith(("Scapia Coins","Kiwis")) else form.lower()
     return (
         f'<div class="cca-panel">'
-        f'<div class="kicker">{"Equal estimated reward" if tied else "Highest estimated reward value" if second else "Your selected card"}</div>'
+        f'<div class="kicker">{"Best among comparable cards" if partial else "Equal estimated reward" if tied else "Highest estimated reward value" if second else "Your selected card"}</div>'
         f'<div class="cname">{html.escape(win.card["name"])}</div>'
         f'<div class="issuer">{html.escape(win.card["issuer"])}</div>'
         f'<div class="figure">{inr(win.benefit)}</div>'
@@ -64,36 +66,38 @@ def render_result(L, request_ai=False):
         cap_note()
         render_details(ranked,{"message":"AI skipped: no selected card supports this payment route."})
         return
-    win=eligible[0]
-    second=eligible[1] if len(eligible)>1 else None
+    comparable=[r for r in eligible if r.comparable]
     uncertain=[r for r in eligible if not r.comparable]
-    if uncertain:
-        st.warning("We cannot identify a reliable winner yet. One or more selected rewards are uncertain.")
-        for r in uncertain:
-            st.markdown("**"+r.card["name"]+"**")
-            st.write(r.uncertainty)
-        st.caption("Next step: check the purchase route and reward allowances, or open the issuer conditions below. If still uncertain, use the partial estimates only.")
-        st.markdown("**Available partial comparisons**")
+    partial=bool(uncertain)
+    if not comparable or (partial and comparable[0].benefit<=0.005):
+        st.info("No positive reward can be estimated reliably yet. Check the payment route or remaining allowance.")
+        st.markdown("**Reward comparison**")
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
-        st.caption("No recommended card is shown while a selected card's reward is unresolved.")
         cap_note()
-        render_details(ranked,{"message":"AI skipped: one or more applicable rewards cannot be established."})
+        render_details(ranked,{"message":"AI skipped: no reliable positive reward to suggest."})
         return
+    win=comparable[0]
+    second=comparable[1] if len(comparable)>1 else None
 
-    tied=[x for x in eligible if abs(x.benefit-win.benefit)<0.005]
+    def partial_note():
+        if partial:
+            st.caption("Not included in the suggestion: "+", ".join(r.card["name"] for r in uncertain)+". Their rewards could change the result; check the conditions below.")
+
+    tied=[x for x in comparable if abs(x.benefit-win.benefit)<0.005]
     if win.benefit>0.005 and len(tied)>1:
-        st.markdown('<div class="cca-panel"><div class="kicker">Equal highest estimated reward</div>'
+        st.markdown(('<div class="cca-panel"><div class="kicker">'+("Equal best among comparable cards" if partial else "Equal highest estimated reward")+'</div>') +
                     f'<div class="cname">{html.escape(str(len(tied)))} cards are tied</div>'
                     f'<div class="figure">{inr(win.benefit)}</div>'
                     '<div class="delta">Compare the reward forms, conditions and convenience before choosing.</div></div>',unsafe_allow_html=True)
         st.markdown(others_html(ranked,True),unsafe_allow_html=True)
+        partial_note()
         cap_note()
         st.markdown("**Check before paying**")
         for item in tied:
             st.caption(item.card["name"]+": "+key_condition(item))
         render_details(ranked,{"message":"AI skipped: equal estimated rewards. No tie-break is imposed."})
         return
-    st.markdown(panel_html(win,second,amount,cat),unsafe_allow_html=True)
+    st.markdown(panel_html(win,second,amount,cat,partial=partial),unsafe_allow_html=True)
     if win.benefit<=0.005:
         st.markdown("**Selected cards**")
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
@@ -102,11 +106,12 @@ def render_result(L, request_ai=False):
         return
     st.markdown('<div class="cca-result-heading">Reward comparison</div>',unsafe_allow_html=True)
     # Keep the first three visible. Large wallets can expand the full list.
-    st.markdown(others_html(ranked[:3],True),unsafe_allow_html=True)
-    if len(ranked)>3:
+    st.markdown(others_html(ranked if partial else ranked[:3],True),unsafe_allow_html=True)
+    if len(ranked)>3 and not partial:
         with st.expander(f"Compare all {len(ranked)} selected cards"):
             st.markdown(others_html(ranked,True),unsafe_allow_html=True)
     st.caption(f"Conditional estimates, not guaranteed savings. Recommended card issuer terms reviewed: {review_date(win.card['last_verified'])}.")
+    partial_note()
     cap_note()
 
     def explain_html(reason, condition, ai, tip=""):
@@ -126,6 +131,10 @@ def render_result(L, request_ai=False):
     status_slot=st.empty()
     reason,condition=explanation_parts(win,second,amount,cat)
     explanation_slot.markdown(explain_html(reason,condition,False),unsafe_allow_html=True)
+    if partial:
+        status_slot.caption("Rules-only suggestion · AI is not requested for an incomplete comparison.")
+        render_details(ranked,{"message":"AI skipped: some selected rewards are unresolved; suggestion uses comparable cards only."})
+        return
     if request_ai and L.get("ai_enabled") and len(tied)==1 and L.get("ai_status") is None:
         # Only an explicit Compare action can send purchase facts. Ordinary
         # reruns and opening diagnostics cannot trigger another request.
