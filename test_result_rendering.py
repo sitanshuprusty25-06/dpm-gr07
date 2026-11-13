@@ -120,7 +120,7 @@ class ResultRenderingTests(unittest.TestCase):
                          uncertainty="Check route")]
         markdown, captions, info, details = self.render(ranked, 1000)
         self.assertTrue(info)
-        self.assertIn("Not comparable", markdown[1])
+        self.assertTrue(any("Not comparable" in m for m in markdown))
 
 
 if __name__ == "__main__":

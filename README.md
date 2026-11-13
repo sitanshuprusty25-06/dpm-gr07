@@ -45,6 +45,8 @@ Retired prototype pages and the obsolete PDF-artwork extractor were removed from
 
 ## Run and verify
 
+GitHub Actions runs the regression suite and syntax checks on pushes and pull requests. Tests mock provider responses; they do not establish live Gemini or issuer accuracy.
+
 ```bash
 python -m pip install -r requirements.txt
 python -m unittest discover -v

@@ -1,0 +1,19 @@
+name: MVP regression checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements.txt
+      - run: python -m compileall -q app.py cards.py rules_engine.py explain.py ai_guidance.py results.py views ui.py visuals.py
+      - run: python -m unittest discover -v
