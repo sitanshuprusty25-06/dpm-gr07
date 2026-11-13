@@ -35,13 +35,15 @@ def panel_html(win,second,amount,cat):
         delta=f"{inr(win.benefit-second.benefit)} more in estimated reward value than {html.escape(second.card['name'])}"
     else:
         delta="Only one selected card has a comparable result for this route."
+    form=win.card.get("reward_label","reward")
+    display_form=form if form=="Amazon Pay balance" or form.startswith(("Scapia Coins","Kiwis")) else form.lower()
     return (
         f'<div class="cca-panel">'
         f'<div class="kicker">{"Equal estimated reward" if tied else "Highest estimated reward value" if second else "Your selected card"}</div>'
         f'<div class="cname">{html.escape(win.card["name"])}</div>'
         f'<div class="issuer">{html.escape(win.card["issuer"])}</div>'
         f'<div class="figure">{inr(win.benefit)}</div>'
-        f'<div class="delta">estimated {html.escape(win.card.get("reward_label","reward").lower())} for this {inr(amount)} '
+        f'<div class="delta">estimated {html.escape(display_form)} for this {inr(amount)} '
         f'{html.escape(purchase_label)} purchase</div>'
         f'<div class="delta">{delta}</div></div>'
     )

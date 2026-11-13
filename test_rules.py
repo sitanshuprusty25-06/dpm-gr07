@@ -283,12 +283,56 @@ class ExplanationPresentationTests(unittest.TestCase):
         self.assertTrue(reason.endswith("."))
         self.assertEqual(condition,key_condition(win))
 
-    def test_alternative_caution_keeps_mandatory_condition(self):
+    def test_redemption_caution_shows_mandatory_condition_once(self):
         win=evaluate(BY_ID["amazon_icici"],"shopping",1000,merchant_type="amazon_prime")
-        reason,condition=explanation_parts(win,None,1000,"shopping",
+        for caution_id in ("issuer_condition","redemption"):
+            with self.subTest(caution_id=caution_id):
+                reason,condition=explanation_parts(win,None,1000,"shopping",
+                                                  {"reason_id":"eligibility","caution_id":caution_id})
+                self.assertEqual(reason,"5% on eligible Amazon purchases with Prime membership.")
+                self.assertEqual(condition,key_condition(win))
+                self.assertEqual(condition.count("Amazon Pay balance"),1)
+        self.assertEqual(explanation_parts(win,None,1000,"shopping")[1],key_condition(win))
+
+    def test_amazon_paise_and_ornge_shared_cap_example(self):
+        cards=[BY_ID["amazon_icici"],BY_ID["swiggy_ornge"]]
+        win,second=rank(cards,"shopping",74230.33,{"swiggy_ornge":1200},
+                        channel="online",merchant_type="amazon_prime")
+        self.assertEqual(win.card["id"],"amazon_icici")
+        self.assertEqual(win.benefit,3711.52)
+        self.assertEqual(second.benefit,300)
+        self.assertEqual(second.cap_left_after,0)
+        self.assertEqual(money(win.benefit-second.benefit),3411.52)
+        reason,condition=explanation_parts(win,second,74230.33,"shopping",
                                           {"reason_id":"eligibility","caution_id":"redemption"})
-        self.assertIn(build_payload(win,None,1000,"shopping")["caution_options"]["redemption"],condition)
-        self.assertIn(key_condition(win),condition)
+        self.assertIn("Prime membership",reason)
+        self.assertEqual(condition,key_condition(win))
+
+    def test_amazon_reason_matches_purchase_route(self):
+        card=BY_ID["amazon_icici"]
+        for category,route,expected in [
+            ("shopping","amazon_nonprime","3% on eligible Amazon purchases without Prime membership"),
+            ("hotel","amazon_travel_prime","5% on eligible Amazon Pay hotel bookings with Prime membership"),
+            ("hotel","amazon_travel_nonprime","3% on eligible Amazon Pay hotel bookings without Prime membership"),
+            ("utilities","amazon_digital","2% on this eligible Amazon Pay payment"),
+            ("shopping","other","1% on this eligible purchase"),
+        ]:
+            with self.subTest(route=route):
+                result=evaluate(card,category,1000,merchant_type=route)
+                self.assertTrue(result.comparable)
+                self.assertEqual(result.reason,expected)
+
+    def test_scapia_and_kiwi_redemption_condition_not_repeated(self):
+        cases=[
+            evaluate(BY_ID["scapia_visa"],"shopping",1000,merchant_type="other"),
+            evaluate(BY_ID["kiwi_yes_klick"],"groceries",1000,channel="upi",merchant_type="kiwi_qr",kiwi_remaining=25),
+        ]
+        for win in cases:
+            with self.subTest(card=win.card["id"]):
+                self.assertTrue(win.comparable)
+                reason,condition=explanation_parts(win,None,1000,win.category,
+                                                  {"reason_id":"eligibility","caution_id":"redemption"})
+                self.assertEqual(condition,key_condition(win))
 
 class FinePrintTests(unittest.TestCase):
     def test_axis_issuer_worked_examples(self):

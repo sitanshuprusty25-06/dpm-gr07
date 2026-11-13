@@ -40,12 +40,11 @@ def build_payload(win, second, amount, cat):
             f"reward allowance after this purchase is {inr(win.cap_left_after)}."
         )
     cautions = {"issuer_condition": key_condition(win)}
-    if form == "Amazon Pay balance":
-        cautions["redemption"] = "The reward is Amazon Pay balance, not cash credited to your bank."
-    elif form.startswith("Scapia Coins"):
-        cautions["redemption"] = "The estimate is Scapia travel redemption value, not cash."
-    elif form.startswith("Kiwis"):
-        cautions["redemption"] = "Kiwi rewards depend on eligible Kiwi payments and your remaining monthly allowance."
+    if form == "Amazon Pay balance" or form.startswith(("Scapia Coins", "Kiwis")):
+        # The mandatory issuer condition already includes the redemption
+        # limitation. Keep the supported option ID, but use one approved
+        # statement so choosing it cannot repeat the same information.
+        cautions["redemption"] = cautions["issuer_condition"]
     return {
         "recommended": {"card_id": win.card["id"], "card": win.card["name"],
                         "benefit_inr": round(float(win.benefit), 2), "reward_form": form},

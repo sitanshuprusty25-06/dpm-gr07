@@ -252,7 +252,17 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
         out.benefit = money(possible if remaining is None else min(possible,remaining))
         out.cap_left_after = None if remaining is None else money(max(Decimal(0),remaining-decimal_value(out.benefit)))
         out.code = "cap-hit" if remaining is not None and possible > remaining else "bonus"
-        out.reason = f"{pct(rate)} eligible {name.replace('_',' ')} reward" + (" (Amazon Pay balance)" if card["model"]=="amazon" else "")
+        if card["model"] == "amazon":
+            if name in ("amazon","amazon_travel"):
+                context = "Amazon purchases" if name == "amazon" else "Amazon Pay hotel bookings"
+                membership = "with Prime membership" if rate == 5 else "without Prime membership"
+                out.reason = f"{pct(rate)} on eligible {context} {membership}"
+            elif name == "amazon_pay":
+                out.reason = f"{pct(rate)} on this eligible Amazon Pay payment"
+            else:
+                out.reason = f"{pct(rate)} on this eligible purchase"
+        else:
+            out.reason = f"{pct(rate)} eligible {name.replace('_',' ')} reward"
         return out
     if card["model"] == "channel_capped":
         rule = card["channel_rules"][channel]
@@ -324,7 +334,7 @@ def key_condition(r):
         if r.code == "below-min":
             return r.reason
         if card["model"] == "amazon":
-            return "Reward is credited as Amazon Pay balance; eligible purchases only, not a cash statement credit."
+            return "Rewards are credited as Amazon Pay balance, not cash or statement credit. Issuer eligibility conditions apply."
         if card["model"] == "flipkart_axis":
             if r.rule["cap"] is None:
                 return "Eligible uncapped cashback; actual merchant ID and exclusions determine the reward."

@@ -127,10 +127,18 @@ with st.container(key="compare_workspace"):
                         bucket_label={"online":"online","offline":"in-store","swiggy":"Swiggy","boost":"shared boosted","base":"other eligible","shared":"shared boosted","flipkart":"Flipkart","myntra":"Myntra","cleartrip":"Cleartrip"}.get(bucket_name,bucket_name)
                         cycle=("statement quarter" if card["model"]=="flipkart_axis" else
                                "statement cycle" if card["model"]=="channel_capped" else "billing cycle")
+                        if card["model"]=="hdfc_ornge" and bucket_name=="boost":
+                            label=f"{card['name']} — cashback already earned in the 5% category (₹)"
+                            cap_detail="This cap is shared across all eligible 5% Swiggy and listed online purchases. "
+                        else:
+                            if card["model"]=="hsbc" and bucket_name=="shared":
+                                bucket_label="shared 10% categories"
+                            label=f"{card['name']} — cashback already earned ({bucket_label}) (₹)"
+                            cap_detail=""
                         raw_used=st.number_input(
-                            f"{card['name']} · {bucket_label} cashback earned (₹)",
+                            label,
                             min_value=0.0,max_value=float(cap),step=1.0,format="%.2f",
-                            key=usage_key,help=f"Applicable limit: {inr(cap)} per {cycle}. Enter cashback already earned in this bucket, not spending.")
+                            key=usage_key,help=f"{cap_detail}Applicable limit: {inr(cap)} per {cycle}. Enter cashback already earned, not purchase spend.")
                         used_by_card[card["id"]]=money(raw_used)
                         remember(usage_key)
                 unused_count=sum(value==0 for value in used_by_card.values())
