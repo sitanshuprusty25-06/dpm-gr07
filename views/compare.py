@@ -199,11 +199,11 @@ with st.container(key="compare_workspace"):
                         "amount":amount,"cat":st.session_state["cat"],
                         "ai_option_id":None,"ai_status":"idle" if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_type":merchant,"kiwi_remaining":kiwi_remaining,"upi_limit_confirmed":upi_limit_confirmed,"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
                     }
-    with right:
-        st.markdown('<div class="fin-step result-step"><span class="step-number">03</span>Your result</div>',unsafe_allow_html=True)
-        if error:
-            st.error(error)
-        elif st.session_state.get("last"):
+            if error:
+                st.error(error)
+    # Keep purchase inputs stable. Reveal the right column contents only
+    # after a valid comparison, never for an initial or stale result.
+    if st.session_state.get("last") and not error:
+        with right:
+            st.markdown('<div class="fin-step result-step"><span class="step-number">03</span>Your result</div>',unsafe_allow_html=True)
             render_result(st.session_state["last"], request_ai=go)
-        else:
-            st.markdown('<div class="cca-empty"><h3>Ready when you are</h3><p>Select Compare my cards to see your estimated rewards and important conditions.</p></div>',unsafe_allow_html=True)

@@ -109,13 +109,13 @@ CSS = """
 .stApp .cca-sec {margin:24px 0 4px;}
 .stApp .cca-sec h2 {font-size:1.35rem;line-height:1.3;margin:0;padding:0;color:inherit;}
 .stApp .cca-sec p {font-size:.95rem;line-height:1.45;margin:5px 0 0;color:inherit;}
-.stApp .cca-card,.stApp .cca-explain,.stApp .cca-empty {border:1px solid color-mix(in srgb,currentColor 25%,transparent);border-radius:12px;padding:16px;color:inherit;}
+.stApp .cca-card,.stApp .cca-explain {border:1px solid color-mix(in srgb,currentColor 25%,transparent);border-radius:12px;padding:16px;color:inherit;}
 .stApp .cca-card {height:100%;}
-.stApp .cca-card h3,.stApp .cca-empty h3 {font-size:1.1rem;line-height:1.3;margin:0 0 6px;padding:0;color:inherit;}
-.stApp .cca-card p,.stApp .cca-card li,.stApp .cca-empty p {font-size:.95rem;line-height:1.45;margin:0;color:inherit;}
+.stApp .cca-card h3 {font-size:1.1rem;line-height:1.3;margin:0 0 6px;padding:0;color:inherit;}
+.stApp .cca-card p,.stApp .cca-card li {font-size:.95rem;line-height:1.45;margin:0;color:inherit;}
 .stApp .cca-card ul {padding-left:20px;margin:4px 0;}
 .stApp .cca-card li {margin-bottom:4px;}
-.stApp .cca-empty {text-align:center;padding:28px 18px;}
+
 .stApp .cca-panel {background:#142C52;color:#F4F7FC;border-radius:14px;padding:20px;position:relative;overflow-wrap:anywhere;}
 .stApp .cca-panel .kicker {font-size:.82rem;color:#D0DEEE;}
 .stApp .cca-panel .cname {font-size:1.35rem;line-height:1.3;font-weight:750;color:#F4F7FC;margin:4px 0;}
