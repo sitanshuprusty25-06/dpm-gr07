@@ -150,7 +150,7 @@ with st.container(key="compare_workspace"):
                 st.caption("Kiwi allowance unknown: enter it above to establish a complete comparison.")
             keep("compare_use_ai",False)
             use_ai = st.checkbox("Add AI explanation (shares computed purchase facts with Gemini)",key="compare_use_ai",
-                                 help="Optional. On eligible comparisons, Gemini receives computed purchase facts and relevant card names. It selects an approved explanation; it does not calculate or rank rewards. No banking credentials are requested.")
+                                 help="Optional. On eligible comparisons, Gemini receives computed purchase facts and relevant card names. It selects an approved explanation and practical decision tip; it does not calculate or rank rewards. No banking credentials are requested.")
             remember("compare_use_ai")
             current_sig=repr((tuple(c["id"] for c in selected),amount,
                               st.session_state["cat"],st.session_state["channel"],

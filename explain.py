@@ -1,4 +1,4 @@
-"""One grounded AI capability: select a useful reason and caution.
+"""One grounded AI capability: select a useful reason, caution and decision tip.
 
 The rules engine alone determines financial facts. No arbitrary model prose
 is rendered. The response and diagnostics remain in temporary session state.
@@ -16,8 +16,9 @@ SYSTEM_PROMPT = (
     "do not merely repeat the numerical advantage shown elsewhere. Choose a caution "
     "about the most relevant constraint or redemption type. Return ONLY a JSON "
     "object containing exactly card_id, benefit_inr, reward_form, reason_id, "
-    "caution_id. Copy card_id, benefit_inr and reward_form exactly from recommended. "
-    "Choose one reason_id and one caution_id from their respective option maps. "
+    "caution_id, tip_id. Copy card_id, benefit_inr and reward_form exactly from recommended. "
+    "Choose one reason_id, caution_id and tip_id from their respective option maps. "
+    "Choose the decision tip that best helps the shopper act on the comparison. "
     "Do not calculate, invent claims, change the recommendation or add prose."
 )
 
@@ -65,6 +66,35 @@ def _comparison_reason(win, second):
     return _sentence(win.reason)
 
 
+def decision_tips(win, second):
+    """Approved practical guidance, not new financial claims or a payment instruction."""
+    form = win.card.get("reward_label", "Cashback")
+    other = second.card.get("reward_label", "Cashback") if second else ""
+    tips = {
+        "planned_purchase": "Choose based on your planned purchase and ability to pay the bill in full. Do not spend extra just for rewards.",
+        "verify_eligibility": "Before paying, check that your actual checkout route matches the selected route. If it differs, compare again."
+    }
+    if form == "Amazon Pay balance":
+        tips["use_balance"] = "Consider whether you would actually use the Amazon Pay balance for future eligible payments."
+    elif form.startswith("Scapia Coins"):
+        tips["use_travel"] = "Consider whether you plan to redeem the coins for eligible Scapia travel."
+    elif form.startswith("Kiwis"):
+        tips["use_kiwi"] = "Check your remaining Kiwi allowance and whether the payment is made through an eligible Kiwi route."
+    if second and second.available and second.comparable and win.benefit > second.benefit:
+        if form != other:
+            tips["reward_tradeoff"] = (
+                f"{win.card['name']} offers {inr(money(win.benefit-second.benefit))} more in estimated reward value. "
+                f"Consider whether {form} is more useful to you than {other}; "
+                "the higher nominal reward need not be your preferred reward."
+            )
+        if _cashback_cap_binds(second):
+            tips["cap_tradeoff"] = (
+                f"Check the {inr(second.cap_left_before)} remaining allowance you entered for "
+                f"{second.card['name']}. If it changes, compare again before paying."
+            )
+    return tips
+
+
 def build_payload(win, second, amount, cat):
     form = win.card.get("reward_label", "Cashback")
     eligibility = win.reason
@@ -96,6 +126,7 @@ def build_payload(win, second, amount, cat):
                         "benefit_inr": round(float(win.benefit), 2), "reward_form": form},
         "purchase": {"amount_inr": money(amount), "category": category_label(cat), "channel": win.channel},
         "reason_options": reasons, "caution_options": cautions,
+        "tip_options": decision_tips(win, second),
     }
 
 
@@ -112,12 +143,12 @@ def check_response(text, payload):
     """Check exact schema, computed identity, amount, reward form and option IDs."""
     checks = {"Response format": False, "Recommended card": False,
               "Reward amount": False, "Reward type": False,
-              "Approved reason": False, "Approved caution": False}
+              "Approved reason": False, "Approved caution": False, "Approved decision tip": False}
     try:
         obj = json.loads(text, object_pairs_hook=_unique_object)
     except (TypeError, ValueError):
         return None, checks, "Response was not valid JSON or contained duplicate keys."
-    required = {"card_id", "benefit_inr", "reward_form", "reason_id", "caution_id"}
+    required = {"card_id", "benefit_inr", "reward_form", "reason_id", "caution_id", "tip_id"}
     if not isinstance(obj, dict) or set(obj) != required:
         return None, checks, "Unexpected or missing response fields."
     checks["Response format"] = True
@@ -128,6 +159,7 @@ def check_response(text, payload):
     checks["Reward type"] = obj["reward_form"] == expected["reward_form"]
     checks["Approved reason"] = isinstance(obj["reason_id"], str) and obj["reason_id"] in payload["reason_options"]
     checks["Approved caution"] = isinstance(obj["caution_id"], str) and obj["caution_id"] in payload["caution_options"]
+    checks["Approved decision tip"] = isinstance(obj["tip_id"], str) and obj["tip_id"] in payload["tip_options"]
     return (obj, checks, "") if all(checks.values()) else (None, checks, "One or more grounding checks failed.")
 
 
@@ -160,7 +192,8 @@ def render_approved(selection, payload):
         f"{r['card']} offers an estimated {inr(r['benefit_inr'])} in "
         f"{r['reward_form'].lower()} for this purchase. "
         + _sentence(payload["reason_options"][selection["reason_id"]]) + " "
-        + _sentence(payload["caution_options"][selection["caution_id"]])
+        + _sentence(payload["caution_options"][selection["caution_id"]]) + " "
+        + _sentence(payload["tip_options"][selection["tip_id"]])
     )
 
 
@@ -222,6 +255,7 @@ def ai_reword(win, second, amount, cat, api_key, model="gemini-3.5-flash-lite"):
         if selection is not None:
             diag["reason_id"] = selection["reason_id"]
             diag["caution_id"] = selection["caution_id"]
+            diag["tip_id"] = selection["tip_id"]
             return render_approved(selection, payload), "ok", diag
         return None, "mismatch", diag
     except Exception as exc:

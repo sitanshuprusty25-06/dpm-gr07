@@ -2,7 +2,7 @@
 import html
 import streamlit as st
 from rules_engine import category_label,inr,key_condition
-from explain import explain_comparison, explanation_parts
+from explain import explain_comparison, explanation_parts, decision_tips
 from ui import get_secret
 from display_text import comparison_text, redemption_guidance, review_date
 
@@ -94,14 +94,16 @@ def render_result(L, request_ai=False):
         st.markdown(others_html(ranked,False),unsafe_allow_html=True)
         render_details(ranked,{"message":"AI skipped: no positive modeled reward."})
         return
-    def explain_html(reason, condition, ai):
+    def explain_html(reason, condition, ai, tip=""):
         label="Why this card? · AI-assisted" if ai else "Why this card?"
-        verified='<div class="cca-verified">Gemini response passed all six checks.</div>' if ai else ""
+        verified='<div class="cca-verified">Gemini response passed all seven checks.</div>' if ai else ""
+        tip_html=('<div class="cca-condition"><div class="wt">What this means for you</div><div class="txt">'
+                  +html.escape(tip)+'</div></div>') if ai and tip else ""
         return ('<div class="cca-explain"><div class="tag">'
                 +html.escape(label)+'</div><div class="txt">'
                 +html.escape(reason)+'</div><div class="cca-condition">'
                 '<div class="wt">Check before paying</div><div class="txt">'
-                +html.escape(condition)+'</div></div>'+verified+'</div>')
+                +html.escape(condition)+'</div></div>'+tip_html+verified+'</div>')
 
     # Render the complete rules-only explanation before waiting for AI.
     explanation_slot=st.empty()
@@ -124,9 +126,11 @@ def render_result(L, request_ai=False):
     if not isinstance(diag,dict):
         diag={}
     checked=(status=="ok" and bool(L.get("ai_text")) and diag.get("api_response")
-             and len(diag.get("checks",{}))==6 and all(diag["checks"].values()))
+             and len(diag.get("checks",{}))==7 and all(diag["checks"].values())
+             and diag.get("tip_id") in decision_tips(win,second))
     reason,condition=explanation_parts(win,second,amount,cat,diag if checked else None)
-    explanation_slot.markdown(explain_html(reason,condition,bool(checked)),unsafe_allow_html=True)
+    tip=decision_tips(win,second).get(diag.get("tip_id"),"") if checked else ""
+    explanation_slot.markdown(explain_html(reason,condition,bool(checked),tip),unsafe_allow_html=True)
     if checked:
         status_slot.empty()
     elif status=="no_key":
@@ -192,6 +196,7 @@ def render_details(ranked,diag,checked=False):
         if checked:
             st.write("Selected reason: "+diag["reason_id"])
             st.write("Selected caution: "+diag["caution_id"])
+            st.write("Selected decision tip: "+diag["tip_id"])
             st.caption("Only approved financial statements are displayed.")
         elif not diag.get("api_response") and not diag.get("elapsed_ms"):
             st.caption("No AI request was made for this comparison.")

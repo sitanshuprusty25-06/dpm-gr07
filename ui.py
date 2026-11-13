@@ -238,7 +238,7 @@ def sidebar():
             st.markdown("**What does AI do?**")
             st.write(
                 "The rules engine calculates and ranks rewards. Gemini selects "
-                "an approved reason and caution. It cannot change the ranking. "
+                "an approved reason, caution and practical decision tip. It cannot change the ranking. "
                 "AI is optional; the calculated result "
                 "also remains available if AI fails."
             )

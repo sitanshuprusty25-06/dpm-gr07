@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 from cards import CARDS,MARKET,CATALOG
 from rules_engine import evaluate,rank,inr,key_condition,reward_bucket,money
-from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_error_category,explanation_parts
+from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_error_category,explanation_parts,decision_tips
 
 from display_text import comparison_text, redemption_guidance, review_date
 
@@ -59,7 +59,7 @@ class ExplanationChecks(unittest.TestCase):
         rec=self.p["recommended"]
         self.good={"card_id":rec["card_id"],"benefit_inr":rec["benefit_inr"],
                    "reward_form":rec["reward_form"],"reason_id":"advantage",
-                   "caution_id":"issuer_condition"}
+                   "caution_id":"issuer_condition","tip_id":"planned_purchase"}
 
     def test_accepts_right_amount(self):
         self.assertTrue(validate(json.dumps(self.good),self.p))
@@ -89,7 +89,7 @@ class ExplanationChecks(unittest.TestCase):
             msg,status,diag=ai_reword(self.w,self.s,8000,"dining","test-key")
         self.assertEqual(status,"ok")
         self.assertTrue(diag["api_response"])
-        self.assertEqual(len(diag["checks"]),6)
+        self.assertEqual(len(diag["checks"]),7)
         self.assertTrue(all(diag["checks"].values()))
         self.assertIn("₹800",msg)
         self.assertIn(self.w.card["name"],msg)
@@ -430,7 +430,7 @@ class DecimalMoneyTests(unittest.TestCase):
         p=build_payload(r,None,1200.50,"dining")
         self.assertEqual(p["purchase"]["amount_inr"],1200.50)
         self.assertEqual(p["recommended"]["benefit_inr"],60.03)
-        good={"card_id":"sbi_cashback","benefit_inr":60.03,"reward_form":"Cashback","reason_id":"eligibility","caution_id":"issuer_condition"}
+        good={"card_id":"sbi_cashback","benefit_inr":60.03,"reward_form":"Cashback","reason_id":"eligibility","caution_id":"issuer_condition","tip_id":"planned_purchase"}
         self.assertTrue(validate(json.dumps(good),p))
         self.assertFalse(validate(json.dumps(dict(good,benefit_inr=60.02)),p))
 
@@ -553,6 +553,48 @@ class CustomerDisplayTests(unittest.TestCase):
         self.assertEqual(review_date("2026-11-12"),"12 Nov 2026")
         self.assertEqual(review_date("2026-11-01"),"1 Nov 2026")
         self.assertEqual(review_date(None),"Not recorded")
+
+class DecisionTipTests(unittest.TestCase):
+    def setUp(self):
+        self.win,self.second=rank([BY_ID["amazon_icici"],BY_ID["swiggy_ornge"]],
+            "shopping",21435.40,{"swiggy_ornge":1200},channel="online",merchant_type="amazon_prime")
+        self.payload=build_payload(self.win,self.second,21435.40,"shopping")
+        r=self.payload["recommended"]
+        self.good={"card_id":r["card_id"],"benefit_inr":r["benefit_inr"],"reward_form":r["reward_form"],
+                   "reason_id":"eligibility","caution_id":"issuer_condition","tip_id":"reward_tradeoff"}
+    def test_contextual_tradeoff(self):
+        tip=self.payload["tip_options"]["reward_tradeoff"]
+        self.assertIn("₹771.77",tip)
+        self.assertIn("Amazon Pay balance",tip)
+        self.assertIn("Statement credit",tip)
+        self.assertNotIn("Scapia",tip)
+    def test_validated_tip(self):
+        selected,checks,_=check_response(json.dumps(self.good),self.payload)
+        self.assertIsNotNone(selected)
+        self.assertEqual(len(checks),7)
+        self.assertTrue(all(checks.values()))
+    def test_reject_unknown_tip(self):
+        selected,checks,_=check_response(json.dumps(dict(self.good,tip_id="guaranteed_cash")),self.payload)
+        self.assertIsNone(selected)
+        self.assertFalse(checks["Approved decision tip"])
+    def test_missing_tip_rejected(self):
+        good=dict(self.good)
+        del good["tip_id"]
+        self.assertFalse(validate(json.dumps(good),self.payload))
+    def test_provider_tip_and_rules_fallback(self):
+        with patch("explain._call_gemini",return_value=json.dumps(self.good)):
+            msg,status,diag=ai_reword(self.win,self.second,21435.40,"shopping","test-key")
+        self.assertEqual(status,"ok")
+        self.assertEqual(diag["tip_id"],"reward_tradeoff")
+        self.assertIn(self.payload["tip_options"]["reward_tradeoff"],msg)
+        reason,condition=explanation_parts(self.win,self.second,21435.40,"shopping")
+        self.assertIn("₹300",reason)
+        self.assertIn("Amazon Pay balance",condition)
+    def test_no_irrelevant_tradeoff_single_card(self):
+        tips=decision_tips(self.win,None)
+        self.assertNotIn("reward_tradeoff",tips)
+        self.assertNotIn("cap_tradeoff",tips)
+        self.assertIn("use_balance",tips)
 
 if __name__=="__main__":
     unittest.main()
