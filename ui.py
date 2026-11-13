@@ -130,6 +130,7 @@ CSS = """
 .stApp .cca-row:first-child {border-top:0;}
 .stApp .cca-row .nm {flex:1;min-width:0;font-size:.96rem;overflow-wrap:anywhere;color:inherit;}
 .stApp .cca-row .why {display:block;font-size:.85rem;color:inherit;line-height:1.4;}
+.stApp .cca-row .reward-form {display:block;font-size:.80rem;color:inherit;line-height:1.35;margin-top:2px;}
 .stApp .cca-row .amt {font-weight:700;font-size:1rem;color:inherit;text-align:right;max-width:38%;overflow-wrap:anywhere;}
 .stApp .cca-row.best .amt {font-weight:800;}
 .stApp .fin-resultbar {height:6px;background:color-mix(in srgb,currentColor 14%,transparent);border-radius:6px;overflow:hidden;margin:2px 0 5px;}

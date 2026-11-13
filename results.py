@@ -4,6 +4,7 @@ import streamlit as st
 from rules_engine import category_label,inr,key_condition
 from explain import explain_comparison, explanation_parts
 from ui import get_secret
+from display_text import comparison_text, redemption_guidance, review_date
 
 def others_html(ranked,mark_best):
     rows=[]
@@ -11,12 +12,13 @@ def others_html(ranked,mark_best):
     for i,r in enumerate(ranked):
         best=" best" if mark_best and r.available and r.comparable and r.benefit>0.005 and abs(r.benefit-maximum)<0.005 else ""
         amount="Unavailable" if not r.available else inr(r.benefit) if r.comparable else "Not comparable"
-        reason=r.reason if not r.available else (r.reason+" · "+r.card.get("reward_label","Cashback")) if r.comparable else r.uncertainty
+        reason,form=comparison_text(r)
+        form_html=f'<span class="reward-form">{html.escape(form)}</span>' if form else ""
         width=max(0,min(100,r.benefit/maximum*100)) if r.comparable else 0
         rows.append(
             f'<div class="cca-row{best}">'
             f'<span class="nm"><b>{html.escape(r.card["name"])}</b>'
-            f'<span class="why">{html.escape(reason)}</span></span>'
+            f'<span class="why">{html.escape(reason)}</span>{form_html}</span>'
             f'<span class="amt">{html.escape(amount)}</span></div>'
             f'<div class="fin-resultbar"><span style="width:{width:.1f}%"></span></div>'
         )
@@ -145,17 +147,18 @@ def render_result(L, request_ai=False):
     if len(ranked)>3:
         with st.expander(f"Compare all {len(ranked)} selected cards"):
             st.markdown(others_html(ranked,True),unsafe_allow_html=True)
-    st.caption(f"Conditional estimates, not guaranteed savings. Winner source reviewed {win.card['last_verified']}.")
+    st.caption(f"Conditional estimates, not guaranteed savings. Recommended card issuer terms reviewed: {review_date(win.card['last_verified'])}.")
     render_details(ranked,diag,checked)
 
 
 def render_details(ranked,diag,checked=False):
     """Keep diagnostics and sources accessible even when no winner is possible."""
-    if any(item.card.get("model") in ("amazon","scapia") for item in ranked):
-        st.caption("Compare estimated rupee values, not equivalent cash: Amazon Pay balance and Scapia travel value have redemption restrictions.")
+    guidance=redemption_guidance(ranked)
+    if guidance:
+        st.caption(guidance)
     st.caption("For planned, affordable purchases only. Fees, interest and promotions are excluded; interest or fees can outweigh rewards.")
     with st.expander("All card conditions and official sources"):
-        st.caption("Amazon Pay balance and Scapia Coins are restricted redemption value; Kiwi rewards are bank-redeemable. See issuer terms for redemption and eligibility.")
+        st.caption("Check the selected cards’ issuer terms for redemption and eligibility.")
         for item in ranked:
             st.markdown("**"+item.card["name"]+"**")
             st.write(key_condition(item))

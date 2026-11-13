@@ -8,6 +8,8 @@ from cards import CARDS,MARKET,CATALOG
 from rules_engine import evaluate,rank,inr,key_condition,reward_bucket,money
 from explain import build_payload,validate,check_response,ai_reword,explain_comparison,_error_category,explanation_parts
 
+from display_text import comparison_text, redemption_guidance, review_date
+
 BY_ID={c["id"]:c for c in CARDS}
 
 class IssuerRulesTests(unittest.TestCase):
@@ -519,6 +521,38 @@ class ContextualReasonTests(unittest.TestCase):
         win=evaluate(BY_ID["amazon_icici"],"shopping",1000,merchant_type="amazon_prime")
         second=evaluate(BY_ID["swiggy_ornge"],"shopping",1000,merchant_type="unconfirmed")
         self.assertNotIn("advantage",build_payload(win,second,1000,"shopping")["reason_options"])
+
+class CustomerDisplayTests(unittest.TestCase):
+    def test_ornge_binding_cap(self):
+        r=evaluate(BY_ID["swiggy_ornge"],"shopping",41698.60,used=1200,merchant_type="amazon_prime")
+        self.assertEqual(comparison_text(r),("5% cashback on eligible purchases · Limited by remaining cap","Statement credit"))
+        self.assertEqual(r.benefit,300)
+    def test_ornge_nonbinding_cap(self):
+        r=evaluate(BY_ID["swiggy_ornge"],"shopping",1000,merchant_type="amazon_prime")
+        self.assertEqual(comparison_text(r),("5% cashback on eligible purchases","Statement credit"))
+    def test_amazon_prime_display(self):
+        r=evaluate(BY_ID["amazon_icici"],"shopping",41698.60,merchant_type="amazon_prime")
+        self.assertEqual(r.benefit,2084.93)
+        self.assertEqual(comparison_text(r),("5% on eligible Amazon purchases with Prime membership","Amazon Pay balance"))
+    def test_redemption_guidance_selected_only(self):
+        a=evaluate(BY_ID["amazon_icici"],"shopping",1000,merchant_type="amazon_prime")
+        b=evaluate(BY_ID["swiggy_ornge"],"shopping",1000,merchant_type="amazon_prime")
+        self.assertIn("Amazon Pay balance",redemption_guidance([a,b]))
+        self.assertNotIn("Scapia",redemption_guidance([a,b]))
+        self.assertNotIn("Kiwi",redemption_guidance([a,b]))
+        self.assertEqual(redemption_guidance([b]),"")
+        s=evaluate(BY_ID["scapia_visa"],"shopping",1000,merchant_type="other")
+        self.assertIn("Scapia Coins",redemption_guidance([s,b]))
+        self.assertNotIn("Amazon",redemption_guidance([s,b]))
+    def test_unknown_and_below_minimum(self):
+        a=evaluate(BY_ID["swiggy_ornge"],"shopping",1000,merchant_type="unconfirmed")
+        b=evaluate(BY_ID["swiggy_ornge"],"shopping",100,merchant_type="amazon_prime")
+        self.assertEqual(comparison_text(a),(a.uncertainty,""))
+        self.assertEqual(comparison_text(b),(b.reason,""))
+    def test_review_date(self):
+        self.assertEqual(review_date("2026-11-12"),"12 Nov 2026")
+        self.assertEqual(review_date("2026-11-01"),"1 Nov 2026")
+        self.assertEqual(review_date(None),"Not recorded")
 
 if __name__=="__main__":
     unittest.main()
