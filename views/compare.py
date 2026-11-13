@@ -4,7 +4,7 @@ from cards import (CARDS, CATEGORIES, DEFAULT_WALLET, payment_methods,
                    valid_payment_method, upi_merchant_routes)
 from results import render_result
 from rules_engine import category_label, rank, reward_bucket, money, inr
-from ui import is_mobile, keep, keep_money, remember, page_heading
+from ui import is_mobile, keep, keep_money, remember, page_heading, UNSUPPORTED_PURCHASES
 
 cat_ids = [cid for cid, _ in CATEGORIES]
 by_id = {card["id"]: card for card in CARDS}
@@ -21,7 +21,7 @@ keep("merchant_type","unknown")
 
 with st.container(key="compare_workspace"):
     page_heading("Which card should you use?")
-    st.caption("Compare cards you own before paying. Domestic, non-EMI purchases only.")
+    st.caption("Compare cards you own before paying.")
 
     mobile = is_mobile()
     left, right = (st.container(), st.container()) if mobile else st.columns([1.12,1],gap="medium")
@@ -108,9 +108,7 @@ with st.container(key="compare_workspace"):
                                       key=route_key,help="Choose the actual store or app only if its issuer eligibility is confirmed. For partner offers, check the relevant card terms in Supported cards. Grocery MCC means merchant category code 5411. If unsure, choose Not sure; no winner will be forced.")
                 remember(route_key)
             st.session_state["merchant_type"]=merchant
-            keep("emi",False)
-            emi = st.checkbox("This is an EMI, international or excluded purchase",key="emi",help="Tick if this is an EMI (instalment) or international payment, or if you are paying for gift cards, wallet top-ups, rent, education, jewellery, insurance, taxes/government, gaming, tolls, cash advances, railways, business expenses or other unsupported purchases. Leave unchecked for a regular supported domestic purchase.")
-            remember("amount");remember("cat");remember("channel");remember("emi")
+            remember("amount");remember("cat");remember("channel")
 
             kiwi_remaining=None
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online"):
@@ -165,10 +163,13 @@ with st.container(key="compare_workspace"):
             remember("compare_use_ai")
             current_sig=repr((tuple(c["id"] for c in selected),amount,
                               st.session_state["cat"],st.session_state["channel"],
-                              st.session_state.get("merchant_type","unknown"),emi,sorted(used_by_card.items()),kiwi_remaining,use_ai))
+                              st.session_state.get("merchant_type","unknown"),sorted(used_by_card.items()),kiwi_remaining,use_ai))
             if st.session_state.get("last") and st.session_state["last"].get("signature")!=current_sig:
                 st.session_state.pop("last",None)
                 st.caption("Inputs changed — compare again for an updated result.")
+            st.caption("For supported purchases in India paid in full (not EMI). Compare only if your purchase meets these conditions.")
+            with st.expander("View unsupported purchases",expanded=False):
+                st.write(UNSUPPORTED_PURCHASES)
             go=st.button("Compare my cards",type="primary",use_container_width=True)
             error=None
             if go:
@@ -178,8 +179,6 @@ with st.container(key="compare_workspace"):
                     error="Enter a purchase amount greater than zero."
                 elif amount>10000000:
                     error="The supported amount limit is ₹1,00,00,000."
-                elif emi:
-                    error="This purchase is outside the MVP scope. Compare only supported domestic, non-EMI purchases."
                 if error:
                     st.session_state.pop("last",None)
                 else:

@@ -11,6 +11,13 @@ import streamlit as st
 from cards import SAMPLE_DATA
 from rules_engine import money
 
+UNSUPPORTED_PURCHASES = (
+    "Do not use this tool for EMI (instalments), international payments, gift cards, "
+    "wallet top-ups, rent, education, jewellery, insurance, taxes or government payments, "
+    "gaming, tolls, cash advances, railway payments, business expenses or other "
+    "purchases excluded by your card issuer."
+)
+
 def get_secret(name, default=None):
     try:
         if name in st.secrets:
@@ -250,9 +257,10 @@ def sidebar():
             )
             st.markdown("**What is excluded?**")
             st.write(
-                "Fees, interest, unmodeled promotions and unsupported purchases. "
-                "Restricted redemption value is not cash. Do not spend more just "
-                "to earn rewards."
+                UNSUPPORTED_PURCHASES + " The comparison assumes a supported purchase; "
+                "it cannot identify instalments or international payments automatically. "
+                "Fees, interest and promotional offers are not included. "
+                "Restricted redemption value is not cash. Do not spend more just to earn rewards."
             )
             st.markdown("**Provider privacy**")
             st.write("The app does not save a customer wallet or purchase history. Your selections are held temporarily while you use it. Streamlit and Google Gemini have their own data-handling policies.")
