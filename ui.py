@@ -166,7 +166,9 @@ CSS = """
 .stApp .st-key-compare_workspace .fin-step.result-step {box-sizing:border-box;min-height:38px;line-height:1.35;margin:0;padding:0 0 12px;}
 .stApp .st-key-compare_workspace .fin-step.result-step .step-number {box-sizing:border-box;line-height:1;flex-shrink:0;}
 .stApp .fin-step .step-number {display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;flex:none;background:color-mix(in srgb,currentColor 9%,transparent);font-size:.76rem;font-weight:750;color:inherit;}
-.stApp .st-key-purchase_inputs .fin-step + div {margin-top:0;}
+/* Explicit padding survives Streamlit's compact Markdown wrapper spacing. */
+.stApp .st-key-compare_workspace .st-key-purchase_inputs .fin-step.input-step {box-sizing:border-box;line-height:1.35;margin:0;padding:0 0 10px;min-height:36px;}
+.stApp .st-key-compare_workspace .st-key-purchase_inputs .fin-step.purchase-step {padding-top:12px;min-height:48px;}
 .stApp .st-key-purchase_inputs {min-width:0;}
 /* Compact, theme-inheriting guidance; never resize the native sidebar. */
 .stApp .cca-side {font-size:.88rem;line-height:1.48;color:inherit;}

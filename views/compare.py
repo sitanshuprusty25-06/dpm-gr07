@@ -27,7 +27,7 @@ with st.container(key="compare_workspace"):
     left, right = (st.container(), st.container()) if mobile else st.columns([1.12,1],gap="medium")
     with left:
         with st.container(border=True,key="purchase_inputs"):
-            st.markdown('<div class="fin-step"><span class="step-number">01</span>Your cards</div>',unsafe_allow_html=True)
+            st.markdown('<div class="fin-step input-step"><span class="step-number">01</span>Your cards</div>',unsafe_allow_html=True)
             selected_ids = st.multiselect(
                 "Cards you own", options=list(by_id), format_func=lambda cid: by_id[cid]["name"],
                 key="compare_wallet_ids", placeholder="Search and select your cards",
@@ -37,7 +37,7 @@ with st.container(key="compare_workspace"):
             selected = [card for card in CARDS if card["id"] in selected_ids]
             # Names remain visible in the native multiselect. Artwork lives in
             # the catalogue; do not fetch image assets while comparing a purchase.
-            st.markdown('<div class="fin-step"><span class="step-number">02</span>Purchase details</div>',unsafe_allow_html=True)
+            st.markdown('<div class="fin-step input-step purchase-step"><span class="step-number">02</span>Purchase details</div>',unsafe_allow_html=True)
             # Keep the amount field full-width so the editing controls have room.
             raw_amount=st.number_input("Amount (₹)",min_value=0.0,step=1.0,value=None,format="%.2f",key="amount",placeholder="e.g. 1200.50",help="Enter rupees and paise (up to two decimal places). Press Enter or move to the next field to apply.")
             amount=money(raw_amount) if raw_amount is not None else None

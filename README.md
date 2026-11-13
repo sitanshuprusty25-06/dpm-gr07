@@ -101,3 +101,6 @@ Updated the YES BANK Klick RuPay Credit Card (Kiwi) identity, source links, fee 
 
 ### Result-first layout — usability refinement (13 November 2026)
 Step 03 now starts directly with the highlighted decision (or the appropriate unresolved/unavailable state), followed by the reward comparison and the relevant cap/conditional-estimate note. The AI or rules-only explanation appears below the comparison; both the highlighted decision and comparison render before a Gemini request. Removed the duplicated category, payment-method and merchant chips above the result. The actual purchase selectors remain in Step 02; the first three ranked cards and full-list expander are retained. No financial logic, AI validation, consent, or issuer-source changes. Confirm the new order on desktop and mobile, with AI enabled and disabled; live rendering has not been tested in this update.
+
+### Input heading spacing refinement
+Added explicit spacing below the Step 01 and Step 02 headings (10px), plus 12px above Step 02 to separate it from the card selector. Scoped to the purchase panel and applied on desktop and mobile. Step 03, native widget behavior, result ordering, reward logic and AI consent/validation are unchanged. Browser rendering still needs visual confirmation.
