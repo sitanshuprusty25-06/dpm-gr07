@@ -78,10 +78,20 @@ def card_art(card, compact=False):
               f'<strong>{name}</strong><small>Illustrative card</small></div>')
     # Only emit an image after successful decoding. No inline JavaScript event handlers.
     uri=""
-    for url in [info.get("url","")]+info.get("alternate_urls",[]):
-        uri=image_data_uri(url)
-        if uri:
-            break
+    if info.get("local_path"):
+        try:
+            root=Path(__file__).resolve().parent
+            local=(root/info["local_path"]).resolve()
+            if local.is_relative_to(root/"assets"):
+                with Image.open(local) as image:
+                    uri=_encode_image(image)
+        except (OSError, ValueError):
+            pass
+    if not uri:
+        for url in [info.get("url","")]+info.get("alternate_urls",[]):
+            uri=image_data_uri(url)
+            if uri:
+                break
     if not uri and info.get("guide_pdf"):
         uri=guide_card_data_uri(info["guide_pdf"])
     alt=html.escape(info.get("image_alt",card["name"]+" product image"),quote=True)

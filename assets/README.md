@@ -4,7 +4,7 @@ The Supported cards page uses public product artwork solely for identification. 
 
 - Amazon Pay ICICI: card-specific reference image from Refpo.
 - Swiggy ORNGE: issuer product-page artwork.
-- YES BANK Klick (Kiwi): official YES BANK guide artwork only, extracted when a unique card-shaped image is available. Kiwi's application banner is recorded as marketing provenance, not used as an issuer-specific card photo; if the guide cannot be decoded, the UI displays a labeled illustration.
+- YES BANK Klick (Kiwi): green Kiwi RuPay promotional artwork from the supplied application-page screenshot, stored locally as `kiwi-green-reference.webp`. This is branding artwork, not proof of a physical card or issuer-specific design. No blue issuer-guide image fallback.
 - Scapia Federal Visa: standalone orange Visa image from Paisabazaar; no paired-image fallback.
 - Scapia Federal RuPay: official paired Scapia artwork, with the green RuPay identified by a short caption inside the image slot. Not a standalone RuPay photo.
 - Other cards: individual public reference images recorded in the register. Issuer icons are public website favicon references, not necessarily complete bank logos.

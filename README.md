@@ -104,3 +104,6 @@ Step 03 now starts directly with the highlighted decision (or the appropriate un
 
 ### Input heading spacing refinement
 Added explicit spacing below the Step 01 and Step 02 headings (10px), plus 12px above Step 02 to separate it from the card selector. Scoped to the purchase panel and applied on desktop and mobile. Step 03, native widget behavior, result ordering, reward logic and AI consent/validation are unchanged. Browser rendering still needs visual confirmation.
+
+### Kiwi green artwork correction
+The Supported cards catalogue now uses the green Kiwi RuPay promotional screenshot provided by the team as a local WebP asset. The prior blue YES BANK guide image is no longer used for card art; the guide remains an issuer terms reference. This is a visual-only change; card identity, virtual-card scope, reward rules and comparison behavior are unchanged. The local asset avoids dependency on external image hosts; live browser rendering remains to be checked.
