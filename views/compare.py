@@ -173,7 +173,7 @@ with st.container(key="compare_workspace"):
                         "ai_text":None,"ai_status":None if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
                     }
     with right:
-        st.markdown('<div class="fin-step"><span class="step-number">03</span>Your result</div>',unsafe_allow_html=True)
+        st.markdown('<div class="fin-step result-step"><span class="step-number">03</span>Your result</div>',unsafe_allow_html=True)
         if error:
             st.error(error)
         elif st.session_state.get("last"):

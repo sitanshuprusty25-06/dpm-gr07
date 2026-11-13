@@ -154,6 +154,9 @@ CSS = """
 .stApp .fin-art-note {position:absolute;bottom:0;left:0;right:0;height:25px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:2px 5px;background:#F5F7FA;color:#172B45;text-align:center;font-size:.72rem;line-height:1.2;}
 .stApp .st-key-compare_workspace .cca-panel {padding:18px;}
 .stApp .st-key-compare_workspace .fin-step {margin-bottom:1px;display:flex;align-items:center;gap:8px;letter-spacing:.045em;}
+/* Reserve space below the result heading even when Markdown wrappers compress gaps. */
+.stApp .st-key-compare_workspace .fin-step.result-step {box-sizing:border-box;min-height:38px;line-height:1.35;margin:0;padding:0 0 12px;}
+.stApp .st-key-compare_workspace .fin-step.result-step .step-number {box-sizing:border-box;line-height:1;flex-shrink:0;}
 .stApp .fin-step .step-number {display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;flex:none;background:color-mix(in srgb,currentColor 9%,transparent);font-size:.76rem;font-weight:750;color:inherit;}
 .stApp .st-key-purchase_inputs .fin-step + div {margin-top:0;}
 .stApp .st-key-purchase_inputs {min-width:0;}
