@@ -661,6 +661,24 @@ class PaymentChoiceTests(unittest.TestCase):
         self.assertIn("kiwi_qr", upi_merchant_routes(
             [BY_ID["kiwi_yes_klick"], BY_ID["scapia_rupay"]]))
 
+    def test_upi_conditional_preview_is_not_a_ranking(self):
+        from rules_engine import upi_conditional_estimates
+        previews={card["id"]:(amount,note) for card,amount,note in
+                  upi_conditional_estimates(CARDS,"dining",250000)}
+        self.assertEqual(set(previews),{"kiwi_yes_klick","scapia_rupay"})
+        self.assertEqual(previews["kiwi_yes_klick"][0],3750)
+        self.assertIn("Before monthly cashback cap",previews["kiwi_yes_klick"][1])
+        self.assertEqual(previews["scapia_rupay"][0],2500)
+        self.assertTrue(all(not r.comparable for r in rank(CARDS,"dining",250000,
+                        channel="upi",merchant_type="unconfirmed") if r.available))
+
+    def test_upi_other_app_does_not_assign_kiwi_cashback(self):
+        from rules_engine import upi_conditional_estimates
+        previews={card["id"]:value for card,value,_ in
+                  upi_conditional_estimates(CARDS,"dining",1000,"other")}
+        self.assertIsNone(previews["kiwi_yes_klick"])
+        self.assertEqual(previews["scapia_rupay"],10)
+
     def test_ui_upi_support_matches_engine(self):
         for card in CARDS:
             with self.subTest(card=card["id"]):

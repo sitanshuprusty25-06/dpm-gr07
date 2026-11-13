@@ -100,6 +100,21 @@ class ResultRenderingTests(unittest.TestCase):
         self.assertFalse(any("Best among comparable cards" in m for m in markdown))
         self.assertTrue(details)
 
+    def test_unconfirmed_high_value_upi_shows_preview_not_ai(self):
+        from results import render_result
+        ranked=rank(CARDS,"dining",250000,channel="upi",merchant_type="unconfirmed")
+        state={"ranked":ranked,"amount":250000,"cat":"dining","channel":"upi",
+               "merchant_type":"unconfirmed","upi_limit_confirmed":False,"ai_enabled":True}
+        with patch("results.st") as st, patch("results.render_details"), \
+                patch("results.request_guidance") as ai:
+            render_result(state,request_ai=True)
+            ai.assert_not_called()
+            output=str(st.markdown.call_args_list)
+            self.assertIn("Potential rewards",output)
+            self.assertIn("₹3,750",output)
+            self.assertIn("₹2,500",output)
+            self.assertNotIn("Best among comparable cards",output)
+
     def test_all_unresolved(self):
         ranked = [Result(BY_ID["kiwi_yes_klick"], "shopping", comparable=False,
                          uncertainty="Check route")]

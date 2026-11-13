@@ -176,6 +176,8 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
             out.code = "excluded"
             out.reason = card["excl"][cat]
             return out
+        if channel == "upi":
+            return _unknown(out,"Confirm that the merchant accepts RuPay credit on UPI and select your payment app.")
         return _unknown(out,"Merchant or payment eligibility is not confirmed. Select an applicable route before comparing this card.")
     if merchant_type == "scapia_travel" and (channel != "online" or cat not in ("hotel","travel")):
         return _unknown(out,"Scapia travel must be an eligible booking in its app.")
@@ -185,6 +187,8 @@ def evaluate(card, cat, amount, used=0.0, channel="online", merchant_type="unkno
             out.reason=card["excl"][cat]
             return out
         if merchant_type not in ("kiwi_qr","kiwi_online"):
+            if channel=="upi":
+                return _unknown(out,"Kiwi cashback requires payment via Kiwi. YES BANK separately lists 4 YES Rewardz points per ₹200 on eligible UPI transactions above ₹2,000; their value and eligibility are not modeled.")
             return _unknown(out,"Kiwi cashback requires an eligible Kiwi UPI route. Other-app UPI or ordinary online card payment is not assigned Kiwi cashback; separate YES Rewardz points are not modeled.")
         if (merchant_type=="kiwi_qr" and channel!="upi") or (merchant_type=="kiwi_online" and channel!="online"):
             return _unknown(out,"Kiwi payment route does not match the selected channel.")
@@ -317,6 +321,29 @@ def rank(cards, cat, amount, used_by_card=None, channel="online", merchant_type=
     # An unresolved reward is not a zero reward and must not be treated as such.
     results.sort(key=lambda r: (not r.available, not r.comparable, -r.benefit, r.card["name"]))
     return results
+
+def upi_conditional_estimates(cards, cat, amount, merchant_type="unconfirmed", kiwi_remaining=None):
+    """Scenario previews, never ranking inputs. No assumption of payment approval."""
+    previews=[]
+    for card in cards:
+        if not supports_credit_upi(card):
+            continue
+        route="kiwi_qr" if card["model"]=="kiwi" else "other"
+        if card["model"]=="kiwi" and merchant_type=="other":
+            # Other-app Kiwi reward value is not modeled; don't imply a cashback rate.
+            previews.append((card,None,"Other-app YES Rewardz not valued. Switch to Kiwi app for the standard Kiwi cashback estimate."))
+            continue
+        result=evaluate(card,cat,amount,channel="upi",merchant_type=route,kiwi_remaining=kiwi_remaining)
+        if result.code in ("excluded","below-min"):
+            previews.append((card,0,result.reason))
+        elif card["model"]=="kiwi" and kiwi_remaining is None and result.benefit>0:
+            previews.append((card,result.benefit,"Before monthly cashback cap; eligible Kiwi QR, standard plan only. Enter remaining allowance to compare."))
+        elif not result.comparable:
+            previews.append((card,None,result.uncertainty))
+        else:
+            previews.append((card,result.benefit,result.reason+"; "+key_condition(result)))
+    return previews
+
 
 def key_condition(r):
     card = r.card

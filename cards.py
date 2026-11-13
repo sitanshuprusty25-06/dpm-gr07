@@ -40,8 +40,8 @@ def upi_merchant_routes(selected):
     """Offer the Kiwi-specific QR route only when Kiwi is selected."""
     if not any(supports_credit_upi(card) for card in selected):
         return {}
-    routes = {"unconfirmed": "Not sure — check eligibility"}
+    routes = {"unconfirmed": "Not sure — show conditional UPI estimates"}
     if any(card["model"] == "kiwi" for card in selected):
-        routes["kiwi_qr"] = "Kiwi app — eligible merchant QR (credit on UPI)"
-    routes["other"] = "Other UPI app — eligible merchant QR"
+        routes["kiwi_qr"] = "Kiwi app — merchant accepts RuPay credit on UPI"
+    routes["other"] = "Other UPI app — merchant accepts RuPay credit on UPI"
     return routes

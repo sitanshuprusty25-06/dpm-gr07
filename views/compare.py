@@ -109,10 +109,21 @@ with st.container(key="compare_workspace"):
                 remember(route_key)
             st.session_state["merchant_type"]=merchant
             remember("amount");remember("cat");remember("channel")
+            upi_limit_confirmed=False
+            if channel=="upi":
+                st.caption("Only merchant QR payments funded by an eligible, linked RuPay credit card are compared; personal QR or bank-account UPI is outside scope.")
+                if amount is not None and amount>100000:
+                    st.warning("High-value UPI payment: check merchant acceptance and the available credit, per-transaction and daily limits for the cards you intend to compare. This tool cannot verify payment approval.")
+                    # Bind confirmation to the exact amount and route, not to an old purchase.
+                    limit_key=f"upi_limit_{amount:.2f}_{cat}_{merchant}_{'_'.join(sorted(selected_ids))}"
+                    upi_limit_confirmed=st.checkbox("I checked the applicable limits for these RuPay cards",
+                                                   key=limit_key,help="Only confirm if your issuer and UPI app permit this purchase amount for the selected RuPay cards. ₹1 lakh is a conservative prompt threshold, not a universal credit-UPI limit.")
+                else:
+                    upi_limit_confirmed=True
 
             kiwi_remaining=None
             if any(c["id"]=="kiwi_yes_klick" for c in selected) and merchant in ("kiwi_qr","kiwi_online"):
-                with st.expander("Kiwi · remaining monthly allowance (needed for ranking)",expanded=False):
+                with st.expander("Kiwi · remaining monthly allowance (needed for ranking)",expanded=channel=="upi"):
                     st.caption("Standard Kiwi plan only (no Neon or Boost). Check your actual remaining monthly allowance in the app; 4 Kiwis = ₹1. Enter it in rupees, not Kiwis. Leave blank if unknown; Kiwi will remain unranked rather than assuming an unlimited reward.")
                     keep_money("kiwi_remaining")
                     raw_kiwi=st.number_input("Remaining Kiwi reward value (₹)",min_value=0.0,value=None,step=1.0,format="%.2f",key="kiwi_remaining")
@@ -163,7 +174,7 @@ with st.container(key="compare_workspace"):
             remember("compare_use_ai")
             current_sig=repr((tuple(c["id"] for c in selected),amount,
                               st.session_state["cat"],st.session_state["channel"],
-                              st.session_state.get("merchant_type","unknown"),sorted(used_by_card.items()),kiwi_remaining,use_ai))
+                              st.session_state.get("merchant_type","unknown"),sorted(used_by_card.items()),kiwi_remaining,upi_limit_confirmed,use_ai))
             if st.session_state.get("last") and st.session_state["last"].get("signature")!=current_sig:
                 st.session_state.pop("last",None)
                 st.caption("Inputs changed — compare again for an updated result.")
@@ -187,7 +198,7 @@ with st.container(key="compare_workspace"):
                     st.session_state["last"]={
                         "ranked":ranked,"win":ranked[0],"second":ranked[1] if len(ranked)>1 else None,
                         "amount":amount,"cat":st.session_state["cat"],
-                        "ai_option_id":None,"ai_status":"idle" if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
+                        "ai_option_id":None,"ai_status":"idle" if use_ai else "disabled","ai_detail":{},"ai_enabled":use_ai,"signature":current_sig,"channel":st.session_state["channel"],"merchant_label":merchants.get(merchant,merchant),"merchant_type":merchant,"kiwi_remaining":kiwi_remaining,"upi_limit_confirmed":upi_limit_confirmed,"cap_assumed":bool(capped) and any(x==0 for x in used_by_card.values()),
                     }
     with right:
         st.markdown('<div class="fin-step result-step"><span class="step-number">03</span>Your result</div>',unsafe_allow_html=True)

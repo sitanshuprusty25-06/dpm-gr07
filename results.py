@@ -1,7 +1,7 @@
 """Present the computed decision and reward comparison before the explanation."""
 import html
 import streamlit as st
-from rules_engine import category_label,inr,key_condition
+from rules_engine import category_label,inr,key_condition,upi_conditional_estimates
 from explain import explanation_parts
 from ai_guidance import build_guidance, request_guidance, guidance_fingerprint, CHECK_NAMES
 from ui import get_secret
@@ -97,6 +97,9 @@ def render_result(L, request_ai=False):
     comparable=[r for r in eligible if r.comparable]
     uncertain=[r for r in eligible if not r.comparable]
     partial=bool(uncertain)
+    channel=L.get("channel",ranked[0].channel if ranked else "online")
+    upi=channel=="upi"
+    merchant=L.get("merchant_type","unknown")
 
     def scope_text():
         return ("Comparable cards only. Unresolved: "+", ".join(r.card["name"] for r in uncertain)
@@ -104,16 +107,39 @@ def render_result(L, request_ai=False):
 
     def comparison(mark=True):
         st.markdown('<div class="cca-result-heading">Reward comparison</div>',unsafe_allow_html=True)
-        st.markdown(others_html(ranked[:3],mark),unsafe_allow_html=True)
-        if len(ranked)>3:
+        visible=[r for r in ranked if r.available][:3] if upi else ranked[:3]
+        st.markdown(others_html(visible,mark),unsafe_allow_html=True)
+        if len(ranked)>len(visible):
             with st.expander(f"Compare all {len(ranked)} selected cards"):
                 st.markdown(others_html(ranked,mark),unsafe_allow_html=True)
         if L.get("cap_assumed"):
             st.caption("Unused caps assumed where prior cashback is zero.")
+        if upi:
+            st.caption("UPI estimates assume linked cards, merchant acceptance and sufficient credit and transaction limits.")
         st.caption("Conditional estimates; fees, interest and promotions are excluded.")
 
     def details(diag,checked=False):
         render_details(ranked,diag,checked,show_ai=enabled)
+
+    # An uncertain route or unconfirmed high-value payment can show conditional
+    # rewards, but never a recommendation or a Gemini request.
+    if upi and (merchant in ("unconfirmed","unknown") or (amount>100000 and not L.get("upi_limit_confirmed"))):
+        st.info("Confirm your UPI payment route and applicable transaction limits before choosing a card.")
+        st.markdown("**Potential rewards — not ranked**")
+        for card,value,condition in upi_conditional_estimates(
+                [r.card for r in ranked],cat,amount,merchant,L.get("kiwi_remaining")):
+            label=inr(value) if value is not None else "Not estimated"
+            st.markdown("**"+card["name"]+" · "+label+"**")
+            st.caption(condition)
+        st.caption("These estimates assume eligible merchant payments. They do not confirm available credit, merchant acceptance or payment approval.")
+        st.markdown("**Next step:** Select the UPI app and confirm the merchant accepts credit on UPI. For Kiwi, enter the remaining cashback allowance.")
+        st.link_button("RuPay credit on UPI — NPCI","https://www.npci.org.in/product/rupay/credit-card-on-upi")
+        st.link_button("Federal Bank credit-card UPI limits","https://www.federal.bank.in/rupay-credit-card-upi")
+        if len(ranked)>len(eligible):
+            with st.expander(f"{len(ranked)-len(eligible)} other selected cards — UPI not modeled"):
+                st.markdown(others_html([r for r in ranked if not r.available],False),unsafe_allow_html=True)
+        details({"message":"AI skipped: UPI route or high-value payment limits are not confirmed."})
+        return
 
     if not comparable or comparable[0].benefit<=0.005:
         if not eligible:
