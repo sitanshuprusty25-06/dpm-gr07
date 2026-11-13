@@ -21,7 +21,7 @@ keep("merchant_type","unknown")
 
 with st.container(key="compare_workspace"):
     page_heading("Which card should you use?")
-    st.caption("Compare cards you own before paying.")
+    st.caption("Compare cards you own before paying. Domestic, non-EMI purchases only.")
 
     mobile = is_mobile()
     left, right = (st.container(), st.container()) if mobile else st.columns([1.12,1],gap="medium")
@@ -167,7 +167,6 @@ with st.container(key="compare_workspace"):
             if st.session_state.get("last") and st.session_state["last"].get("signature")!=current_sig:
                 st.session_state.pop("last",None)
                 st.caption("Inputs changed — compare again for an updated result.")
-            st.caption("For supported purchases in India paid in full (not EMI). Compare only if your purchase meets these conditions.")
             with st.expander("View unsupported purchases",expanded=False):
                 st.write(UNSUPPORTED_PURCHASES)
             go=st.button("Compare my cards",type="primary",use_container_width=True)
